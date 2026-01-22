@@ -1,0 +1,20 @@
+{
+  "name": "High income in Lombardia (Milan)",
+  "description": "Employee earning €60,000 in Lombardia region (includes Milan)",
+  "inputs": {
+    "gross_annual": 60000,
+    "region_level_1": "lombardia"
+  },
+  "expected": {
+    "net": 33688,
+    "effective_rate": 0.4385
+  },
+  "tolerance": 100,
+  "sources": [
+    {
+      "description": "Lombardia regional tax: ~2.28% average (progressive 1.23% to 3.33%)",
+      "url": "https://www.pagheon-line.com/infoter/help/Pa/DOC-IRPEF-ADDIZIONALI.html",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

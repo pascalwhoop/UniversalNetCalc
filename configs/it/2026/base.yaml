@@ -1,0 +1,227 @@
+meta:
+  country: "it"
+  year: 2026
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.lexology.com/library/detail.aspx?g=25386883-69ba-499e-a085-f7a5342877ee"
+      description: "Budget Law 2026 - IRPEF rate changes (second bracket reduced from 35% to 33%)"
+      retrieved_at: "2026-01-22"
+    - url: "https://taxing.it/personal-income-tax-irpef-rates/"
+      description: "Italian Personal Income Tax Rates for FY 2026"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.mef.gov.it/en/focus/Main-measures-of-the-2026-Budget-Law-00001/"
+      description: "Ministry of Economy and Finance - Main measures of the 2026 Budget Law"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    Key change from 2025: The second IRPEF bracket rate is reduced from 35% to 33%
+    for incomes between €28,001 and €50,000, providing tax relief for middle-income earners.
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: "Enter your total annual gross salary before any deductions. This should be your employment income before taxes and social security contributions."
+    severity: "info"
+  - id: "regional_tax"
+    title: "Regional Tax Varies by Location"
+    body: "Regional tax (addizionale regionale) rates are set by each region and range from 1.23% to 3.33%. Select your region of residence to apply the correct rate."
+    severity: "info"
+  - id: "2026_tax_cut"
+    title: "2026 Tax Reduction"
+    body: "Starting in 2026, the second IRPEF bracket rate (€28,001-€50,000) was reduced from 35% to 33%, providing savings for middle-income earners."
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions"
+
+  region_level_1:
+    type: enum
+    required: true
+    default: "lazio"
+    label: "Region of Residence"
+    description: "Select your Italian region (determines regional tax rate)"
+    options:
+      abruzzo:
+        label: "Abruzzo"
+        description: "Progressive regional tax: 1.67% to 3.33%"
+      basilicata:
+        label: "Basilicata"
+        description: "Regional tax: 1.23%"
+      calabria:
+        label: "Calabria"
+        description: "Regional tax: 2.03%"
+      campania:
+        label: "Campania"
+        description: "Regional tax: 2.33%"
+      emilia_romagna:
+        label: "Emilia-Romagna"
+        description: "Progressive regional tax: 1.33% to 3.33%"
+      friuli_venezia_giulia:
+        label: "Friuli-Venezia Giulia"
+        description: "Regional tax: 1.23%"
+      lazio:
+        label: "Lazio (Rome)"
+        description: "Progressive regional tax: 1.73% to 3.33%"
+      liguria:
+        label: "Liguria"
+        description: "Progressive regional tax: 1.23% to 2.33%"
+      lombardia:
+        label: "Lombardia (Milan)"
+        description: "Progressive regional tax: 1.23% to 3.33%"
+      marche:
+        label: "Marche"
+        description: "Regional tax: 1.73%"
+      molise:
+        label: "Molise"
+        description: "Progressive regional tax: 1.73% to 3.33%"
+      piemonte:
+        label: "Piemonte (Turin)"
+        description: "Progressive regional tax: 1.62% to 3.33%"
+      puglia:
+        label: "Puglia"
+        description: "Progressive regional tax: 1.23% to 3.33%"
+      sardegna:
+        label: "Sardegna"
+        description: "Regional tax: 1.23%"
+      sicilia:
+        label: "Sicilia"
+        description: "Progressive regional tax: 1.23% to 2.33%"
+      toscana:
+        label: "Toscana (Florence)"
+        description: "Progressive regional tax: 1.42% to 3.33%"
+      trentino_alto_adige_bolzano:
+        label: "Trentino-Alto Adige (Bolzano)"
+        description: "Progressive regional tax: 1.23% to 1.73%"
+      trentino_alto_adige_trento:
+        label: "Trentino-Alto Adige (Trento)"
+        description: "Regional tax: 1.23%"
+      umbria:
+        label: "Umbria"
+        description: "Progressive regional tax: 1.73% to 3.33%"
+      valle_d_aosta:
+        label: "Valle d'Aosta"
+        description: "Regional tax: 1.23%"
+      veneto:
+        label: "Veneto (Venice)"
+        description: "Progressive regional tax: 1.23% to 2.33%"
+
+parameters:
+  # IRPEF (National Income Tax) brackets for 2026
+  # Second bracket reduced from 35% to 33% by Budget Law 2026
+  irpef_brackets:
+    - { threshold: 0, rate: 0.23 }
+    - { threshold: 28000, rate: 0.33 }
+    - { threshold: 50000, rate: 0.43 }
+
+  # INPS (Social Security) - Employee contribution
+  inps_employee_rate: 0.10
+
+  # Municipal tax - average rate (varies by municipality from 0% to 0.9%)
+  # Most major cities charge 0.8% for incomes above a threshold
+  municipal_tax_rate: 0.008
+
+calculations:
+  # National Income Tax (IRPEF)
+  - id: irpef
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$irpef_brackets"
+    category: income_tax
+    label: "IRPEF (National Income Tax)"
+
+  # Regional tax rate based on region selection
+  - id: regional_tax_rate
+    type: switch
+    on: "@region_level_1"
+    cases:
+      basilicata: 0.0123
+      calabria: 0.0203
+      campania: 0.0233
+      friuli_venezia_giulia: 0.0123
+      marche: 0.0173
+      sardegna: 0.0123
+      trentino_alto_adige_trento: 0.0123
+      valle_d_aosta: 0.0123
+      abruzzo: 0.0227
+      emilia_romagna: 0.0233
+      lazio: 0.0253
+      liguria: 0.0178
+      lombardia: 0.0228
+      molise: 0.0266
+      piemonte: 0.0248
+      puglia: 0.0228
+      sicilia: 0.0178
+      toscana: 0.0238
+      trentino_alto_adige_bolzano: 0.0148
+      umbria: 0.0269
+      veneto: 0.0178
+    default: 0.0173
+
+  # Regional Income Tax (Addizionale Regionale)
+  - id: regional_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$regional_tax_rate"
+    category: income_tax
+    label: "Regional Tax (Addizionale Regionale)"
+
+  # Municipal Income Tax (Addizionale Comunale)
+  # Using average rate of 0.8% (actual rates vary by municipality)
+  - id: municipal_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$municipal_tax_rate"
+    category: income_tax
+    label: "Municipal Tax (Addizionale Comunale, ~0.8% avg)"
+
+  # Total Income Tax
+  - id: total_income_tax
+    type: sum
+    values:
+      - "$irpef"
+      - "$regional_tax"
+      - "$municipal_tax"
+
+  # Social Security Contributions (INPS) - Employee portion
+  - id: inps_employee
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$inps_employee_rate"
+    category: contribution
+    label: "Social Security (INPS - Employee)"
+
+  # Total Deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_income_tax"
+      - "$inps_employee"
+
+  # Net Annual Salary
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$irpef"
+      - "$regional_tax"
+      - "$municipal_tax"
+    contributions:
+      - "$inps_employee"

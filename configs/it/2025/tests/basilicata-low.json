@@ -1,0 +1,20 @@
+{
+  "name": "Low income in Basilicata",
+  "description": "Employee earning €20,000 in Basilicata (lowest regional tax rate)",
+  "inputs": {
+    "gross_annual": 20000,
+    "region_level_1": "basilicata"
+  },
+  "expected": {
+    "net": 12994,
+    "effective_rate": 0.3503
+  },
+  "tolerance": 50,
+  "sources": [
+    {
+      "description": "Basilicata has the lowest regional tax rate at 1.23% (national minimum)",
+      "url": "https://www.pagheon-line.com/infoter/help/Pa/DOC-IRPEF-ADDIZIONALI.html",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

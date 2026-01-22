@@ -1,0 +1,26 @@
+{
+  "name": "Median income single earner",
+  "description": "Employee earning €35,000 annually - benefits from 2026 rate reduction (second bracket: 33% vs 35% in 2025)",
+  "inputs": {
+    "gross_annual": 35000,
+    "region_level_1": "marche"
+  },
+  "expected": {
+    "net": 21864.50,
+    "effective_rate": 0.3753,
+    "breakdown": {
+      "irpef": 8750,
+      "regional_tax": 605.50,
+      "municipal_tax": 280,
+      "inps_employee": 3500
+    }
+  },
+  "tolerance": 50,
+  "sources": [
+    {
+      "description": "Calculated with 2026 reduced rate: €140 savings vs 2025",
+      "url": "https://www.lexology.com/library/detail.aspx?g=25386883-69ba-499e-a085-f7a5342877ee",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

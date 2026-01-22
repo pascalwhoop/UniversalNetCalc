@@ -1,0 +1,26 @@
+{
+  "name": "Income at second bracket boundary",
+  "description": "Employee earning €28,000 exactly - just at the boundary between first and second bracket",
+  "inputs": {
+    "gross_annual": 28000,
+    "region_level_1": "marche"
+  },
+  "expected": {
+    "net": 18053.60,
+    "effective_rate": 0.3552,
+    "breakdown": {
+      "irpef": 6440,
+      "regional_tax": 484.40,
+      "municipal_tax": 224,
+      "inps_employee": 2800
+    }
+  },
+  "tolerance": 50,
+  "sources": [
+    {
+      "description": "At bracket boundary - all income taxed at 23%, no benefit from second bracket rate change",
+      "url": "https://taxing.it/personal-income-tax-irpef-rates/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

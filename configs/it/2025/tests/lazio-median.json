@@ -1,0 +1,20 @@
+{
+  "name": "Median income in Lazio (Rome)",
+  "description": "Employee earning €35,000 in Lazio region (includes Rome)",
+  "inputs": {
+    "gross_annual": 35000,
+    "region_level_1": "lazio"
+  },
+  "expected": {
+    "net": 21444.5,
+    "effective_rate": 0.3873
+  },
+  "tolerance": 100,
+  "sources": [
+    {
+      "description": "Lazio regional tax: ~2.53% average (progressive 1.73% to 3.33%)",
+      "url": "https://www.pagheon-line.com/infoter/help/Pa/DOC-IRPEF-ADDIZIONALI.html",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}
