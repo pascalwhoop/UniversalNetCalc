@@ -6,16 +6,16 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 14105,
-    "effective_rate": 0.0597
+    "net": 14888,
+    "effective_rate": 0.0075
   },
   "tolerance": 75,
   "sources": [
     {
-      "description": "Calculated using official 2024 Belastingdienst rates - credits exceed tax",
+      "description": "Calculated using official 2024 Belastingdienst rates",
       "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
       "date": "2026-01-22",
-      "notes": "Tax: €5,545.50, General credit: €3,362, Labour credit: €1,288, Total credits exceed by €105, Net tax: €895, Net ≈ €14,105"
+      "notes": "Tax: €5,545.50, General credit: €3,362, Labour credit: €2,071.28 (verified from official arbeidskorting table), Total credits: €5,433.28, Net tax: €112.22, Net ≈ €14,888"
     }
   ]
 }

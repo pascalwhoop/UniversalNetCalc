@@ -7,8 +7,8 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 33250,
-    "effective_rate": 0.169
+    "net": 38328,
+    "effective_rate": 0.0418
   },
   "tolerance": 125,
   "sources": [
@@ -16,7 +16,7 @@
       "description": "Young professional (<30) with master's degree qualifies with lower threshold",
       "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
       "date": "2026-01-22",
-      "notes": "Taxable: €28,000 (70%), Tax: €10,351.60, General credit: €3,151, Labour credit: €5,441, Net ≈ €33,250"
+      "notes": "Taxable: €28,000 (70%), Tax: €10,351.60, General credit on €28,000: €3,150.66, Labour credit on full €40,000 salary: €5,529.20 (verified from arbeidskorting table), Total credits: €8,679.86, Net tax: €1,671.74, Net ≈ €38,328"
     }
   ]
 }

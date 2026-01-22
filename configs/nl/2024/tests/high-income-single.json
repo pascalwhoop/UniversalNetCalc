@@ -6,8 +6,8 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 65750,
-    "effective_rate": 0.3425
+    "net": 61586,
+    "effective_rate": 0.3841
   },
   "tolerance": 200,
   "sources": [
@@ -15,7 +15,7 @@
       "description": "Calculated using official 2024 Belastingdienst rates and tax credits with phaseout",
       "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
       "date": "2026-01-22",
-      "notes": "First bracket: €27,919, Second bracket: €12,108, General credit: €0 (phased out), Labour credit: €3,931, Net ≈ €65,750"
+      "notes": "First bracket: €27,919.38, Second bracket: €12,118.10, Total tax: €40,037.48, General credit: €0 (phased out), Labour credit: €1,623.20 (verified from official arbeidskorting table), Net tax: €38,414.28, Net ≈ €61,586"
     }
   ]
 }

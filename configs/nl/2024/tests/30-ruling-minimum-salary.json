@@ -7,8 +7,8 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 40400,
-    "effective_rate": 0.192
+    "net": 44625,
+    "effective_rate": 0.1075
   },
   "tolerance": 150,
   "sources": [
@@ -16,7 +16,7 @@
       "description": "Calculated with 30% ruling: only 70% (€35,000) is taxable",
       "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
       "date": "2026-01-22",
-      "notes": "Taxable: €35,000, Tax: €12,939.50, General credit: €2,691, Labour credit: €5,283, Net ≈ €40,400"
+      "notes": "Taxable: €35,000, Tax: €12,939.50, General credit on €35,000: €2,686.73, Labour credit on full €50,000 salary: €4,878.10 (verified from arbeidskorting table), Total credits: €7,564.83, Net tax: €5,374.67, Net ≈ €44,625"
     }
   ]
 }

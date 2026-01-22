@@ -6,8 +6,8 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 22065,
-    "effective_rate": 0.1174
+    "net": 24269,
+    "effective_rate": 0.0292
   },
   "tolerance": 100,
   "sources": [
@@ -15,7 +15,7 @@
       "description": "Calculated using official 2024 Belastingdienst rates",
       "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
       "date": "2026-01-22",
-      "notes": "Tax: €9,242.50, General credit: €3,362, Labour credit: €5,175 (approx), Net ≈ €22,065"
+      "notes": "Tax: €9,242.50, General credit: €3,349.54 (phased out by €12.46), Labour credit: €5,162.45 (verified from official arbeidskorting table), Total credits: €8,511.99, Net tax: €730.51, Net ≈ €24,269"
     }
   ]
 }
