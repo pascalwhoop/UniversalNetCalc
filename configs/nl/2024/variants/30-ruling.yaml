@@ -1,0 +1,82 @@
+meta:
+  variant: "30-ruling"
+  label: "30% Ruling"
+  description: |
+    Tax benefit for highly skilled migrants recruited from abroad. Under this ruling,
+    30% of the gross salary is considered tax-free compensation for extraterritorial
+    expenses, making only 70% of the salary taxable.
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen"
+      description: "30% ruling eligibility and conditions 2024"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.iamexpat.nl/expat-info/money-taxation/30-ruling-netherlands"
+      description: "Detailed 30% ruling explanation"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    Eligibility requirements for 2024:
+    - Must be recruited from abroad (more than 150km from Dutch border)
+    - Possess specific expertise scarce on Dutch labor market
+    - Minimum salary: €46,107 (excluding 30% allowance)
+    - For employees under 30 with master's degree: €35,048
+    - Valid for maximum 5 years
+    - Must be applied for within 4 months of starting employment
+
+    The 30% ruling will be reduced to 27% starting January 1, 2027 for new applicants.
+
+notices:
+  - id: "30_ruling_eligibility"
+    title: "Eligibility Check Required"
+    body: |
+      This variant assumes you qualify for the 30% ruling. To qualify:
+      - You must be recruited from abroad (>150km from Dutch border)
+      - You must have specific expertise scarce in the Netherlands
+      - Your salary must meet the minimum threshold (€46,107 for 2024)
+      - Application must be submitted within 4 months of employment start
+
+      Consult with your employer or a tax advisor to confirm eligibility.
+    severity: "warning"
+
+  - id: "30_ruling_salary_calculation"
+    title: "30% Calculation Method"
+    body: |
+      Enter your GROSS salary (before the 30% deduction). The calculator will
+      automatically apply the 30% ruling, making only 70% of your salary taxable.
+
+      Example: If your gross salary is €60,000, only €42,000 (70%) is taxable,
+      and €18,000 (30%) is tax-free.
+    severity: "info"
+
+  - id: "partial_foreign_tax_liability"
+    title: "Partial Foreign Tax Liability"
+    body: |
+      From 2025 onwards, partial foreign tax liability for Box 2 and Box 3 is
+      abolished. This configuration only covers Box 1 income tax benefits.
+      A transitional arrangement may apply through December 31, 2026 for those
+      who qualified by end of 2023.
+    severity: "info"
+
+parameters:
+  # 30% ruling: only 70% of income is taxable
+  taxable_percentage: 0.70
+
+calculations:
+  # Override taxable income calculation
+  # Only 70% of gross salary is taxable under 30% ruling
+  - id: taxable_income
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$taxable_percentage"
+    description: "Only 70% of gross income is taxable under 30% ruling"
+
+  # Add a calculation to show the tax-free allowance
+  - id: tax_free_allowance_30_ruling
+    type: mul
+    values:
+      - "@gross_annual"
+      - 0.30
+    category: deduction
+    label: "30% Ruling Tax-Free Allowance"
+    description: "30% of gross salary excluded from taxation"

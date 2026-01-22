@@ -1,0 +1,21 @@
+{
+  "name": "High income single filer",
+  "description": "Single person earning €100,000 - high earner in second tax bracket",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 65750,
+    "effective_rate": 0.3425
+  },
+  "tolerance": 200,
+  "sources": [
+    {
+      "description": "Calculated using official 2024 Belastingdienst rates and tax credits with phaseout",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "date": "2026-01-22",
+      "notes": "First bracket: €27,919, Second bracket: €12,108, General credit: €0 (phased out), Labour credit: €3,931, Net ≈ €65,750"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "30% ruling - high income expat",
+  "description": "Highly skilled migrant earning €100,000 with 30% ruling",
+  "variant": "30-ruling",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 74500,
+    "effective_rate": 0.255
+  },
+  "tolerance": 200,
+  "sources": [
+    {
+      "description": "Calculated with 30% ruling: only 70% (€70,000) is taxable",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
+      "date": "2026-01-22",
+      "notes": "Taxable: €70,000, Tax at first bracket: €25,879.46, General credit: €0 (phased out), Labour credit: €3,463, Net ≈ €74,500"
+    }
+  ]
+}

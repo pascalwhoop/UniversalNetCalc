@@ -1,0 +1,25 @@
+{
+  "name": "High income married filer",
+  "description": "High earner (AED 600,000/year) married in UAE - no income tax, filing status irrelevant",
+  "inputs": {
+    "gross_annual": 600000,
+    "filing_status": "married"
+  },
+  "expected": {
+    "net": 600000,
+    "effective_rate": 0.0,
+    "breakdown": {
+      "taxes": [],
+      "contributions": [],
+      "credits": []
+    }
+  },
+  "tolerance": 0,
+  "sources": [
+    {
+      "description": "UAE has no personal income tax on employment income, filing status does not affect calculation",
+      "url": "https://taxsummaries.pwc.com/united-arab-emirates/individual/taxes-on-personal-income",
+      "date": "2026-01-22"
+    }
+  ]
+}

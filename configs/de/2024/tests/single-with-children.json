@@ -1,0 +1,30 @@
+{
+  "name": "Single filer with children - Reduced care insurance",
+  "description": "Single parent earning €45,000 with reduced long-term care insurance rate",
+  "inputs": {
+    "gross_annual": 45000,
+    "filing_status": "single",
+    "has_children": true
+  },
+  "expected": {
+    "net": 30050,
+    "effective_rate": 0.3322,
+    "breakdown": {
+      "income_tax": 8350,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 4185,
+      "health_contribution": 3555,
+      "unemployment_contribution": 585,
+      "care_contribution": 765
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Parents receive 1.7% care insurance rate instead of 2.3% for childless",
+      "url": "https://www.arbeitnow.com/tools/salary-calculator/germany",
+      "date": "2026-01-22"
+    }
+  ]
+}

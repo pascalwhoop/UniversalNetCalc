@@ -1,0 +1,29 @@
+{
+  "name": "Single filer at median income in Zürich",
+  "description": "Standard case for single person earning CHF 80,000 in Zürich canton",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single",
+    "region_level_1": "zurich"
+  },
+  "expected": {
+    "net": 60800,
+    "effective_rate": 0.24,
+    "breakdown": {
+      "federal_income_tax": 3080,
+      "cantonal_municipal_tax": 9600,
+      "avs_ai_apg_contribution": 4240,
+      "unemployment_contribution": 880
+    }
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Based on Swiss tax calculator estimates for Zürich single filer at CHF 80,000",
+      "url": "https://swisstaxcalculator.estv.admin.ch/",
+      "date": "2024-01-22",
+      "notes": "Federal tax ~3,000-4,000 CHF, Cantonal/Municipal ~12% of gross, Social ~6.4%"
+    }
+  ]
+}

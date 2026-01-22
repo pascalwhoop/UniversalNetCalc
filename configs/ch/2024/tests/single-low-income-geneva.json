@@ -1,0 +1,29 @@
+{
+  "name": "Single filer at low income in Geneva",
+  "description": "Single person earning CHF 45,000 in Geneva",
+  "inputs": {
+    "gross_annual": 45000,
+    "filing_status": "single",
+    "region_level_1": "geneva"
+  },
+  "expected": {
+    "net": 36600,
+    "effective_rate": 0.187,
+    "breakdown": {
+      "federal_income_tax": 800,
+      "cantonal_municipal_tax": 4500,
+      "avs_ai_apg_contribution": 2385,
+      "unemployment_contribution": 495
+    }
+  },
+  "tolerance": 400,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Low income in Geneva - federal tax minimal, cantonal ~10%, social 6.4%",
+      "url": "https://www.estv.admin.ch/estv/en/home/federal-direct-tax.html",
+      "date": "2024-01-22",
+      "notes": "At CHF 45k, federal tax is low (<2%), Geneva cantonal/municipal ~10%, total ~18-19%"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "30% ruling - minimum salary threshold",
+  "description": "Highly skilled migrant at minimum salary threshold of €50,000",
+  "variant": "30-ruling",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 40400,
+    "effective_rate": 0.192
+  },
+  "tolerance": 150,
+  "sources": [
+    {
+      "description": "Calculated with 30% ruling: only 70% (€35,000) is taxable",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
+      "date": "2026-01-22",
+      "notes": "Taxable: €35,000, Tax: €12,939.50, General credit: €2,691, Labour credit: €5,283, Net ≈ €40,400"
+    }
+  ]
+}

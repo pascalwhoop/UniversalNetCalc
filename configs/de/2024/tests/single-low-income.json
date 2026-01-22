@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - Low income (below basic allowance)",
+  "description": "Income below the basic allowance of €11,604 - no income tax",
+  "inputs": {
+    "gross_annual": 10000,
+    "filing_status": "single",
+    "has_children": false
+  },
+  "expected": {
+    "net": 8170,
+    "effective_rate": 0.183,
+    "breakdown": {
+      "income_tax": 0,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 930,
+      "health_contribution": 790,
+      "unemployment_contribution": 130,
+      "care_contribution": 230
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Verified against German tax calculator - social security contributions only",
+      "url": "https://www.arbeitnow.com/tools/salary-calculator/germany",
+      "date": "2026-01-22"
+    }
+  ]
+}

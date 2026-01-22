@@ -1,0 +1,84 @@
+meta:
+  country: "ae"
+  year: 2024
+  currency: "AED"
+  version: "1.0.0"
+  sources:
+    - url: "https://taxsummaries.pwc.com/united-arab-emirates/individual/taxes-on-personal-income"
+      description: "PWC Tax Summary - UAE Individual Taxes"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.fidinam.com/en/blog/global-tax-transparency-uae-take-step-forward"
+      description: "UAE tax transparency - no personal income tax"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    The United Arab Emirates does not levy personal income tax on employment income.
+    Natural persons conducting business with turnover exceeding AED 1,000,000 are
+    subject to 9% corporate tax, but wages and personal investment income are excluded.
+    This configuration applies to standard employment income only.
+
+notices:
+  - id: "no_income_tax"
+    title: "No Personal Income Tax"
+    body: |
+      The UAE does not impose personal income tax on employment income.
+      Your net salary equals your gross salary. However, employees may have
+      other deductions (pension contributions, health insurance) that are
+      employer-specific and not captured here.
+    severity: "info"
+
+  - id: "business_income"
+    title: "Business Income Taxation"
+    body: |
+      If you conduct business activities with turnover exceeding AED 1,000,000,
+      you may be subject to 9% corporate tax. This calculator does not apply
+      to business income - it is for employment income only.
+    severity: "warning"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary in AED before any employer-specific deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    description: "Not used for tax calculation, but required for system consistency"
+    options:
+      single:
+        label: "Single"
+        description: "Individual taxpayer"
+      married:
+        label: "Married"
+        description: "Married taxpayer"
+
+parameters:
+  # No tax parameters needed - UAE has no personal income tax
+  # This section is required by schema but can be empty
+  zero_tax_rate: 0.0
+
+calculations:
+  # Net income equals gross income (no taxation)
+  - id: net_annual
+    type: identity
+    value: "@gross_annual"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  # Effective rate is 0% (no taxation)
+  effective_rate:
+    type: identity
+    value: 0.0
+
+  # Empty breakdown - no taxes, contributions, or credits
+  breakdown:
+    taxes: []
+    contributions: []
+    credits: []

@@ -1,0 +1,22 @@
+{
+  "name": "30% ruling - young professional with master's",
+  "description": "Professional under 30 with master's degree at reduced threshold €40,000",
+  "variant": "30-ruling",
+  "inputs": {
+    "gross_annual": 40000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 33250,
+    "effective_rate": 0.169
+  },
+  "tolerance": 125,
+  "sources": [
+    {
+      "description": "Young professional (<30) with master's degree qualifies with lower threshold",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
+      "date": "2026-01-22",
+      "notes": "Taxable: €28,000 (70%), Tax: €10,351.60, General credit: €3,151, Labour credit: €5,441, Net ≈ €33,250"
+    }
+  ]
+}

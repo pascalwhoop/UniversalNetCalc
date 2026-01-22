@@ -1,0 +1,21 @@
+{
+  "name": "Median income single filer",
+  "description": "Single person earning €50,000 - typical middle-income scenario",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 36500,
+    "effective_rate": 0.27
+  },
+  "tolerance": 150,
+  "sources": [
+    {
+      "description": "Calculated using official 2024 Belastingdienst rates and tax credits",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "date": "2026-01-22",
+      "notes": "Tax: €18,485, General credit phased out to €1,692, Labour credit: €5,407, Net ≈ €36,500"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Married filing jointly - High income with splitting benefit",
+  "description": "High-earning married couple at €150,000 benefiting from income splitting",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "married_joint",
+    "has_children": false
+  },
+  "expected": {
+    "net": 90200,
+    "effective_rate": 0.3987,
+    "breakdown": {
+      "income_tax": 48900,
+      "solidarity_surcharge": 2690,
+      "pension_contribution": 8426,
+      "health_contribution": 4906,
+      "unemployment_contribution": 1178,
+      "care_contribution": 1428
+    }
+  },
+  "tolerance": 250,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Married couples benefit significantly from Ehegattensplitting at high incomes",
+      "url": "https://allaboutberlin.com/tools/tax-calculator",
+      "date": "2026-01-22"
+    }
+  ]
+}

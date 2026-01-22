@@ -1,0 +1,290 @@
+meta:
+  country: "de"
+  year: 2024
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.iamexpat.de/expat-info/money-taxation/taxes-in-germany"
+      description: "German income tax brackets and rates for 2024"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.arbeitnow.com/tools/salary-calculator/germany"
+      description: "German social security contribution rates and ceilings for 2024"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.how-to-germany.com/income-tax-calculator/"
+      description: "Solidarity surcharge thresholds and exemptions for 2024"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    Germany uses a complex tax system with:
+    - Progressive income tax with Ehegattensplitting (income splitting for married couples)
+    - Solidarity surcharge (Solidaritätszuschlag) with exemption thresholds
+    - Multiple social security contributions with separate caps
+    - Optional church tax (not included in this base config)
+
+notices:
+  - id: "gross_salary_info"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary (Bruttojahresgehalt) before any deductions.
+      This should include all regular compensation but exclude benefits in kind like company cars.
+    severity: "info"
+
+  - id: "filing_status_info"
+    title: "Filing Status (Steuerklasse)"
+    body: |
+      Germany has 6 tax classes (Steuerklassen). For salary calculation purposes:
+      - Single/Class 1: Unmarried individuals
+      - Married Joint/Class 3+5 or 4+4: Married couples filing jointly
+
+      This calculator uses the fundamental income splitting method (Ehegattensplitting)
+      for married couples, which provides tax benefits regardless of the specific
+      Steuerklasse chosen during the year.
+    severity: "info"
+
+  - id: "church_tax_notice"
+    title: "Church Tax Not Included"
+    body: |
+      This calculation does not include church tax (Kirchensteuer), which is 8-9%
+      of income tax for church members. If you pay church tax, your actual deductions
+      will be higher.
+    severity: "warning"
+
+  - id: "social_security_notice"
+    title: "Social Security Contributions"
+    body: |
+      Social security contributions are capped at different income levels:
+      - Pension & Unemployment: €90,600/year (€7,550/month)
+      - Health & Care: €62,100/year (€5,175/month)
+
+      Income above these thresholds is not subject to those specific contributions.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single (Steuerklasse 1)"
+        description: "Unmarried, divorced, or widowed"
+        splitting_factor: 1
+      married_joint:
+        label: "Married Filing Jointly (Ehegattensplitting)"
+        description: "Married or registered partnership, filing jointly"
+        splitting_factor: 2
+
+  has_children:
+    type: boolean
+    required: false
+    default: false
+    label: "Have Children Under 25"
+    description: "Parents receive reduced long-term care insurance rates"
+
+parameters:
+  # Tax brackets and thresholds
+  basic_allowance: 11604
+  basic_allowance_married: 23208
+
+  # Income tax brackets (simplified progressive rates)
+  # Note: German tax uses a continuous formula in the transition zones
+  # This is a simplified bracket approximation
+  income_tax_brackets_single:
+    - threshold: 0
+      rate: 0
+    - threshold: 11604
+      rate: 0.14
+    - threshold: 17005
+      rate: 0.2397
+    - threshold: 66761
+      rate: 0.42
+    - threshold: 277826
+      rate: 0.45
+
+  # Solidarity surcharge parameters
+  soli_rate: 0.055
+  soli_exemption_single: 18130
+  soli_exemption_married: 36260
+
+  # Social security contribution rates (employee portion)
+  pension_rate: 0.093
+  health_rate: 0.079
+  unemployment_rate: 0.013
+  care_rate_with_children: 0.017
+  care_rate_without_children: 0.023
+
+  # Social security caps
+  pension_unemployment_cap: 90600
+  health_care_cap: 62100
+
+calculations:
+  # Determine which basic allowance to use
+  - id: basic_allowance_amount
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$basic_allowance"
+      married_joint: "$basic_allowance_married"
+
+  # For married couples, we need to use income splitting (Ehegattensplitting)
+  # This is complex and requires the function node
+  - id: income_tax
+    type: function
+    name: "income_splitting_tax"
+    inputs:
+      gross: "@gross_annual"
+      filing_status: "@filing_status"
+      brackets: "$income_tax_brackets_single"
+      splitting_factor: "@filing_status.splitting_factor"
+    category: income_tax
+    label: "Income Tax (Einkommensteuer)"
+    description: "Progressive income tax with Ehegattensplitting for married couples"
+
+  # Calculate solidarity surcharge
+  # Only applies if income tax exceeds threshold
+  - id: soli_exemption_threshold
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$soli_exemption_single"
+      married_joint: "$soli_exemption_married"
+
+  - id: solidarity_surcharge
+    type: conditional
+    condition:
+      type: gt
+      left: "$income_tax"
+      right: "$soli_exemption_threshold"
+    then:
+      type: percent_of
+      base: "$income_tax"
+      rate: "$soli_rate"
+    else: 0
+    category: surtax
+    label: "Solidarity Surcharge (Solidaritätszuschlag)"
+    description: "5.5% surcharge on income tax, exempt for 90% of taxpayers"
+
+  # Social security contributions - capped
+
+  # Pension contribution (Rentenversicherung)
+  - id: pension_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$pension_unemployment_cap"
+
+  - id: pension_contribution
+    type: percent_of
+    base: "$pension_base"
+    rate: "$pension_rate"
+    category: contribution
+    label: "Pension Insurance (Rentenversicherung)"
+    description: "Employee portion: 9.3% of income up to €90,600"
+
+  # Health insurance contribution (Krankenversicherung)
+  - id: health_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$health_care_cap"
+
+  - id: health_contribution
+    type: percent_of
+    base: "$health_base"
+    rate: "$health_rate"
+    category: contribution
+    label: "Health Insurance (Krankenversicherung)"
+    description: "Employee portion: 7.9% of income up to €62,100"
+
+  # Unemployment insurance (Arbeitslosenversicherung)
+  - id: unemployment_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$pension_unemployment_cap"
+
+  - id: unemployment_contribution
+    type: percent_of
+    base: "$unemployment_base"
+    rate: "$unemployment_rate"
+    category: contribution
+    label: "Unemployment Insurance (Arbeitslosenversicherung)"
+    description: "Employee portion: 1.3% of income up to €90,600"
+
+  # Long-term care insurance (Pflegeversicherung)
+  - id: care_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$health_care_cap"
+
+  - id: care_rate
+    type: switch
+    on: "@has_children"
+    cases:
+      true: "$care_rate_with_children"
+      false: "$care_rate_without_children"
+
+  - id: care_contribution
+    type: percent_of
+    base: "$care_base"
+    rate: "$care_rate"
+    category: contribution
+    label: "Long-Term Care Insurance (Pflegeversicherung)"
+    description: "Employee portion: 1.7% base + 0.6% surcharge if childless, up to €62,100"
+
+  # Total deductions
+  - id: total_tax
+    type: sum
+    values:
+      - "$income_tax"
+      - "$solidarity_surcharge"
+
+  - id: total_contributions
+    type: sum
+    values:
+      - "$pension_contribution"
+      - "$health_contribution"
+      - "$unemployment_contribution"
+      - "$care_contribution"
+
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_tax"
+      - "$total_contributions"
+
+  # Net income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$income_tax"
+      - "$solidarity_surcharge"
+    contributions:
+      - "$pension_contribution"
+      - "$health_contribution"
+      - "$unemployment_contribution"
+      - "$care_contribution"

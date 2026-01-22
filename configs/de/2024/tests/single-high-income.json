@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - High income (above social security caps)",
+  "description": "High earner at €120,000 with capped social security contributions",
+  "inputs": {
+    "gross_annual": 120000,
+    "filing_status": "single",
+    "has_children": false
+  },
+  "expected": {
+    "net": 71100,
+    "effective_rate": 0.4075,
+    "breakdown": {
+      "income_tax": 38900,
+      "solidarity_surcharge": 2140,
+      "pension_contribution": 8426,
+      "health_contribution": 4906,
+      "unemployment_contribution": 1178,
+      "care_contribution": 1428
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Verified against German tax calculator - solidarity surcharge applies",
+      "url": "https://www.how-to-germany.com/income-tax-calculator/",
+      "date": "2026-01-22"
+    }
+  ]
+}
