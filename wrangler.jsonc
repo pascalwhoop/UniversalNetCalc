@@ -34,7 +34,18 @@
 	],
 	"observability": {
 		"enabled": true
-	}
+	},
+	/**
+	 * KV Namespaces for caching
+	 * Create with: wrangler kv namespace create EXCHANGE_RATES_CACHE
+	 * Then update the id below with the returned namespace ID
+	 */
+	"kv_namespaces": [
+		{
+			"binding": "EXCHANGE_RATES_CACHE",
+			"id": "YOUR_KV_NAMESPACE_ID"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

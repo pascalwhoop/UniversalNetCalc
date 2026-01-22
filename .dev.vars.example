@@ -1,0 +1,3 @@
+# Copy this to .dev.vars for local development
+# FreeCurrencyAPI key - get one at https://freecurrencyapi.com/
+FREECURRENCY_API_KEY=your_api_key_here

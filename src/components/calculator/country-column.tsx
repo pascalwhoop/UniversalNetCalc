@@ -33,17 +33,25 @@ import {
   fetchInputs,
   calculateSalary,
   getCountryName,
+  getCurrencySymbol,
+  fetchExchangeRate,
   type CalculationResult,
   type InputDefinition,
 } from "@/lib/api"
+
+interface SharedGrossData {
+  amount: string
+  currency: string
+}
 
 interface CountryColumnProps {
   index: number
   onRemove?: () => void
   showRemove?: boolean
   showCopyToAll?: boolean
-  onCopyGrossToAll?: (gross: string) => void
-  sharedGross?: string
+  onCopyGrossToAll?: (gross: string, currency: string) => void
+  sharedGross?: SharedGrossData | null
+  onCurrencyChange?: (currency: string) => void
 }
 
 export function CountryColumn({
@@ -53,6 +61,7 @@ export function CountryColumn({
   showCopyToAll = false,
   onCopyGrossToAll,
   sharedGross,
+  onCurrencyChange,
 }: CountryColumnProps) {
   // Available options from API
   const [countries, setCountries] = useState<string[]>([])
@@ -65,18 +74,46 @@ export function CountryColumn({
   const [year, setYear] = useState<string>("")
   const [variant, setVariant] = useState<string>("")
   const [formValues, setFormValues] = useState<Record<string, string>>({})
+  const [currency, setCurrency] = useState<string>("EUR")
 
   // Result state
   const [result, setResult] = useState<CalculationResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Handle shared gross from parent
+  // Notify parent of currency changes
   useEffect(() => {
-    if (sharedGross) {
-      setFormValues(prev => ({ ...prev, gross_annual: sharedGross }))
+    if (onCurrencyChange) {
+      onCurrencyChange(currency)
     }
-  }, [sharedGross])
+  }, [currency, onCurrencyChange])
+
+  // Handle shared gross from parent (with currency conversion)
+  useEffect(() => {
+    if (sharedGross && sharedGross.amount) {
+      const convertAndSet = async () => {
+        const sourceAmount = parseFloat(sharedGross.amount)
+        if (isNaN(sourceAmount)) return
+
+        if (sharedGross.currency === currency) {
+          // Same currency, no conversion needed
+          setFormValues(prev => ({ ...prev, gross_annual: sharedGross.amount }))
+        } else {
+          // Convert currency
+          try {
+            const rate = await fetchExchangeRate(sharedGross.currency, currency)
+            const convertedAmount = Math.round(sourceAmount * rate)
+            setFormValues(prev => ({ ...prev, gross_annual: String(convertedAmount) }))
+          } catch (e) {
+            console.error("Currency conversion failed:", e)
+            // Fallback to original amount if conversion fails
+            setFormValues(prev => ({ ...prev, gross_annual: sharedGross.amount }))
+          }
+        }
+      }
+      convertAndSet()
+    }
+  }, [sharedGross, currency])
 
   // Fetch countries on mount
   useEffect(() => {
@@ -146,14 +183,31 @@ export function CountryColumn({
     fetchInputs(country, year, variant || undefined)
       .then((data) => {
         setInputDefs(data.inputs)
-        // Initialize form values with defaults
+        // Update currency
+        if (data.currency) {
+          setCurrency(data.currency)
+        }
+        // Initialize form values with defaults, or first option for required enums
         const defaults: Record<string, string> = {}
         for (const [key, def] of Object.entries(data.inputs)) {
           if (def.default !== undefined) {
             defaults[key] = String(def.default)
+          } else if (def.type === "enum" && def.options) {
+            // Pre-fill with first option for enum fields to avoid incomplete form errors
+            const firstOption = Object.keys(def.options)[0]
+            if (firstOption) {
+              defaults[key] = firstOption
+            }
           }
         }
-        setFormValues(prev => ({ ...defaults, ...prev }))
+        // Preserve gross_annual if already set, but apply all other defaults
+        setFormValues(prev => {
+          const newValues = { ...defaults }
+          if (prev.gross_annual) {
+            newValues.gross_annual = prev.gross_annual
+          }
+          return newValues
+        })
       })
       .catch((e) => {
         console.error("Failed to fetch inputs:", e)
@@ -222,8 +276,7 @@ export function CountryColumn({
   const handleCopyToAll = () => {
     const gross = formValues.gross_annual
     if (gross && onCopyGrossToAll) {
-      onCopyGrossToAll(gross)
-      toast.success("Salary copied to all countries")
+      onCopyGrossToAll(gross, currency)
     }
   }
 
@@ -308,7 +361,7 @@ export function CountryColumn({
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <Label htmlFor={`gross-${index}`} className="text-xs text-muted-foreground">
-              {inputDefs.gross_annual?.label || "Gross Annual Salary"}
+              {inputDefs.gross_annual?.label || "Gross Annual Salary"} ({getCurrencySymbol(currency)})
             </Label>
             {showCopyToAll && formValues.gross_annual && (
               <TooltipProvider>
@@ -325,20 +378,25 @@ export function CountryColumn({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Copy salary to all countries</p>
+                    <p>Copy salary to all countries (converts currency)</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             )}
           </div>
-          <Input
-            id={`gross-${index}`}
-            type="number"
-            placeholder="100000"
-            className="h-9"
-            value={formValues.gross_annual || ""}
-            onChange={(e) => updateFormValue("gross_annual", e.target.value)}
-          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+              {getCurrencySymbol(currency)}
+            </span>
+            <Input
+              id={`gross-${index}`}
+              type="number"
+              placeholder="100000"
+              className="h-9 pl-10"
+              value={formValues.gross_annual || ""}
+              onChange={(e) => updateFormValue("gross_annual", e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Dynamic Enum Inputs (filing status, regions, etc.) */}

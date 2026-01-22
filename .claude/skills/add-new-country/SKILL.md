@@ -5,6 +5,10 @@ description: |
   Use when: (1) Adding a new country to the calculator, (2) Adding a new tax year for existing country,
   (3) Creating variant configs (expat regimes, special tax rules), (4) Writing test vectors for configs.
   Triggers: "add country", "create config for", "new tax year", "add variant", "30% ruling config", etc.
+
+  IMPORTANT: This skill includes automated test validation. All configs MUST pass `npm run test:configs`
+  before completion. The skill guides you through research, implementation, test creation, validation,
+  and debugging until all tests pass.
 ---
 
 # Add New Country Configuration
@@ -14,8 +18,9 @@ description: |
 1. **Research** - Gather official tax rates, brackets, contributions, credits
 2. **Plan** - Identify complexity level and required nodes
 3. **Implement** - Create base.yaml with all calculations
-4. **Test** - Write test vectors and validate against official calculators
-5. **Document** - Add sources and notices
+4. **Write Tests** - Create test vectors with expected values
+5. **Validate** - Run test suite, debug failures until all tests pass
+6. **Document** - Add sources and notices
 
 ## Quick Reference
 
@@ -51,6 +56,9 @@ Gather from official government sources:
 - Regional variations (if any)
 
 Record all source URLs with retrieval dates.
+
+If the country already has a year in it, consider searching for the same / similar sources to update for the new year requested. Chances are not much changed.
+
 
 ### Step 2: Assess Complexity
 
@@ -135,33 +143,100 @@ Create `tests/<name>.json` covering:
 - Each filing status
 - Regional variations if applicable
 
+**IMPORTANT**: Use official government calculators or tax tables to get accurate expected values. Don't estimate!
+
+Test vector format:
 ```json
 {
   "name": "Single at median income",
+  "description": "Verified against official calculator at ...",
   "inputs": {
     "gross_annual": 60000,
     "filing_status": "single"
   },
   "expected": {
     "net": 45000,
-    "effective_rate": 0.25
+    "effective_rate": 0.25,
+    "breakdown": {
+      "income_tax": 12000,
+      "social_security": 3000
+    }
   },
   "tolerance": 50,
   "sources": [{
-    "description": "Verified against official calculator",
+    "description": "Official tax calculator result",
     "url": "https://...",
-    "date": "2024-01-01"
+    "retrieved_at": "2024-01-01"
   }]
 }
 ```
 
-### Step 5: Validate
+**Tips**:
+- Include `breakdown` expectations for major tax items to catch calculation errors early
+- Set reasonable `tolerance` (e.g., 50 for rounding differences, 0.0001 for rates)
+- Document source URLs so test vectors can be verified independently
 
+### Step 5: Run Test Suite & Debug
+
+**CRITICAL**: All tests MUST pass before the config is considered complete.
+
+Run the test suite:
+```bash
+# Run all config tests
+npm run test:configs
+
+# Or run tests for specific country
+npx vitest run packages/engine/__tests__/config-tests.test.ts -t "xx/2024"
+```
+
+#### Common Test Failures & Fixes
+
+**Reference Errors** (`Reference not found: xyz`):
+- Check that all `@` inputs are defined in `inputs:` section
+- Check that all `$` references point to valid `parameters:` or `calculations:` nodes
+- Ensure node IDs match exactly (case-sensitive)
+
+**Calculation Mismatches** (Expected X, got Y):
+- Verify bracket thresholds and rates from official sources
+- Check for off-by-one errors in bracket calculations
+- Ensure correct order of operations in compound calculations
+- Validate phaseout calculations (start, end, rate)
+- Check rounding modes and precision
+
+**Type Errors** (`is not a number`):
+- Ensure switch cases return the correct type for downstream nodes
+- Check that conditionals return numeric values when used in arithmetic
+- Verify lookup tables have numeric values where expected
+
+**Breakdown Errors** (`Breakdown item not found`):
+- Ensure all breakdown nodes have `category` and `label`
+- Check that output section references match node IDs
+
+#### Debugging Process
+
+1. **Read the error message** - identifies which test and what failed
+2. **Check test vector** - verify expected values are correct
+3. **Trace calculation** - follow the node DAG from inputs to outputs
+4. **Fix config** - adjust brackets, rates, or logic
+5. **Re-run tests** - repeat until all pass
+
+#### Validation Checklist
+
+Once tests pass, verify:
 - [ ] All `@` and `$` references resolve
 - [ ] Every breakdown node has `category` and `label`
 - [ ] Sources documented with URLs and dates
-- [ ] Test vectors pass within tolerance
-- [ ] Notices guide users on country-specific input conventions
+- [ ] Test vectors verified against official calculators
+- [ ] Notices guide users on country-specific conventions
+- [ ] **All tests pass: `npm run test:configs` shows 100% passing**
+
+### Step 6: Document
+
+Final touches:
+- Add helpful notices explaining country-specific conventions
+- Document any assumptions or limitations
+- Add `description` to all enum options
+- Review all source URLs are accessible and dated
 
 ## Creating Variants
 
@@ -183,6 +258,8 @@ calculations:
     type: mul
     values: ["@gross_annual", 0.70]
 ```
+
+**Don't forget**: Variants need their own test vectors too! Run `npm run test:configs` to ensure variant tests pass.
 
 ## Detailed Specification
 

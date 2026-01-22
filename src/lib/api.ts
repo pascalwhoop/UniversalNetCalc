@@ -126,6 +126,51 @@ export async function calculateSalary(
   return data as CalculationResult
 }
 
+// Currency symbols
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  EUR: "€",
+  USD: "$",
+  GBP: "£",
+  CHF: "CHF",
+  CAD: "C$",
+  AUD: "A$",
+  SGD: "S$",
+  HKD: "HK$",
+  AED: "AED",
+  JPY: "¥",
+}
+
+export function getCurrencySymbol(code: string): string {
+  return CURRENCY_SYMBOLS[code.toUpperCase()] || code
+}
+
+// Exchange rate API
+export interface ExchangeRateResponse {
+  from: string
+  to: string
+  rate: number
+  cached: boolean
+  fetchedAt: string
+  expiresAt: string
+}
+
+export async function fetchExchangeRate(
+  from: string,
+  to: string
+): Promise<number> {
+  if (from.toUpperCase() === to.toUpperCase()) {
+    return 1
+  }
+
+  const res = await fetch(`/api/exchange-rates?from=${from}&to=${to}`)
+  if (!res.ok) {
+    console.error("Failed to fetch exchange rate:", await res.text())
+    return 1 // Fallback to 1:1 if API fails
+  }
+  const data: ExchangeRateResponse = await res.json()
+  return data.rate
+}
+
 // Country display names
 export const COUNTRY_NAMES: Record<string, string> = {
   nl: "Netherlands",

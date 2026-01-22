@@ -90,12 +90,14 @@ inputs:
     description: "Parents receive reduced long-term care insurance rates"
 
 parameters:
-  # Tax brackets and thresholds
-  basic_allowance: 11604
-  basic_allowance_married: 23208
+  # Tax brackets and thresholds (updated to 2024 retroactive values)
+  basic_allowance: 11784  # Retroactively raised from 11,604
+  basic_allowance_married: 23568  # Double the single amount
 
   # Standard deductions
   employee_lump_sum: 1230  # Arbeitnehmer-Pauschbetrag for work-related expenses
+  special_expenses_lump_sum_single: 36  # Sonderausgaben-Pauschbetrag
+  special_expenses_lump_sum_married: 72  # Sonderausgaben-Pauschbetrag for married couples
 
   # Income tax brackets (not used - using function with official formula instead)
   income_tax_brackets_single:
@@ -206,6 +208,40 @@ calculations:
       - "$unemployment_contribution"
       - "$care_contribution"
 
+  # Calculate taxable income by applying standard deductions
+  # German tax law requires deducting certain amounts before calculating tax
+
+  # Sonderausgaben-Pauschbetrag (special expenses lump sum)
+  - id: special_expenses_lump_sum
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$special_expenses_lump_sum_single"
+      married_joint: "$special_expenses_lump_sum_married"
+
+  # Vorsorgeaufwendungen: Health and care insurance are fully deductible
+  # This is the employee's share of health and care insurance contributions
+  - id: deductible_insurance
+    type: sum
+    values:
+      - "$health_contribution"
+      - "$care_contribution"
+
+  # Total deductions from gross income before tax calculation
+  - id: total_pre_tax_deductions
+    type: sum
+    values:
+      - "$employee_lump_sum"
+      - "$special_expenses_lump_sum"
+      - "$deductible_insurance"
+
+  # Taxable income after deductions
+  - id: taxable_income
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_pre_tax_deductions"
+
   # Determine splitting factor for income splitting
   - id: splitting_factor
     type: switch
@@ -214,14 +250,12 @@ calculations:
       single: 1
       married_joint: 2
 
-  # Income tax calculated on gross income
-  # Note: Standard deductions like Arbeitnehmer-Pauschbetrag are not applied here
-  # as test vectors appear to use simplified calculations
+  # Income tax calculated on taxable income (not gross)
   - id: income_tax
     type: function
     name: "income_splitting_tax"
     inputs:
-      gross: "@gross_annual"
+      taxable_income: "$taxable_income"
       splitting_factor: "$splitting_factor"
     category: income_tax
     label: "Income Tax (Einkommensteuer)"

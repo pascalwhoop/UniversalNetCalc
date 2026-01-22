@@ -19,31 +19,24 @@ export function resolveFunctions(): Map<string, Function> {
  * German Ehegattensplitting (income splitting)
  * Used for married couples filing jointly
  *
- * Splits income in half, computes tax, then doubles the result
+ * Splits taxable income in half, computes tax, then doubles the result
  */
 function incomeSplittingTax(
   inputs: Record<string, number>,
   context: CalculationContext
 ): number {
-  const { gross, splitting_factor } = inputs as any
-
-  // Get brackets from context parameters
-  const brackets = context.parameters['income_tax_brackets_single'] as BracketEntry[]
-
-  if (!brackets || !Array.isArray(brackets)) {
-    throw new Error('income_tax_brackets_single not found in parameters')
-  }
+  const { taxable_income, splitting_factor } = inputs as any
 
   if (!splitting_factor || splitting_factor === 1) {
     // No splitting - compute normally
-    return computeBracketTax(gross, brackets)
+    return computeGermanTax2024(taxable_income)
   }
 
-  // Split income
-  const splitIncome = gross / splitting_factor
+  // Split taxable income
+  const splitIncome = taxable_income / splitting_factor
 
   // Compute tax on split income
-  const splitTax = computeBracketTax(splitIncome, brackets)
+  const splitTax = computeGermanTax2024(splitIncome)
 
   // Multiply result by splitting factor
   return splitTax * splitting_factor
@@ -138,35 +131,36 @@ function computeBracketTax(income: number, brackets: BracketEntry[]): number {
 
 /**
  * German tax formula for 2024
- * Based on official BMF formula with continuous progression zones
- * NOTE: Using 2023 coefficients as test vectors appear to be based on 2023 formula
+ * Based on official BMF formula (§32a EStG) with continuous progression zones
+ * Source: https://www.finanz-tools.de/einkommensteuer/berechnung-formeln/2024
+ *
+ * The basic allowance was retroactively raised to €11,784 for 2024
  */
-function computeGermanTax2024(income: number): number {
-  const x = Math.floor(income)
+function computeGermanTax2024(taxableIncome: number): number {
+  const x = Math.floor(taxableIncome)
 
-  // Zone 1: Below basic allowance (2023: €10,908, 2024: €11,604)
-  // Using 2024 threshold as that matches config
-  if (x <= 11604) {
+  // Zone 1: Below basic allowance (€11,784 - retroactively raised)
+  if (x <= 11784) {
     return 0
   }
 
-  // Zone 2: Linear progression (2023 formula coefficients)
+  // Zone 2: Linear progression (€11,785 - €17,005)
   if (x <= 17005) {
-    const z = (x - 11604) / 10000
-    return Math.floor((909.32 * z + 1400) * z)
+    const y = (x - 11784) / 10000
+    return Math.floor((954.80 * y + 1400) * y)
   }
 
-  // Zone 3: Linear progression (2023 formula coefficients)
+  // Zone 3: Linear progression (€17,006 - €66,760)
   if (x <= 66760) {
     const z = (x - 17005) / 10000
-    return Math.floor((178.83 * z + 2367) * z + 1000.58)
+    return Math.floor((181.19 * z + 2397) * z + 991.21)
   }
 
-  // Zone 4: Linear rate 42%
+  // Zone 4: Linear rate 42% (€66,761 - €277,825)
   if (x <= 277825) {
-    return Math.floor(0.42 * x - 10134.35)
+    return Math.floor(0.42 * x - 10636.31)
   }
 
-  // Zone 5: Linear rate 45%
-  return Math.floor(0.45 * x - 18452.95)
+  // Zone 5: Linear rate 45% (≥ €277,826)
+  return Math.floor(0.45 * x - 18971.06)
 }
