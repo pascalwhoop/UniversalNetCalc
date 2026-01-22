@@ -7,16 +7,16 @@
     "region_level_1": "geneva"
   },
   "expected": {
-    "net": 36600,
-    "effective_rate": 0.187,
+    "net": 37445,
+    "effective_rate": 0.168,
     "breakdown": {
-      "federal_income_tax": 800,
+      "federal_income_tax": 175,
       "cantonal_municipal_tax": 4500,
       "avs_ai_apg_contribution": 2385,
       "unemployment_contribution": 495
     }
   },
-  "tolerance": 400,
+  "tolerance": 100,
   "tolerance_percent": 0.02,
   "sources": [
     {

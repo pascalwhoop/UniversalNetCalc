@@ -102,62 +102,68 @@ parameters:
   avs_ai_apg_rate: 0.053    # 5.3% for AVS (old-age), AI (disability), APG (loss of income)
   unemployment_rate: 0.011   # 1.1% for ALV (unemployment insurance) up to cap
 
-  # Federal income tax brackets for single filers
-  # Swiss federal tax is progressive, with rates up to 11.5% on very high incomes
-  # These are simplified representative brackets
+  # Standard deductions for federal tax calculation
+  business_expense_deduction_single: 3200    # Max CHF 3,200 for commuting/professional expenses (federal cap)
+  business_expense_deduction_married: 3200   # Same cap for married
+  insurance_premium_deduction_single: 1800   # CHF 1,800 for insurance premiums (federal)
+  insurance_premium_deduction_married: 3600  # CHF 3,600 for married couples (federal)
+  married_couple_deduction: 2600             # CHF 2,600 federal married deduction
+
+  # Federal income tax brackets for single filers (2024 official rates)
+  # Source: https://taxsummaries.pwc.com/switzerland/individual/taxes-on-personal-income
+  # Simplified as progressive brackets (without base_amount) to work with current evaluator
   federal_tax_brackets_single:
     - threshold: 0
       rate: 0.0
-    - threshold: 17800
+    - threshold: 15000
       rate: 0.0077
-    - threshold: 31600
+    - threshold: 32800
       rate: 0.0088
-    - threshold: 41400
-      rate: 0.0242
-    - threshold: 55200
+    - threshold: 42900
+      rate: 0.0264
+    - threshold: 57200
+      rate: 0.0297
+    - threshold: 75200
       rate: 0.0594
-    - threshold: 72500
-      rate: 0.0648
-    - threshold: 78100
-      rate: 0.0693
-    - threshold: 103600
-      rate: 0.0770
-    - threshold: 134600
-      rate: 0.0825
-    - threshold: 176000
+    - threshold: 81000
+      rate: 0.0660
+    - threshold: 107400
       rate: 0.0880
-    - threshold: 755200
+    - threshold: 139600
       rate: 0.1100
-    - threshold: 850000
+    - threshold: 182600
+      rate: 0.1320
+    - threshold: 783300
       rate: 0.115
 
-  # Federal income tax brackets for married filers (joint taxation)
-  # Married rates are more favorable due to joint income splitting effects
+  # Federal income tax brackets for married filers (joint taxation) - 2024 estimates
+  # Based on 2026 structure with adjustments for 2024
+  # Married rates are more favorable with higher thresholds
   federal_tax_brackets_married:
     - threshold: 0
       rate: 0.0
-    - threshold: 35600
+    - threshold: 30000
       rate: 0.0100
-    - threshold: 63200
+    - threshold: 50000
+      rate: 0.0200
+    - threshold: 58000
       rate: 0.0300
-    - threshold: 82800
+    - threshold: 75000
       rate: 0.0400
-    - threshold: 110400
+    - threshold: 90000
       rate: 0.0500
-    - threshold: 145000
+    - threshold: 103000
       rate: 0.0600
-    - threshold: 156200
+    - threshold: 114000
       rate: 0.0660
-    - threshold: 207200
-      rate: 0.0770
-    - threshold: 269200
-      rate: 0.0825
-    - threshold: 352000
+    - threshold: 124000
       rate: 0.0880
-    - threshold: 755200
+    - threshold: 163000
       rate: 0.1100
-    - threshold: 850000
-      rate: 0.115
+    - threshold: 203000
+      rate: 0.1320
+    - threshold: 895000
+      rate: 0.1150
 
   # Cantonal/municipal effective tax rates (combined estimates as % of gross income)
   # These are simplified representative rates for comparison
@@ -250,7 +256,51 @@ calculations:
       - "$avs_ai_apg_contribution"
       - "$unemployment_contribution"
 
-  # Federal income tax
+  # Standard deductions for federal tax calculation
+  - id: business_expense_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$business_expense_deduction_single"
+      married: "$business_expense_deduction_married"
+      _: "$business_expense_deduction_single"
+
+  - id: insurance_premium_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$insurance_premium_deduction_single"
+      married: "$insurance_premium_deduction_married"
+      _: "$insurance_premium_deduction_single"
+
+  - id: married_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      married: "$married_couple_deduction"
+      _: 0
+
+  - id: total_standard_deductions
+    type: sum
+    values:
+      - "$business_expense_deduction"
+      - "$insurance_premium_deduction"
+      - "$married_deduction"
+
+  # Taxable income = gross - social contributions - standard deductions
+  - id: income_after_social
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_social_contributions"
+
+  - id: taxable_income_federal
+    type: sub
+    values:
+      - "$income_after_social"
+      - "$total_standard_deductions"
+
+  # Federal income tax (applied to taxable income, not gross)
   - id: federal_tax_brackets
     type: switch
     on: "@filing_status"
@@ -260,7 +310,7 @@ calculations:
 
   - id: federal_income_tax
     type: bracket_tax
-    base: "@gross_annual"
+    base: "$taxable_income_federal"
     brackets: "$federal_tax_brackets"
     category: income_tax
     label: "Federal Income Tax"
@@ -268,221 +318,193 @@ calculations:
 
   # Cantonal/municipal tax estimation
   # This uses simplified rates based on income level and canton
-  - id: income_bracket_for_cantonal
-    type: switch
-    on: "@gross_annual"
-    cases:
-      _: "mid"  # default to mid
-    # We'll use conditional logic to determine bracket
-
-  - id: cantonal_rate_key
-    type: conditional
-    condition:
-      type: lt
-      left: "@gross_annual"
-      right: 50000
-    then: "low"
-    else:
-      type: conditional
-      condition:
-        type: gt
-        left: "@gross_annual"
-        right: 150000
-      then: "high"
-      else: "mid"
-
-  - id: cantonal_rate_lookup_key
-    type: identity
-    value: "@filing_status"
-
   # Cantonal/municipal tax calculation (estimated)
   - id: cantonal_municipal_rate
-    type: conditional
-    condition:
-      type: eq
-      left: "@region_level_1"
-      right: null
-    then: 0.12  # Default rate if no canton selected (assume Zürich mid-rate single)
-    else:
-      type: switch
-      on: "@region_level_1"
-      cases:
-        zurich:
-          type: switch
-          on: "@filing_status"
-          cases:
-            single:
+    type: switch
+    on: "@region_level_1"
+    cases:
+      zurich:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.08
+            else:
               type: conditional
               condition:
-                type: lt
+                type: gt
                 left: "@gross_annual"
-                right: 50000
-              then: 0.08
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.15
-                else: 0.12
-            married:
+                right: 150000
+              then: 0.15
+              else: 0.12
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.06
+            else:
               type: conditional
               condition:
-                type: lt
+                type: gt
                 left: "@gross_annual"
-                right: 50000
-              then: 0.06
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.13
-                else: 0.10
-        bern:
-          type: switch
-          on: "@filing_status"
-          cases:
-            single:
+                right: 150000
+              then: 0.13
+              else: 0.10
+          _: 0.12
+      bern:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.09
+            else:
               type: conditional
               condition:
-                type: lt
+                type: gt
                 left: "@gross_annual"
-                right: 50000
+                right: 150000
+              then: 0.17
+              else: 0.14
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.07
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.15
+              else: 0.12
+          _: 0.14
+      geneva:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.10
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.18
+              else: 0.15
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.08
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.16
+              else: 0.13
+          _: 0.15
+      zug:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.04
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
               then: 0.09
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.17
-                else: 0.14
-            married:
+              else: 0.07
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.03
+            else:
               type: conditional
               condition:
-                type: lt
+                type: gt
                 left: "@gross_annual"
-                right: 50000
+                right: 150000
               then: 0.07
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.15
-                else: 0.12
-        geneva:
-          type: switch
-          on: "@filing_status"
-          cases:
-            single:
+              else: 0.05
+          _: 0.07
+      neuchatel:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.12
+            else:
               type: conditional
               condition:
-                type: lt
+                type: gt
                 left: "@gross_annual"
-                right: 50000
-              then: 0.10
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.18
-                else: 0.15
-            married:
+                right: 150000
+              then: 0.20
+              else: 0.17
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.10
+            else:
               type: conditional
               condition:
-                type: lt
+                type: gt
                 left: "@gross_annual"
-                right: 50000
-              then: 0.08
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.16
-                else: 0.13
-        zug:
-          type: switch
-          on: "@filing_status"
-          cases:
-            single:
-              type: conditional
-              condition:
-                type: lt
-                left: "@gross_annual"
-                right: 50000
-              then: 0.04
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.09
-                else: 0.07
-            married:
-              type: conditional
-              condition:
-                type: lt
-                left: "@gross_annual"
-                right: 50000
-              then: 0.03
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.07
-                else: 0.05
-        neuchatel:
-          type: switch
-          on: "@filing_status"
-          cases:
-            single:
-              type: conditional
-              condition:
-                type: lt
-                left: "@gross_annual"
-                right: 50000
-              then: 0.12
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.20
-                else: 0.17
-            married:
-              type: conditional
-              condition:
-                type: lt
-                left: "@gross_annual"
-                right: 50000
-              then: 0.10
-              else:
-                type: conditional
-                condition:
-                  type: gt
-                  left: "@gross_annual"
-                  right: 150000
-                then: 0.18
-                else: 0.15
-        _: 0.12  # Default for any other canton
+                right: 150000
+              then: 0.18
+              else: 0.15
+          _: 0.17
+      _: 0.12  # Default for any other canton or if none selected
 
   - id: cantonal_municipal_tax
-    type: percent_of
-    base: "@gross_annual"
-    rate: "$cantonal_municipal_rate"
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$cantonal_municipal_rate"
     category: income_tax
     label: "Cantonal & Municipal Tax"
     description: "Combined cantonal and municipal income tax (varies by location)"

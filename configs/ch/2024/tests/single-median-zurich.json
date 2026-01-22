@@ -7,23 +7,23 @@
     "region_level_1": "zurich"
   },
   "expected": {
-    "net": 60800,
-    "effective_rate": 0.24,
+    "net": 64300,
+    "effective_rate": 0.196,
     "breakdown": {
-      "federal_income_tax": 3080,
+      "federal_income_tax": 980,
       "cantonal_municipal_tax": 9600,
       "avs_ai_apg_contribution": 4240,
       "unemployment_contribution": 880
     }
   },
-  "tolerance": 500,
+  "tolerance": 100,
   "tolerance_percent": 0.02,
   "sources": [
     {
-      "description": "Based on Swiss tax calculator estimates for Zürich single filer at CHF 80,000",
-      "url": "https://swisstaxcalculator.estv.admin.ch/",
-      "date": "2024-01-22",
-      "notes": "Federal tax ~3,000-4,000 CHF, Cantonal/Municipal ~12% of gross, Social ~6.4%"
+      "description": "Calculated using official 2024 federal tax brackets from PWC Tax Summaries",
+      "url": "https://taxsummaries.pwc.com/switzerland/individual/taxes-on-personal-income",
+      "retrieved_at": "2026-01-22",
+      "notes": "Federal tax calculated on taxable income (gross minus social contributions minus standard deductions of CHF 5,000). Federal tax ~980 CHF, Cantonal/Municipal ~12% of gross for Zurich mid-income, Social 6.4%"
     }
   ]
 }
