@@ -1,52 +1,51 @@
 # GitHub Actions Workflows
 
-This directory contains the CI/CD workflow files for the Universal Salary Calculator project.
+Two lean workflows. That's it.
 
-**Documentation has been moved to `docs/`:**
-- **`docs/ci-cd-implementation.md`** - Overview of the CI/CD system
-- **`docs/github-workflows.md`** - Detailed workflow reference
-- **`docs/github-branch-protection-setup.md`** - GitHub configuration guide
-- **`docs/ci-cd-implementation-verification.md`** - Verification checklist
+## Workflows
 
-## Workflow Files
+### `pr.yml` - PR Validation
+**Triggers:** All pull requests
+**Duration:** 3-5 minutes
+**Steps:**
+- Lint (non-blocking)
+- TypeScript check (non-blocking)
+- Run tests
+- Build app
+- Check manifest is up-to-date
 
-| File | Purpose |
-|------|---------|
-| `pr.yml` | Full PR validation (code quality, tests, build) |
-| `config-validation.yml` | Fast validation for config-only PRs (~30s) |
-| `deploy-preview.yml` | Deploy to preview environment |
-| `deploy-production.yml` | Deploy to production (with approval) |
-| `welcome.yml` | Welcome message for first-time contributors |
-| `stale-configs.yml` | Monthly maintenance: detect old configs |
+### `deploy.yml` - Deploy
+**Triggers:**
+- Auto: Push to `main` (deploys to preview)
+- Manual: Workflow dispatch (choose preview or production)
 
-## Quick Reference
-
-### Status Checks (Required for merge)
-- ✅ `code-quality` - ESLint + TypeScript
-- ✅ `unit-tests` - Vitest + config tests
-- ✅ `build-validation` - Next.js build + manifest check
-
-### Typical Timings
-- **Config PR:** ~30 seconds
-- **Code PR:** 3-5 minutes
-- **UI change PR:** 5-7 minutes (includes E2E tests)
-
-## Documentation
-
-For complete details, setup instructions, and verification steps, see:
-- `docs/ci-cd-implementation.md` - Start here
-- `docs/github-workflows.md` - Full reference
-- `docs/github-branch-protection-setup.md` - GitHub settings
-- `docs/ci-cd-implementation-verification.md` - Testing checklist
+**Environments:**
+- `preview` - https://universal-net-calc-preview.reconnct.workers.dev
+- `production` - Requires approval
 
 ## Local Testing
 
-Before pushing, run:
 ```bash
+# Run all checks before pushing
 npm run lint
 npm run test:run
 npm run test:configs
-npm run build
+make build
+
+# Test Cloudflare build
+make build-cloudflare
+
+# Deploy
+make deploy-preview
+make deploy-prod
 ```
 
-See `docs/github-workflows.md#local-testing` for more commands.
+## Setup
+
+**Required GitHub Secrets:**
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+**Environment:** Create "production" environment in GitHub with required reviewers.
+
+For complete details, see `docs/ci-cd.md`

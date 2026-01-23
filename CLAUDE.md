@@ -288,11 +288,8 @@ This project uses GitHub Actions for continuous integration and deployment. The 
 - Optional E2E tests (Playwright, runs only if UI/API changed)
 
 **Documentation:**
-- **Overview & Setup:** `docs/ci-cd-implementation.md`
-- **GitHub Configuration:** `docs/github-branch-protection-setup.md`
-- **Verification Steps:** `docs/ci-cd-implementation-verification.md`
-- **Workflow Reference:** `docs/github-workflows.md`
-- **Workflow Files:** `.github/workflows/`
+- **Complete guide:** `docs/ci-cd.md` - Workflows, setup, troubleshooting
+- **Workflow files:** `.github/workflows/`
 
 **Key Commands:**
 - `npm run test:run` - Run all tests in CI mode
@@ -300,7 +297,7 @@ This project uses GitHub Actions for continuous integration and deployment. The 
 - `npm run lint` - Check linting
 - `npm run build` - Full build with manifest generation
 
-For CI/CD details, start with `docs/ci-cd-implementation.md`.
+For CI/CD details, see `docs/ci-cd.md`.
 
 ## UI Components
 
