@@ -1,0 +1,216 @@
+meta:
+  country: "nz"
+  year: 2025
+  currency: "NZD"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.ird.govt.nz/income-tax/income-tax-for-individuals/tax-codes-and-tax-rates-for-individuals/tax-rates-for-individuals"
+      description: "Official 2025-26 PAYE tax rates for individuals"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.ird.govt.nz/income-tax/income-tax-for-individuals/acc-clients-and-carers/acc-earners-levy-rates"
+      description: "ACC earners levy rates for 2025-26 tax year"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.ird.govt.nz/income-tax/income-tax-for-individuals/individual-tax-credits/independent-earner-tax-credit-ietc"
+      description: "Independent Earner Tax Credit (IETC) 2025-26"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This configuration covers the New Zealand tax system for the 2025-26 tax year
+    (1 April 2025 - 31 March 2026) for tax residents.
+
+    New Zealand has one of the simplest tax systems among developed nations:
+    - Uniform national system with no regional variations
+    - Progressive PAYE income tax with 5 brackets (10.5% to 39%)
+    - ACC earners levy (1.67%) as the only mandatory payroll contribution
+    - No social security contributions for pension, unemployment, or health
+    - Independent Earner Tax Credit (IETC) for middle-income earners
+
+    Key characteristics:
+    - Tax year runs from 1 April to 31 March
+    - PAYE brackets effective from 31 July 2024 (Budget 2024 reforms)
+    - ACC levy capped at maximum liable earnings of NZD 152,790
+    - IETC available for incomes between NZD 24,000 and NZD 70,000
+
+notices:
+  - id: "tax_year"
+    title: "New Zealand Tax Year"
+    body: |
+      New Zealand's tax year runs from 1 April to 31 March. This calculator
+      uses the 2025-26 tax year rates (1 April 2025 - 31 March 2026).
+    severity: "info"
+
+  - id: "tax_resident"
+    title: "For Tax Residents Only"
+    body: |
+      This calculator is for New Zealand tax residents. You become a tax
+      resident if you're in NZ for more than 183 days in any 12-month period
+      or have a permanent place of abode here. Non-residents have different
+      tax treatment.
+    severity: "info"
+
+  - id: "no_social_security"
+    title: "No Social Security Contributions"
+    body: |
+      Unlike many countries, New Zealand has no separate social security
+      contributions for pension, unemployment, or health insurance. These
+      are funded from general tax revenue. The only mandatory deduction
+      besides PAYE is the ACC earners levy (1.67%).
+    severity: "info"
+
+  - id: "kiwisaver_optional"
+    title: "KiwiSaver Not Included"
+    body: |
+      KiwiSaver (retirement savings) is voluntary and not included in this
+      calculation. If enrolled, typical contributions are 3% employee + 3%
+      employer (minimum).
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (NZD)"
+
+parameters:
+  # PAYE tax brackets for 2025-26 (from 31 July 2024)
+  paye_brackets:
+    - threshold: 0
+      rate: 0.105
+    - threshold: 15600
+      rate: 0.175
+    - threshold: 53500
+      rate: 0.30
+    - threshold: 78100
+      rate: 0.33
+    - threshold: 180000
+      rate: 0.39
+
+  # ACC earners levy for 2025-26 (1 April 2025 - 31 March 2026)
+  acc_rate: 0.0167
+  acc_max_earnings: 152790
+
+  # Independent Earner Tax Credit (IETC) parameters
+  ietc_min_income: 24000
+  ietc_max_income: 70000
+  ietc_full_threshold: 66000
+  ietc_amount: 520
+  ietc_abatement_rate: 0.13
+
+calculations:
+  # Taxable income (same as gross for standard employee)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # PAYE income tax using bracket tax
+  - id: income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$paye_brackets"
+    category: income_tax
+    label: "PAYE Income Tax"
+    description: "Progressive income tax (10.5% - 39%)"
+
+  # ACC earners levy with cap
+  - id: acc_liable_earnings
+    type: min
+    values:
+      - "@gross_annual"
+      - "$acc_max_earnings"
+
+  - id: acc_levy
+    type: mul
+    values:
+      - "$acc_liable_earnings"
+      - "$acc_rate"
+    category: contribution
+    label: "ACC Earners Levy"
+    description: "Accident compensation levy (1.67% up to NZD 152,790)"
+
+  # Independent Earner Tax Credit (IETC)
+  # IETC is available for income between $24,000 and $70,000
+  # Full credit ($520) for income up to $66,000
+  # Abatement of 13% on income above $66,000
+
+  # Calculate IETC amount with abatement
+  - id: ietc_credit_raw
+    type: conditional
+    condition:
+      type: lt
+      left: "@gross_annual"
+      right: "$ietc_min_income"
+    then: 0
+    else:
+      type: conditional
+      condition:
+        type: gt
+        left: "@gross_annual"
+        right: "$ietc_max_income"
+      then: 0
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: "$ietc_full_threshold"
+        then: "$ietc_amount"
+        else:
+          type: max
+          values:
+            - 0
+            - type: sub
+              values:
+                - "$ietc_amount"
+                - type: mul
+                  values:
+                    - type: sub
+                      values:
+                        - "@gross_annual"
+                        - "$ietc_full_threshold"
+                    - "$ietc_abatement_rate"
+
+  - id: ietc_credit
+    type: identity
+    value: "$ietc_credit_raw"
+    category: credit
+    label: "Independent Earner Tax Credit"
+    description: "Tax credit for middle-income earners (NZD 24,000 - 70,000)"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$income_tax"
+      - "$acc_levy"
+
+  # Net income after tax and ACC levy plus IETC
+  - id: net_annual
+    type: sum
+    values:
+      - "@gross_annual"
+      - type: mul
+        values:
+          - -1
+          - "$total_deductions"
+      - "$ietc_credit"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$acc_levy"
+    credits:
+      - "$ietc_credit"

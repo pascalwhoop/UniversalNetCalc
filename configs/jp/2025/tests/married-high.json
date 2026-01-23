@@ -1,0 +1,30 @@
+{
+  "name": "Married with 1 Dependent (¥10M), Age 45, Tokyo",
+  "description": "High income married with dependent (age 20) - tests dependent deductions, long-term care insurance, caps",
+  "inputs": {
+    "gross_annual": 10000000,
+    "age": 45,
+    "filing_status": "married_dependents",
+    "num_dependents_19_22": 1
+  },
+  "expected": {
+    "employment_income": 8050000,
+    "health_insurance_annual": 495533,
+    "pension_annual": 713100,
+    "employment_insurance_annual": 55000,
+    "longterm_care_annual": 79460,
+    "total_social_insurance": 1343093,
+    "taxable_income_national": 5116907,
+    "national_income_tax_base": 595881,
+    "reconstruction_surtax": 12513,
+    "total_national_income_tax": 608394,
+    "taxable_income_resident": 5496907,
+    "resident_tax_income_levy": 549691,
+    "resident_tax_percapita_levy": 5000,
+    "total_resident_tax": 554691,
+    "net": 7493822,
+    "effective_rate": 0.2506
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.001
+}

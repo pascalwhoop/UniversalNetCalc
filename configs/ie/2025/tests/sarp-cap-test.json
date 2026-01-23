@@ -1,0 +1,22 @@
+{
+  "name": "Ireland 2025 SARP - €1,200,000 (tests €1M cap)",
+  "config": "variants/sarp.yaml",
+  "inputs": {
+    "gross_annual": 1200000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 608194,
+    "effective_rate": 0.49317,
+    "breakdown": {
+      "sarp_relief": 270000,
+      "income_tax": 343400,
+      "usc": 100044,
+      "prsi": 50400,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 20,
+  "tolerance_percent": 0.002
+}

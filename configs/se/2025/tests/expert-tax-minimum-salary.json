@@ -1,0 +1,23 @@
+{
+  "name": "Expert Tax - Minimum Qualifying Salary",
+  "description": "Expert Tax minimum monthly salary SEK 113,000 × 12 = SEK 1,356,000 annual in Stockholm",
+  "variant": "expert-tax",
+  "inputs": {
+    "gross_annual": 1356000,
+    "municipality": "stockholm"
+  },
+  "expected": {
+    "net": 1080000,
+    "effective_rate": 0.2035
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Expert Tax at minimum qualifying salary threshold. SEK 113,000/month is the fixed salary route for automatic qualification",
+      "url": "https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief",
+      "retrieved_at": "2026-01-23",
+      "notes": "Gross after 25% exemption: 1,017,000. Taxable: 1,017,000 - 17,300 = 999,700. Municipal tax: 999,700 × 30.60% = 305,908. State tax: (999,700 - 625,800) × 20% = 74,780. Work credit: 0 (too high income). Total tax: ~276,000. Net: ~1,080,000"
+    }
+  ]
+}

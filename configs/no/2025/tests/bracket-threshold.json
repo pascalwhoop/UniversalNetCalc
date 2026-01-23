@@ -1,0 +1,11 @@
+{
+  "name": "At bracket tax threshold - NOK 217,400",
+  "inputs": {
+    "gross_annual": 217400
+  },
+  "expected": {
+    "net": 195161,
+    "effective_rate": 0.10238
+  },
+  "tolerance": 10
+}

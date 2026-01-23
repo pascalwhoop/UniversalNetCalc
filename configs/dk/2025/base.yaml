@@ -1,0 +1,226 @@
+meta:
+  country: "dk"
+  label: "Denmark"
+  currency: "DKK"
+  year: 2025
+  sources:
+    - "https://skat.dk/en-us/individuals/labour-market-contribution"
+    - "https://skat.dk/en-us/help/botton-bracket-middle-bracket-top-bracket-and-additional-top-bracket-tax"
+    - "https://www.thelocal.dk/20241030/danish-municipalities-announce-new-tax-rates-for-2025"
+    - "https://taxsummaries.pwc.com/denmark/individual/taxes-on-personal-income"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total annual gross salary before any deductions"
+
+  municipality:
+    type: enum
+    required: true
+    default: "copenhagen"
+    label: "Municipality"
+    description: "Select your municipality (affects municipal tax rate)"
+    options:
+      copenhagen:
+        label: "Copenhagen (23.5%)"
+      aarhus:
+        label: "Aarhus (24.52%)"
+
+  church_member:
+    type: boolean
+    required: false
+    default: false
+    label: "Member of Danish National Church"
+    description: "Only members of the Danish State Church (Lutheran) pay church tax"
+
+parameters:
+  # AM-bidrag (Labour Market Contribution)
+  am_bidrag_rate: 0.08
+
+  # Personal allowance (Personfradrag)
+  personal_allowance_amount: 51600
+
+  # Employment deduction (Beskæftigelsesfradrag)
+  employment_deduction_rate: 0.1230
+  employment_deduction_max: 55600
+
+  # Bottom tax (Bundskat)
+  bottom_tax_rate: 0.1201
+
+  # Municipal tax rates by municipality
+  municipal_tax_rates:
+    copenhagen: 0.235
+    aarhus: 0.2452
+
+  # Church tax rates by municipality (optional)
+  church_tax_rates:
+    copenhagen: 0.008
+    aarhus: 0.008
+
+  # Top tax (Topskat)
+  top_tax_rate: 0.15
+  top_tax_threshold: 611800  # Applied to income after AM-bidrag
+
+calculations:
+  # Step 1: Calculate AM-bidrag (8% of gross income)
+  - id: am_bidrag
+    label: "Labour Market Contribution (AM-bidrag)"
+    type: percent_of
+    base: "@gross_annual"
+    rate: 0.08
+    category: contribution
+
+  # Income after AM-bidrag (used for all subsequent calculations)
+  - id: income_after_am
+    label: "Income after AM-bidrag"
+    type: sub
+    values: ["@gross_annual", "$am_bidrag"]
+
+  # Step 2: Calculate deductions
+  - id: personal_allowance
+    label: "Personal Allowance (Personfradrag)"
+    type: identity
+    value: "$personal_allowance_amount"
+    category: deduction
+
+  - id: employment_deduction_calculated
+    label: "Employment Deduction Calculated"
+    type: percent_of
+    base: "@gross_annual"
+    rate: 0.1230
+
+  - id: employment_deduction
+    label: "Employment Deduction (Beskæftigelsesfradrag)"
+    type: min
+    values: ["$employment_deduction_calculated", "$employment_deduction_max"]
+    category: deduction
+
+  # Step 3: Calculate taxable income (income after AM minus deductions)
+  - id: taxable_income_before_clamp
+    label: "Taxable Income Before Clamp"
+    type: sub
+    values: ["$income_after_am", "$personal_allowance", "$employment_deduction"]
+
+  - id: taxable_income
+    label: "Taxable Income"
+    type: max
+    values: ["$taxable_income_before_clamp", 0]
+
+  # Step 4: Calculate taxes
+  - id: bottom_tax
+    label: "Bottom Tax (Bundskat)"
+    type: percent_of
+    base: "$taxable_income"
+    rate: 0.1201
+    category: income_tax
+
+  - id: municipal_tax_rate
+    label: "Municipal Tax Rate"
+    type: lookup
+    table: "$municipal_tax_rates"
+    key: "@municipality"
+
+  - id: municipal_tax
+    label: "Municipal Tax (Kommuneskat)"
+    type: mul
+    values: ["$taxable_income", "$municipal_tax_rate"]
+    category: income_tax
+
+  # Top tax (only applies to income after AM-bidrag above threshold)
+  - id: income_above_top_threshold
+    label: "Income Above Top Tax Threshold"
+    type: sub
+    values: ["$income_after_am", "$top_tax_threshold"]
+
+  - id: income_above_top_threshold_clamped
+    label: "Income Above Top Tax Threshold (Clamped)"
+    type: max
+    values: ["$income_above_top_threshold", 0]
+
+  - id: top_tax
+    label: "Top Tax (Topskat)"
+    type: percent_of
+    base: "$income_above_top_threshold_clamped"
+    rate: 0.15
+    category: income_tax
+
+  # Church tax (optional, only for church members)
+  - id: church_tax_base_rate
+    label: "Church Tax Base Rate"
+    type: lookup
+    table: "$church_tax_rates"
+    key: "@municipality"
+
+  - id: church_tax_rate
+    label: "Church Tax Rate"
+    type: conditional
+    condition:
+      type: eq
+      left: "@church_member"
+      right: true
+    then: "$church_tax_base_rate"
+    else: 0
+
+  - id: church_tax
+    label: "Church Tax (Kirkeskat)"
+    type: mul
+    values: ["$taxable_income", "$church_tax_rate"]
+    category: income_tax
+
+  # Total tax
+  - id: total_tax
+    label: "Total Tax"
+    type: sum
+    values: ["$am_bidrag", "$bottom_tax", "$municipal_tax", "$top_tax", "$church_tax"]
+
+  # Net income
+  - id: net
+    label: "Net Annual Salary"
+    type: sub
+    values: ["@gross_annual", "$total_tax"]
+
+  # Effective tax rate
+  - id: effective_rate
+    label: "Effective Tax Rate"
+    type: div
+    values: ["$total_tax", "@gross_annual"]
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net"
+  effective_rate: "$effective_rate"
+  breakdown:
+    - id: "am_bidrag"
+      label: "Labour Market Contribution (AM-bidrag)"
+      value: "$am_bidrag"
+    - id: "bottom_tax"
+      label: "Bottom Tax (Bundskat)"
+      value: "$bottom_tax"
+    - id: "municipal_tax"
+      label: "Municipal Tax (Kommuneskat)"
+      value: "$municipal_tax"
+    - id: "top_tax"
+      label: "Top Tax (Topskat)"
+      value: "$top_tax"
+    - id: "church_tax"
+      label: "Church Tax (Kirkeskat)"
+      value: "$church_tax"
+    - id: "personal_allowance"
+      label: "Personal Allowance (Personfradrag)"
+      value: "$personal_allowance"
+      subtract: true
+    - id: "employment_deduction"
+      label: "Employment Deduction (Beskæftigelsesfradrag)"
+      value: "$employment_deduction"
+      subtract: true
+
+notices:
+  - type: info
+    message: "Denmark has one of the highest tax rates in the world, but this includes comprehensive healthcare, education, and social benefits at no additional cost."
+  - type: info
+    message: "This calculation does not include ATP (Labour Market Supplementary Pension) contributions, which are approximately DKK 1,100-1,200 per year."
+  - type: info
+    message: "Municipal tax rates vary by municipality. Copenhagen (23.5%) has one of the lowest rates in Denmark."

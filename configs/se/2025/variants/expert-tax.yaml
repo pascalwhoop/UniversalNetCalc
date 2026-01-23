@@ -1,0 +1,160 @@
+meta:
+  variant: "expert-tax"
+  label: "Expert Tax Regime (Expertskatt)"
+  description: |
+    Tax benefit for foreign specialists working in Sweden. Under this regime,
+    25% of the gross salary is tax-exempt for up to 5 years, significantly
+    reducing the tax burden.
+  base: "../base.yaml"
+  sources:
+    - url: "https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief"
+      description: "Forskarskattenämnden - Official Expert Tax Authority"
+      retrieved_at: "2026-01-23"
+    - url: "https://taxsummaries.pwc.com/sweden/individual/other-tax-credits-and-incentives"
+      description: "PWC Sweden - Expert Tax Incentives"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.npgroup.eu/sweden-expat-tax-relief/"
+      description: "NPGroup - Sweden Expert Tax Relief Guide"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    Eligibility requirements for Expert Tax 2025:
+
+    Core Requirements:
+    1. Residency History:
+       - NOT a Swedish citizen, OR
+       - Have not lived/worked permanently in Sweden during the last 5 calendar years
+
+    2. Role Type (one of):
+       - Foreign specialists/experts with difficult-to-source expertise
+       - Researchers (highly qualified)
+       - Executives/key personnel in senior positions
+       - High earners meeting salary threshold
+
+    3. Salary Threshold (2025):
+       - Fixed monthly salary of SEK 113,000+ (~SEK 1,356,000 annual)
+       - Only fixed monthly salaries qualify (not hourly/daily rates)
+       - Alternative: Qualify via "Tasks & Expertise" route if below threshold
+
+    4. Employment Structure:
+       - Must be an employee (not freelancer/contractor)
+       - Swedish employment contract required
+       - Can work for Swedish or foreign employer with Swedish operations
+
+    5. Application Timing:
+       - Must apply within 3 months of starting work in Sweden
+       - Relief applies retroactively from day one if approved
+
+    6. Duration:
+       - Relief granted for maximum 5 years
+       - Must intend to stay no more than 7 years total
+
+    Important Notes:
+    - Employer still pays full social contributions (31.42%)
+    - Pension rights accumulate on full salary (not reduced by exemption)
+    - Tax savings typically 7-10% of gross salary
+    - Changing employers requires new application
+    - 2026 proposal: Increase to 30% exemption (not yet confirmed)
+
+    Application Authority: Forskarskattenämnden
+    Website: https://forskarskattenamnden.se/
+
+notices:
+  - id: "expert_tax_eligibility"
+    title: "Expert Tax Eligibility Requirements"
+    body: |
+      This variant assumes you qualify for the Expert Tax regime. To qualify, you must meet ALL of these:
+
+      ✓ Not a Swedish citizen OR not lived in Sweden during previous 5 years
+      ✓ Monthly salary of SEK 113,000+ (~SEK 1,356,000 annual) OR specialized expertise
+      ✓ Employee with Swedish employment contract (not freelancer)
+      ✓ Apply within 3 months of starting work in Sweden
+
+      Common qualifying roles:
+      - Software engineers and IT specialists
+      - Scientists and researchers (PhD holders)
+      - Senior project managers
+      - Architects and engineers
+      - Interim executives and C-level positions
+
+      Consult with Forskarskattenämnden or a tax advisor to confirm eligibility.
+    severity: "warning"
+
+  - id: "expert_tax_application"
+    title: "Application Required Within 3 Months"
+    body: |
+      The Expert Tax regime is not automatic. You or your employer must submit an application
+      to Forskarskattenämnden within 3 months of starting work in Sweden.
+
+      If approved, the tax relief applies retroactively from your first day of employment.
+      Processing time varies, but decisions are typically made within a few months.
+
+      Application website: https://forskarskattenamnden.se/
+    severity: "warning"
+
+  - id: "expert_tax_calculation"
+    title: "How Expert Tax Works"
+    body: |
+      Enter your GROSS salary (before the 25% exemption). The calculator will automatically
+      apply the Expert Tax benefit by making only 75% of your salary taxable.
+
+      Example: On SEK 900,000 gross salary with Expert Tax:
+      - Only SEK 675,000 (75%) is taxable
+      - SEK 225,000 (25%) is tax-exempt
+      - Tax savings: ~SEK 113,000 per year (12.6% of gross)
+
+      The employer still pays full social contributions (31.42%) on your entire salary.
+    severity: "info"
+
+  - id: "expert_tax_future_changes"
+    title: "Proposed 2026 Enhancement"
+    body: |
+      The Swedish government has proposed increasing the Expert Tax exemption from 25% to 30%
+      starting January 2026. This proposal also includes:
+      - Automatic qualification for PhD holders in R&D roles
+      - Simplified criteria (no need to prove local expertise shortage)
+      - Broader accessibility to more foreign workers
+
+      These are proposals as of 2025. Check Forskarskattenämnden website for confirmed 2026 rules.
+    severity: "info"
+
+  - id: "expert_tax_pension_rights"
+    title: "Full Pension Rights Maintained"
+    body: |
+      Important: Even with the 25% tax exemption, your pension rights (PGI) accumulate based
+      on your FULL salary. The tax exemption does not reduce your future pension benefits.
+    severity: "info"
+
+parameters:
+  # Expert tax: only 75% of income is taxable (25% exempt)
+  taxable_percentage: 0.75
+
+calculations:
+  # Override taxable income calculation
+  # Apply 25% exemption BEFORE basic deduction
+  - id: gross_after_exemption
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$taxable_percentage"
+    description: "Only 75% of gross income is taxable under Expert Tax regime"
+
+  # Show the tax-exempt amount
+  - id: expert_tax_exemption
+    type: mul
+    values:
+      - "@gross_annual"
+      - 0.25
+    category: deduction
+    label: "Expert Tax Exemption (25%)"
+    description: "25% of gross salary excluded from taxation"
+
+  # Taxable income after exemption and basic deduction
+  - id: taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$gross_after_exemption"
+          - "$basic_deduction"

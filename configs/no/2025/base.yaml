@@ -1,0 +1,232 @@
+meta:
+  country: "no"
+  year: 2025
+  currency: "NOK"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.skatteetaten.no/en/rates/national-insurance-contributions/"
+      description: "Norwegian Tax Administration - National Insurance Contributions"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.skatteetaten.no/en/rates/bracket-tax/"
+      description: "Norwegian Tax Administration - Bracket Tax"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.skatteetaten.no/en/rates/general-income/"
+      description: "Norwegian Tax Administration - General Income"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.skatteetaten.no/en/rates/minimum-standard-deduction/"
+      description: "Norwegian Tax Administration - Minimum Standard Deduction"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This configuration covers the Norwegian general taxation rules for 2025.
+    Norway uses a dual taxation system where both general income tax (22%) and
+    progressive bracket tax (0-17.7%) apply to the same income.
+
+    Key features:
+    - General income tax: 22% (includes municipal, county, and state taxes)
+    - Bracket tax (Trinnskatt): Progressive from 0% to 17.7%
+    - National insurance: 7.7% on income above NOK 99,650
+    - Personal allowance (Personfradrag): NOK 108,550
+    - Minimum standard deduction (Minstefradrag): 46% of income, max NOK 92,000
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions"
+    default: 600000
+
+parameters:
+  # General income tax rate (combination of municipal, county, and state)
+  general_income_tax_rate: 0.22
+
+  # Personal allowance (personfradrag)
+  personal_allowance: 108550
+
+  # Minimum standard deduction (minstefradrag)
+  minstefradrag_rate: 0.46
+  minstefradrag_max: 92000
+
+  # National insurance
+  national_insurance_rate: 0.077
+  national_insurance_threshold: 99650
+  national_insurance_cap_rate: 0.25  # Max 25% of income above threshold
+
+  # Bracket tax (trinnskatt) - progressive state tax
+  bracket_tax_brackets:
+    - threshold: 0
+      rate: 0
+    - threshold: 217400
+      rate: 0.017
+    - threshold: 306050
+      rate: 0.04
+    - threshold: 697150
+      rate: 0.137
+    - threshold: 942400
+      rate: 0.167
+    - threshold: 1410750
+      rate: 0.177
+
+calculations:
+  # Step 1: Calculate minimum standard deduction (minstefradrag)
+  - id: "minstefradrag_calculated"
+    label: "Minimum Standard Deduction (Calculated)"
+    type: "mul"
+    category: "deduction"
+    values:
+      - "@gross_annual"
+      - "$minstefradrag_rate"
+
+  - id: "minstefradrag"
+    label: "Minimum Standard Deduction (Minstefradrag)"
+    type: "min"
+    category: "deduction"
+    values:
+      - "$minstefradrag_calculated"
+      - "$minstefradrag_max"
+
+  # Step 2: Calculate general income (after minstefradrag)
+  - id: "general_income"
+    label: "General Income"
+    type: "sub"
+    values:
+      - "@gross_annual"
+      - "$minstefradrag"
+
+  # Step 3: Calculate taxable income (after personal allowance)
+  - id: "taxable_income_before_allowance"
+    label: "Income Before Personal Allowance"
+    type: "sub"
+    values:
+      - "$general_income"
+      - "$personal_allowance"
+
+  - id: "taxable_income"
+    label: "Taxable Income (After Personfradrag)"
+    type: "max"
+    values:
+      - "$taxable_income_before_allowance"
+      - 0
+
+  # Step 4: Calculate general income tax (22%)
+  - id: "general_income_tax"
+    label: "General Income Tax (22%)"
+    type: "mul"
+    category: "income_tax"
+    values:
+      - "$taxable_income"
+      - "$general_income_tax_rate"
+
+  # Step 5: Calculate bracket tax (trinnskatt) on personal income (before deductions)
+  - id: bracket_tax
+    label: "Bracket Tax (Trinnskatt)"
+    type: bracket_tax
+    category: surtax
+    base: "@gross_annual"
+    brackets: "$bracket_tax_brackets"
+    description: "Progressive state tax (Trinnskatt) on personal income"
+
+  # Step 6: Calculate national insurance contributions
+  - id: "ni_base"
+    label: "National Insurance Base"
+    type: "sub"
+    values:
+      - "@gross_annual"
+      - "$national_insurance_threshold"
+
+  - id: "ni_base_positive"
+    label: "National Insurance Base (Positive)"
+    type: "max"
+    values:
+      - "$ni_base"
+      - 0
+
+  - id: "ni_uncapped"
+    label: "National Insurance (Uncapped)"
+    type: "mul"
+    values:
+      - "$ni_base_positive"
+      - "$national_insurance_rate"
+
+  - id: "ni_cap"
+    label: "National Insurance Cap (25% of base)"
+    type: "mul"
+    values:
+      - "$ni_base_positive"
+      - "$national_insurance_cap_rate"
+
+  - id: "national_insurance"
+    label: "National Insurance Contributions (Trygdeavgift)"
+    type: "min"
+    category: "contribution"
+    values:
+      - "$ni_uncapped"
+      - "$ni_cap"
+
+  # Step 7: Calculate total tax and net income
+  - id: "total_tax"
+    label: "Total Tax"
+    type: "sum"
+    values:
+      - "$general_income_tax"
+      - "$bracket_tax"
+      - "$national_insurance"
+
+  - id: "net"
+    label: "Net Annual Salary"
+    type: "sub"
+    values:
+      - "@gross_annual"
+      - "$total_tax"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net"
+  effective_rate:
+    type: div
+    values:
+      - "$total_tax"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$general_income_tax"
+      - "$bracket_tax"
+    contributions:
+      - "$national_insurance"
+    deductions:
+      - "$minstefradrag"
+    credits: []
+
+notices:
+  - id: "dual_tax_system"
+    title: "Norway's Dual Tax System"
+    body: |
+      Norway uses a dual taxation system where both general income tax (22%) and
+      progressive bracket tax (0-17.7%) apply to the same income. This calculation
+      includes both components.
+    severity: "info"
+
+  - id: "deductions_applied"
+    title: "Deductions Applied"
+    body: |
+      This calculation includes the personal allowance (personfradrag) of NOK 108,550
+      and the minimum standard deduction (minstefradrag) of 46% of income up to NOK 92,000.
+      These deductions reduce your taxable general income but not your bracket tax base.
+    severity: "info"
+
+  - id: "national_insurance"
+    title: "National Insurance Contributions"
+    body: |
+      National insurance contributions (trygdeavgift) are 7.7% on wage income above
+      NOK 99,650. The contribution is capped at 25% of income above the threshold.
+    severity: "info"
+
+  - id: "wealth_tax"
+    title: "Wealth Tax Not Included"
+    body: |
+      Norway also levies a wealth tax (formuesskatt) on net wealth exceeding NOK 1,760,000.
+      This is not included in this salary calculator. Tax residents are taxed on global wealth,
+      while non-residents are taxed only on Norwegian assets.
+    severity: "info"

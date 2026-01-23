@@ -1,0 +1,18 @@
+{
+  "name": "Low income with LITO - AUD 25,000",
+  "description": "Tests tax-free threshold and full LITO for low-income earner",
+  "inputs": {
+    "gross_annual": 25000
+  },
+  "expected": {
+    "net": 24112,
+    "effective_rate": 0.03552,
+    "breakdown": {
+      "income_tax": 1088,
+      "medicare_levy": 500,
+      "lito_offset": -700
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.005
+}

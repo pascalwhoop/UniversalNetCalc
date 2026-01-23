@@ -1,0 +1,338 @@
+meta:
+  country: "ca"
+  year: 2025
+  currency: "CAD"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/canadian-income-tax-rates-individuals-current-previous-years.html"
+      description: "Official 2025 federal tax brackets and rates"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032ab-january-2025/t4032ab-january-general-information.html"
+      description: "CPP contributions for 2025"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.hmid.ca/payroll-deduction-rates"
+      description: "Payroll deduction rates 2025 & 2026 (EI rates)"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.canada.ca/en/revenue-agency/programs/about-canada-revenue-agency-cra/federal-government-budgets/basic-personal-amount.html"
+      description: "Basic Personal Amount information"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This configuration covers the FEDERAL-ONLY Canadian tax system for 2025.
+    Provincial taxes are handled by provincial variants (see variants/ folder).
+
+    Key features for 2025:
+    - Blended federal rate of 14.5% on first bracket (down from 15% to 14% mid-year)
+    - CPP contributions split into two tiers: base (5.95%) + CPP2 (4.00%)
+    - EI premium rate of 1.64%
+    - Basic Personal Amount of $16,129 (or $14,538 for high earners)
+
+    Key assumptions:
+    - Employee (not self-employed)
+    - Not exempt from CPP or EI
+    - Does not account for provincial taxes (use provincial variants)
+    - Standard employment situation
+
+notices:
+  - id: "federal_only"
+    title: "Federal Taxes Only"
+    body: |
+      This base configuration calculates FEDERAL taxes only. You must use a provincial
+      variant (e.g., ontario, bc, quebec) to get your complete tax calculation including
+      provincial income tax.
+    severity: "warning"
+
+  - id: "provincial_residence"
+    title: "Provincial Residency"
+    body: |
+      Provincial tax is determined by your province of residence on December 31 of the
+      tax year. If you moved between provinces during the year, you pay tax to the
+      province where you live on December 31.
+    severity: "info"
+
+  - id: "cpp_two_tiers"
+    title: "CPP Has Two Contribution Levels"
+    body: |
+      The Canada Pension Plan (CPP) has two contribution tiers as of 2025:
+      - Base CPP: 5.95% on earnings from $3,500 to $71,300
+      - CPP2 (additional): 4.00% on earnings from $71,300 to $81,200
+    severity: "info"
+
+  - id: "bpa_phaseout"
+    title: "Basic Personal Amount Reduction"
+    body: |
+      The Basic Personal Amount (BPA) of $16,129 is gradually reduced for incomes
+      between $177,882 and $253,414, down to a minimum of $14,538 for high earners.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly employment income before any deductions"
+
+  filing_status:
+    type: enum
+    required: false
+    default: "single"
+    label: "Filing Status"
+    description: "Not used for Canadian calculations (no separate brackets)"
+    options:
+      single:
+        label: "Single"
+        description: "Standard filing"
+      married:
+        label: "Married"
+        description: "Standard filing (no difference in rates)"
+
+parameters:
+  # Federal income tax brackets - 2025
+  # First bracket has blended 14.5% rate (mid-year change from 15% to 14%)
+  federal_tax_brackets:
+    - threshold: 0
+      rate: 0.1450
+    - threshold: 57375
+      rate: 0.2050
+    - threshold: 114750
+      rate: 0.2600
+    - threshold: 177882
+      rate: 0.2900
+    - threshold: 253414
+      rate: 0.3300
+
+  # Basic Personal Amount (BPA) - 2025
+  bpa_max: 16129
+  bpa_min: 14538
+  bpa_phaseout_start: 177882
+  bpa_phaseout_end: 253414
+  federal_lowest_rate: 0.1450
+
+  # Canada Employment Amount - 2025
+  canada_employment_amount: 1471
+
+  # CPP parameters - 2025
+  cpp_exemption: 3500
+  cpp_ympe: 71300  # Year's Maximum Pensionable Earnings
+  cpp_rate: 0.0595
+  cpp2_yampe: 81200  # Year's Additional Maximum Pensionable Earnings
+  cpp2_rate: 0.0400
+
+  # EI parameters - 2025
+  ei_max_insurable: 65700
+  ei_rate: 0.0164
+
+calculations:
+  # Taxable income (for base case, same as gross)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # Federal income tax before credits
+  - id: federal_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$federal_tax_brackets"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Federal income tax before non-refundable credits"
+
+  # Basic Personal Amount calculation with phaseout
+  - id: bpa_reduction_base
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$taxable_income"
+          - "$bpa_phaseout_start"
+
+  - id: bpa_reduction_factor
+    type: min
+    values:
+      - 1
+      - type: div
+        values:
+          - "$bpa_reduction_base"
+          - type: sub
+            values:
+              - "$bpa_phaseout_end"
+              - "$bpa_phaseout_start"
+
+  - id: bpa_reduction_amount
+    type: mul
+    values:
+      - type: sub
+        values:
+          - "$bpa_max"
+          - "$bpa_min"
+      - "$bpa_reduction_factor"
+
+  - id: basic_personal_amount
+    type: sub
+    values:
+      - "$bpa_max"
+      - "$bpa_reduction_amount"
+
+  # Basic personal credit (BPA × lowest rate)
+  - id: basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$basic_personal_amount"
+        - "$federal_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Basic Personal Credit"
+    description: "Federal non-refundable tax credit for basic personal amount"
+
+  # Canada Employment Amount credit
+  - id: canada_employment_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - type: min
+          values:
+            - "$canada_employment_amount"
+            - "@gross_annual"
+        - "$federal_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Canada Employment Credit"
+    description: "Federal employment credit"
+
+  # CPP Base contribution (5.95% on earnings from $3,500 to $71,300)
+  - id: cpp_base_contributory_earnings
+    type: max
+    values:
+      - 0
+      - type: min
+        values:
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$cpp_exemption"
+          - type: sub
+            values:
+              - "$cpp_ympe"
+              - "$cpp_exemption"
+
+  - id: cpp_base_contribution
+    type: percent_of
+    base: "$cpp_base_contributory_earnings"
+    rate: "$cpp_rate"
+    category: contribution
+    label: "CPP Base Contribution"
+    description: "Canada Pension Plan base contribution (5.95%)"
+
+  # CPP2 contribution (4.00% on earnings from $71,300 to $81,200)
+  - id: cpp2_contributory_earnings
+    type: max
+    values:
+      - 0
+      - type: min
+        values:
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$cpp_ympe"
+          - type: sub
+            values:
+              - "$cpp2_yampe"
+              - "$cpp_ympe"
+
+  - id: cpp2_contribution
+    type: percent_of
+    base: "$cpp2_contributory_earnings"
+    rate: "$cpp2_rate"
+    category: contribution
+    label: "CPP2 Additional Contribution"
+    description: "Canada Pension Plan second additional contribution (4.00%)"
+
+  # Total CPP
+  - id: total_cpp
+    type: sum
+    values:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+
+  # EI contribution (1.64% up to $65,700)
+  - id: ei_insurable_earnings
+    type: min
+    values:
+      - "@gross_annual"
+      - "$ei_max_insurable"
+
+  - id: ei_contribution
+    type: percent_of
+    base: "$ei_insurable_earnings"
+    rate: "$ei_rate"
+    category: contribution
+    label: "EI Premium"
+    description: "Employment Insurance premium (1.64%)"
+
+  # Total federal credits
+  - id: total_federal_credits
+    type: sum
+    values:
+      - type: mul
+        values:
+          - "$basic_personal_amount"
+          - "$federal_lowest_rate"
+      - type: mul
+        values:
+          - type: min
+            values:
+              - "$canada_employment_amount"
+              - "@gross_annual"
+          - "$federal_lowest_rate"
+
+  # Federal tax after credits (cannot go negative)
+  - id: federal_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$federal_income_tax_before_credits"
+          - "$total_federal_credits"
+
+  # Total federal deductions (tax + CPP + EI)
+  - id: total_federal_deductions
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Net annual income (federal only - provincial tax not included!)
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_federal_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"

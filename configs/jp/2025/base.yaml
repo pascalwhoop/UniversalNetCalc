@@ -1,0 +1,498 @@
+meta:
+  country: "jp"
+  year: 2025
+  currency: "JPY"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.nta.go.jp/english/taxes/individual/"
+      description: "National Tax Agency - Individual Income Tax Rates and Brackets"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.mhlw.go.jp/english/policy/pension/"
+      description: "Ministry of Health, Labour and Welfare - Social Insurance Rates"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.kyoukaikenpo.or.jp/"
+      description: "Kyokai Kenpo - Health Insurance Rates by Prefecture (2025)"
+      retrieved_at: "2026-01-23"
+    - url: "https://taxsummaries.pwc.com/japan/individual"
+      description: "PwC Japan Tax Summaries - Individual Taxes"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    Japan 2025 tax configuration covering national income tax, resident tax, and social insurance.
+
+    Key features:
+    - National income tax: 7 progressive brackets (5% to 45%) plus 2.1% reconstruction surtax
+    - Resident tax: Flat 10% on prior year income plus ¥5,000 per-capita levy
+    - Social insurance: Health insurance (Tokyo: 4.955%), Pension (9.15% capped), Employment (0.55%)
+    - Employment income deduction: Complex 5-bracket formula (minimum ¥650,000 in 2025)
+    - Basic deduction: ¥580,000 (national tax), ¥430,000 (resident tax)
+    - Long-term care insurance: 0.795% for ages 40-64
+
+    Important notes:
+    - Resident tax is calculated on PRIOR year income (year-lag effect)
+    - First year workers in Japan pay ¥0 resident tax
+    - Pension capped at ¥650,000/month (¥7,800,000/year)
+    - Health insurance uses Tokyo rate (9.91% total, 4.955% employee share)
+    - Reconstruction surtax applies through December 31, 2037
+
+notices:
+  - id: "resident_tax_timing"
+    title: "Resident Tax Payment Timing"
+    body: |
+      Resident tax shown is based on CURRENT year income but is actually paid in the FOLLOWING year.
+      If this is your first year working in Japan, you will pay ¥0 resident tax this year.
+      If this is your final year, you will owe resident tax next year on this year's income.
+    severity: "warning"
+
+  - id: "reconstruction_surtax"
+    title: "Reconstruction Surtax"
+    body: |
+      A 2.1% surtax on income tax applies through December 31, 2037 to fund reconstruction
+      measures following the 2011 Tohoku earthquake and tsunami.
+    severity: "info"
+
+  - id: "tokyo_health_insurance"
+    title: "Tokyo Health Insurance Rate"
+    body: |
+      This calculator uses Tokyo's health insurance rate (4.955% employee share).
+      Rates vary by prefecture from 4.72% (Okinawa) to 5.39% (Saga).
+    severity: "info"
+
+  - id: "employment_income_deduction"
+    title: "Employment Income Deduction"
+    body: |
+      Japan provides a statutory employment income deduction (給与所得控除) that reduces
+      taxable income. In 2025, the minimum deduction is ¥650,000. This is automatic and
+      cannot be itemized or increased with actual expenses.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (in Japanese Yen)"
+
+  age:
+    type: number
+    required: true
+    min: 18
+    max: 100
+    default: 35
+    label: "Age"
+    description: "Your age (required for long-term care insurance calculation - applies to ages 40-64)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual without dependents"
+      married:
+        label: "Married"
+        description: "Married with non-working spouse (income ≤¥580,000)"
+      married_dependents:
+        label: "Married with Dependents"
+        description: "Married with non-working spouse and dependent children"
+
+  num_dependents_19_22:
+    type: number
+    required: false
+    min: 0
+    max: 10
+    default: 0
+    label: "Number of Dependents (Age 19-22)"
+    description: "Special dependents aged 19-22 (students) - ¥630,000 deduction each"
+
+parameters:
+  # National Income Tax Brackets (2025) - Base rates before reconstruction surtax
+  national_tax_brackets:
+    - threshold: 0
+      rate: 0.05
+    - threshold: 1950000
+      rate: 0.10
+    - threshold: 3300000
+      rate: 0.20
+    - threshold: 6950000
+      rate: 0.23
+    - threshold: 9000000
+      rate: 0.33
+    - threshold: 18000000
+      rate: 0.40
+    - threshold: 40000000
+      rate: 0.45
+
+  # Reconstruction surtax rate (through 2037)
+  reconstruction_surtax_rate: 0.021
+
+  # Employment Income Deduction brackets (2025)
+  # Different formula for each income range
+  employment_deduction_threshold_1: 650999   # Up to this: full deduction (¥0 taxable)
+  employment_deduction_threshold_2: 1899999  # ¥651K-¥1.9M: A - ¥650,000
+  employment_deduction_threshold_3: 3599999  # ¥1.9M-¥3.6M: (A÷4)×2.8 - ¥80,000
+  employment_deduction_threshold_4: 6599999  # ¥3.6M-¥6.6M: (A÷4)×3.2 - ¥440,000
+  employment_deduction_threshold_5: 8499999  # ¥6.6M-¥8.5M: A×0.9 - ¥1,100,000
+  # Above ¥8.5M: A - ¥1,950,000
+
+  # Basic deduction (2025 reform - temporary increase)
+  basic_deduction_national: 580000    # National income tax
+  basic_deduction_resident: 430000    # Resident tax (lower)
+
+  # Spouse deduction (for married filing status)
+  spouse_deduction_national: 380000
+  spouse_deduction_resident: 330000
+
+  # Dependent deduction (ages 19-22, special rate)
+  dependent_deduction_19_22_national: 630000
+  dependent_deduction_19_22_resident: 450000
+
+  # Resident tax rates
+  resident_tax_rate: 0.10  # Flat 10% (4% prefectural + 6% municipal)
+  resident_tax_percapita: 5000  # ¥5,000 annual per-capita levy
+
+  # Social insurance rates (Tokyo, 2025)
+  health_insurance_rate: 0.04955      # Employee share (Tokyo)
+  pension_rate: 0.0915                 # Employee share
+  employment_insurance_rate: 0.0055    # Employee rate (general business)
+  longterm_care_rate: 0.00795          # Ages 40-64 only
+
+  # Social insurance caps
+  pension_monthly_cap: 650000          # ¥650,000/month maximum
+  health_insurance_monthly_cap: 1390000 # ¥1,390,000/month maximum
+
+calculations:
+  # Step 1: Calculate Employment Income (after employment income deduction)
+  # Complex 5-bracket formula based on gross salary
+  - id: employment_income
+    type: switch
+    on: "@gross_annual"
+    cases:
+      _:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: "$employment_deduction_threshold_1"
+        then: 0
+        else:
+          type: conditional
+          condition:
+            type: lte
+            left: "@gross_annual"
+            right: "$employment_deduction_threshold_2"
+          then:
+            type: sub
+            values:
+              - "@gross_annual"
+              - 650000
+          else:
+            type: conditional
+            condition:
+              type: lte
+              left: "@gross_annual"
+              right: "$employment_deduction_threshold_3"
+            then:
+              type: sub
+              values:
+                - type: mul
+                  values:
+                    - type: div
+                      values:
+                        - "@gross_annual"
+                        - 4
+                    - 2.8
+                - 80000
+            else:
+              type: conditional
+              condition:
+                type: lte
+                left: "@gross_annual"
+                right: "$employment_deduction_threshold_4"
+              then:
+                type: sub
+                values:
+                  - type: mul
+                    values:
+                      - type: div
+                        values:
+                          - "@gross_annual"
+                          - 4
+                      - 3.2
+                  - 440000
+              else:
+                type: conditional
+                condition:
+                  type: lte
+                  left: "@gross_annual"
+                  right: "$employment_deduction_threshold_5"
+                then:
+                  type: sub
+                  values:
+                    - type: mul
+                      values:
+                        - "@gross_annual"
+                        - 0.9
+                    - 1100000
+                else:
+                  type: sub
+                  values:
+                    - "@gross_annual"
+                    - 1950000
+
+  # Step 2: Calculate Social Insurance Premiums
+  # Monthly salary for social insurance calculations
+  - id: monthly_salary
+    type: div
+    values:
+      - "@gross_annual"
+      - 12
+
+  # Health insurance (capped at ¥1,390,000/month)
+  - id: health_insurance_base
+    type: min
+    values:
+      - "$monthly_salary"
+      - "$health_insurance_monthly_cap"
+
+  - id: health_insurance_annual
+    type: mul
+    values:
+      - type: mul
+        values:
+          - "$health_insurance_base"
+          - "$health_insurance_rate"
+      - 12
+    category: contribution
+    label: "Health Insurance"
+    description: "健康保険 (Kenko Hoken) - Tokyo rate"
+
+  # Pension insurance (capped at ¥650,000/month)
+  - id: pension_base
+    type: min
+    values:
+      - "$monthly_salary"
+      - "$pension_monthly_cap"
+
+  - id: pension_annual
+    type: mul
+    values:
+      - type: mul
+        values:
+          - "$pension_base"
+          - "$pension_rate"
+      - 12
+    category: contribution
+    label: "Employees' Pension Insurance"
+    description: "厚生年金保険 (Kosei Nenkin Hoken)"
+
+  # Employment insurance (no cap, calculated on actual salary)
+  - id: employment_insurance_annual
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$employment_insurance_rate"
+    category: contribution
+    label: "Employment Insurance"
+    description: "雇用保険 (Koyo Hoken)"
+
+  # Long-term care insurance (ages 40-64 only)
+  - id: longterm_care_applicable
+    type: conditional
+    condition:
+      type: gte
+      left: "@age"
+      right: 40
+    then:
+      type: conditional
+      condition:
+        type: lte
+        left: "@age"
+        right: 64
+      then: 1
+      else: 0
+    else: 0
+
+  - id: longterm_care_annual
+    type: mul
+    values:
+      - type: mul
+        values:
+          - type: mul
+            values:
+              - "$health_insurance_base"
+              - "$longterm_care_rate"
+          - 12
+      - "$longterm_care_applicable"
+    category: contribution
+    label: "Long-term Care Insurance"
+    description: "介護保険 (Kaigo Hoken) - Ages 40-64"
+
+  # Total social insurance
+  - id: total_social_insurance
+    type: sum
+    values:
+      - "$health_insurance_annual"
+      - "$pension_annual"
+      - "$employment_insurance_annual"
+      - "$longterm_care_annual"
+
+  # Step 3: Calculate National Income Tax
+  # Spouse deduction (for married filing status)
+  - id: spouse_deduction_amount_national
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: 0
+      married: "$spouse_deduction_national"
+      married_dependents: "$spouse_deduction_national"
+
+  # Dependent deduction (ages 19-22)
+  - id: dependent_deduction_amount_national
+    type: mul
+    values:
+      - "@num_dependents_19_22"
+      - "$dependent_deduction_19_22_national"
+
+  # Total deductions for national tax
+  - id: total_deductions_national
+    type: sum
+    values:
+      - "$total_social_insurance"
+      - "$basic_deduction_national"
+      - "$spouse_deduction_amount_national"
+      - "$dependent_deduction_amount_national"
+
+  # Taxable income for national tax
+  - id: taxable_income_national
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$employment_income"
+          - "$total_deductions_national"
+
+  # Base national income tax (before surtax)
+  - id: national_income_tax_base
+    type: bracket_tax
+    base: "$taxable_income_national"
+    brackets: "$national_tax_brackets"
+    category: income_tax
+    label: "National Income Tax (Base)"
+    description: "国税 - Base income tax before reconstruction surtax"
+
+  # Reconstruction surtax (2.1% of base tax)
+  - id: reconstruction_surtax
+    type: mul
+    values:
+      - "$national_income_tax_base"
+      - "$reconstruction_surtax_rate"
+    category: surtax
+    label: "Reconstruction Surtax"
+    description: "復興特別所得税 - 2.1% surtax through 2037"
+
+  # Total national income tax (base + surtax)
+  - id: total_national_income_tax
+    type: sum
+    values:
+      - "$national_income_tax_base"
+      - "$reconstruction_surtax"
+
+  # Step 4: Calculate Resident Tax (on prior year income)
+  # Spouse deduction (for married filing status)
+  - id: spouse_deduction_amount_resident
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: 0
+      married: "$spouse_deduction_resident"
+      married_dependents: "$spouse_deduction_resident"
+
+  # Dependent deduction (ages 19-22)
+  - id: dependent_deduction_amount_resident
+    type: mul
+    values:
+      - "@num_dependents_19_22"
+      - "$dependent_deduction_19_22_resident"
+
+  # Total deductions for resident tax (different basic deduction)
+  - id: total_deductions_resident
+    type: sum
+    values:
+      - "$total_social_insurance"
+      - "$basic_deduction_resident"
+      - "$spouse_deduction_amount_resident"
+      - "$dependent_deduction_amount_resident"
+
+  # Taxable income for resident tax
+  - id: taxable_income_resident
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$employment_income"
+          - "$total_deductions_resident"
+
+  # Resident tax income levy (10% flat rate)
+  - id: resident_tax_income_levy
+    type: mul
+    values:
+      - "$taxable_income_resident"
+      - "$resident_tax_rate"
+    category: income_tax
+    label: "Resident Tax (Income Levy)"
+    description: "住民税所得割 - 10% of prior year taxable income"
+
+  # Resident tax per-capita levy
+  - id: resident_tax_percapita_levy
+    type: identity
+    value: "$resident_tax_percapita"
+    category: income_tax
+    label: "Resident Tax (Per-Capita Levy)"
+    description: "住民税均等割 - ¥5,000 annual flat levy"
+
+  # Total resident tax
+  - id: total_resident_tax
+    type: sum
+    values:
+      - "$resident_tax_income_levy"
+      - "$resident_tax_percapita_levy"
+
+  # Step 5: Calculate Net Annual Income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - type: sum
+        values:
+          - "$total_national_income_tax"
+          - "$total_resident_tax"
+          - "$total_social_insurance"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$national_income_tax_base"
+      - "$reconstruction_surtax"
+      - "$resident_tax_income_levy"
+      - "$resident_tax_percapita_levy"
+    contributions:
+      - "$health_insurance_annual"
+      - "$pension_annual"
+      - "$employment_insurance_annual"
+      - "$longterm_care_annual"

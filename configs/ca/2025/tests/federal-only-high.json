@@ -1,0 +1,21 @@
+{
+  "name": "Federal only - High income (CAD 120,000)",
+  "inputs": {
+    "gross_annual": 120000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 95598.17,
+    "effective_rate": 0.2033,
+    "breakdown": {
+      "federal_income_tax": 18894.25,
+      "cpp_base_contribution": 4034.10,
+      "cpp2_contribution": 396.00,
+      "ei_contribution": 1077.48,
+      "basic_personal_credit": 2338.71,
+      "canada_employment_credit": 213.30
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,293 @@
+meta:
+  country: "ie"
+  label: "Ireland"
+  year: 2025
+  currency: "EUR"
+  frequency: "annual"
+  description: "Ireland income tax, USC, and PRSI for 2025"
+  sources:
+    - "https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/tax-relief-charts/index.aspx"
+    - "https://www.citizensinformation.ie/en/money-and-tax/tax/income-tax/universal-social-charge/"
+    - "https://www.gov.ie/en/department-of-social-protection/publications/prsi-class-a-rates/"
+  last_updated: "2026-01-23"
+
+inputs:
+  - id: "gross_annual"
+    label: "Annual Gross Salary"
+    type: "currency"
+    required: true
+    default: 50000
+    min: 0
+    max: 2000000
+
+  - id: "filing_status"
+    label: "Filing Status"
+    type: "select"
+    required: true
+    default: "single"
+    options:
+      - value: "single"
+        label: "Single"
+      - value: "married"
+        label: "Married/Civil Partners"
+
+parameters:
+  # Income tax brackets and rates (2025)
+  standard_rate_band_single: 53000
+  standard_rate_band_married: 53000
+  standard_rate: 0.20
+  higher_rate: 0.40
+
+  # Tax credits (2025)
+  personal_credit_single: 2000
+  personal_credit_married: 4000
+  employee_credit_full: 2000
+  employee_credit_minimum_income: 10000
+
+  # USC brackets (2025)
+  usc_bracket_1_limit: 12012
+  usc_bracket_1_rate: 0.005
+  usc_bracket_2_limit: 27382
+  usc_bracket_2_rate: 0.02
+  usc_bracket_3_limit: 70044
+  usc_bracket_3_rate: 0.03
+  usc_bracket_4_rate: 0.08
+
+  # PRSI (October 2025+ rate)
+  prsi_rate: 0.042
+  prsi_weekly_threshold: 352
+  prsi_annual_threshold: 18304  # 352 * 52
+
+calculations:
+  # Income Tax Calculation
+  - id: "standard_rate_band"
+    label: "Standard Rate Band"
+    type: "switch"
+    on: "@filing_status"
+    cases:
+      single: "$standard_rate_band_single"
+      married: "$standard_rate_band_married"
+    default: "$standard_rate_band_single"
+    category: "income_tax"
+
+  - id: "income_at_standard_rate"
+    label: "Income Taxed at Standard Rate"
+    type: "min"
+    values:
+      - "@gross_annual"
+      - "$standard_rate_band"
+    category: "income_tax"
+
+  - id: "income_at_higher_rate"
+    label: "Income Taxed at Higher Rate"
+    type: "sub"
+    values:
+      - "@gross_annual"
+      - "$income_at_standard_rate"
+    category: "income_tax"
+
+  - id: "tax_at_standard_rate"
+    label: "Tax at Standard Rate (20%)"
+    type: "mul"
+    values:
+      - "$income_at_standard_rate"
+      - "$standard_rate"
+    category: "income_tax"
+
+  - id: "tax_at_higher_rate"
+    label: "Tax at Higher Rate (40%)"
+    type: "mul"
+    values:
+      - "$income_at_higher_rate"
+      - "$higher_rate"
+    category: "income_tax"
+
+  - id: "income_tax_before_credits"
+    label: "Income Tax Before Credits"
+    type: "sum"
+    values:
+      - "$tax_at_standard_rate"
+      - "$tax_at_higher_rate"
+    category: "income_tax"
+
+  # Tax Credits
+  - id: "personal_credit"
+    label: "Personal Tax Credit"
+    type: "switch"
+    on: "@filing_status"
+    cases:
+      single: "$personal_credit_single"
+      married: "$personal_credit_married"
+    default: "$personal_credit_single"
+    category: "credit"
+
+  - id: "employee_credit"
+    label: "Employee Tax Credit"
+    type: "conditional"
+    condition:
+      type: "gte"
+      left: "@gross_annual"
+      right: "$employee_credit_minimum_income"
+    then: "$employee_credit_full"
+    else:
+      type: "mul"
+      values:
+        - "@gross_annual"
+        - 0.20
+    category: "credit"
+
+  - id: "total_credits"
+    label: "Total Tax Credits"
+    type: "sum"
+    values:
+      - "$personal_credit"
+      - "$employee_credit"
+    category: "credit"
+
+  - id: "income_tax"
+    label: "Income Tax"
+    type: "max"
+    values:
+      - 0
+      - type: "sub"
+        values:
+          - "$income_tax_before_credits"
+          - "$total_credits"
+    category: "income_tax"
+
+  # Universal Social Charge (USC)
+  - id: "usc_band_1"
+    label: "USC Band 1 (0.5%)"
+    type: "mul"
+    values:
+      - type: "min"
+        values:
+          - "@gross_annual"
+          - "$usc_bracket_1_limit"
+      - "$usc_bracket_1_rate"
+    category: "contribution"
+
+  - id: "usc_band_2"
+    label: "USC Band 2 (2%)"
+    type: "mul"
+    values:
+      - type: "max"
+        values:
+          - 0
+          - type: "min"
+            values:
+              - type: "sub"
+                values:
+                  - "@gross_annual"
+                  - "$usc_bracket_1_limit"
+              - type: "sub"
+                values:
+                  - "$usc_bracket_2_limit"
+                  - "$usc_bracket_1_limit"
+      - "$usc_bracket_2_rate"
+    category: "contribution"
+
+  - id: "usc_band_3"
+    label: "USC Band 3 (3%)"
+    type: "mul"
+    values:
+      - type: "max"
+        values:
+          - 0
+          - type: "min"
+            values:
+              - type: "sub"
+                values:
+                  - "@gross_annual"
+                  - "$usc_bracket_2_limit"
+              - type: "sub"
+                values:
+                  - "$usc_bracket_3_limit"
+                  - "$usc_bracket_2_limit"
+      - "$usc_bracket_3_rate"
+    category: "contribution"
+
+  - id: "usc_band_4"
+    label: "USC Band 4 (8%)"
+    type: "mul"
+    values:
+      - type: "max"
+        values:
+          - 0
+          - type: "sub"
+            values:
+              - "@gross_annual"
+              - "$usc_bracket_3_limit"
+      - "$usc_bracket_4_rate"
+    category: "contribution"
+
+  - id: "usc"
+    label: "Universal Social Charge (USC)"
+    type: "sum"
+    values:
+      - "$usc_band_1"
+      - "$usc_band_2"
+      - "$usc_band_3"
+      - "$usc_band_4"
+    category: "contribution"
+
+  # PRSI
+  - id: "prsi"
+    label: "PRSI (Pay-Related Social Insurance)"
+    type: "conditional"
+    condition:
+      type: "gte"
+      left: "@gross_annual"
+      right: "$prsi_annual_threshold"
+    then:
+      type: "mul"
+      values:
+        - "@gross_annual"
+        - "$prsi_rate"
+    else: 0
+    category: "contribution"
+
+  # Net Calculation
+  - id: "total_deductions"
+    label: "Total Deductions"
+    type: "sum"
+    values:
+      - "$income_tax"
+      - "$usc"
+      - "$prsi"
+    category: "deduction"
+
+  - id: "net_annual"
+    label: "Net Annual Salary"
+    type: "sub"
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: "div"
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$usc"
+      - "$prsi"
+    credits:
+      - "$personal_credit"
+      - "$employee_credit"
+
+notices:
+  - type: "info"
+    message: "PRSI rate shown is 4.2% (effective October 1, 2025). The rate was 4.1% from January-September 2025."
+
+  - type: "info"
+    message: "Standard tax credits include Personal Credit and Employee Tax Credit, totaling €4,000 for single filers."
+
+  - type: "info"
+    message: "USC (Universal Social Charge) is calculated on gross income with no reliefs or credits."

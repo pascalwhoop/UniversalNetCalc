@@ -1,0 +1,21 @@
+{
+  "name": "Federal only - Median income (CAD 60,000)",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 49348.75,
+    "effective_rate": 0.1775,
+    "breakdown": {
+      "federal_income_tax": 6305.50,
+      "cpp_base_contribution": 3361.75,
+      "cpp2_contribution": 0,
+      "ei_contribution": 984.00,
+      "basic_personal_credit": 2338.71,
+      "canada_employment_credit": 213.30
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

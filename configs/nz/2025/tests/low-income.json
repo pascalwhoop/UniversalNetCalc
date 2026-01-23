@@ -1,0 +1,26 @@
+{
+  "name": "Low income with full IETC",
+  "description": "Individual earning NZD 30,000 per year with full Independent Earner Tax Credit",
+  "inputs": {
+    "gross_annual": 30000
+  },
+  "expected": {
+    "net": 25861,
+    "effective_rate": 0.138,
+    "breakdown": {
+      "income_tax": 4158,
+      "acc_levy": 501,
+      "ietc_credit": 520
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using 2025-26 PAYE rates, ACC levy, and IETC from IRD",
+      "url": "https://www.ird.govt.nz/income-tax/income-tax-for-individuals/tax-codes-and-tax-rates-for-individuals/tax-rates-for-individuals",
+      "retrieved_at": "2026-01-23",
+      "notes": "PAYE: 10.5% up to $15,600 + 17.5% up to $53,500. ACC: 1.67%. IETC: Full $520 for income between $24,000 and $66,000."
+    }
+  ]
+}

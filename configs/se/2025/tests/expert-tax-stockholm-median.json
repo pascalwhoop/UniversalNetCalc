@@ -1,0 +1,23 @@
+{
+  "name": "Expert Tax - Stockholm - Median Foreign Specialist",
+  "description": "Foreign specialist earning SEK 600,000 in Stockholm with Expert Tax regime",
+  "variant": "expert-tax",
+  "inputs": {
+    "gross_annual": 600000,
+    "municipality": "stockholm"
+  },
+  "expected": {
+    "net": 474000,
+    "effective_rate": 0.21
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Expert Tax: Only 75% of income is taxable. Stockholm 30.60%, grundavdrag SEK 17,300, jobbskatteavdrag",
+      "url": "https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief",
+      "retrieved_at": "2026-01-23",
+      "notes": "Gross after 25% exemption: 450,000. Taxable: 450,000 - 17,300 = 432,700. Municipal tax: 432,700 × 30.60% = 132,406. Work credit: ~40,000. Net tax: ~126,000. Net: 474,000"
+    }
+  ]
+}

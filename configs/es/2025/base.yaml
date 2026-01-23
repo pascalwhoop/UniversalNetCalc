@@ -1,0 +1,230 @@
+meta:
+  country: "es"
+  year: 2025
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://sede.agenciatributaria.gob.es/Sede/en_gb/"
+      description: "Spanish Tax Agency (Agencia Tributaria) - Official 2025 IRPF rates"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.seg-social.es"
+      description: "Spanish Social Security - Contribution rates and bases 2025"
+      retrieved_at: "2026-01-23"
+    - url: "https://taxsummaries.pwc.com/spain/individual"
+      description: "PWC Spain Tax Summaries - Individual taxation overview"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This configuration covers the standard Spanish income tax system (IRPF) for 2025,
+    focusing on national (state) tax rates. Regional variations apply but are not
+    included in this base configuration.
+
+    Key characteristics:
+    - Progressive national income tax with 6 brackets (19% to 47%)
+    - Personal allowance of €5,550 (applied as tax credit)
+    - Social Security employee contribution: 6.48% up to maximum base (€58,914)
+    - Solidarity contribution applies to income above Social Security max base
+    - Regional autonomous community taxes add approximately 5-10% additional tax
+
+    Important notes:
+    - This configuration uses NATIONAL (state) tax rates only
+    - Regional rates vary by autonomous community (Madrid ~45% total, Catalonia ~50% total)
+    - Tax residents are taxed on worldwide income
+    - This is for employees (not self-employed/autónomos)
+
+notices:
+  - id: "national_rates_only"
+    title: "National Tax Rates Only"
+    body: |
+      This calculator uses only the national (state) tax rates. Spain's autonomous
+      communities add their own regional income tax, typically 5-10% additional.
+      Total effective rates range from ~45% (Madrid) to ~50% (Catalonia) for high earners.
+    severity: "warning"
+
+  - id: "social_security_max_base"
+    title: "Social Security Maximum Base"
+    body: |
+      Social Security contributions are capped at €58,914 annually (€4,909.50/month) for 2025.
+      Income above this threshold is subject to a solidarity contribution at progressive rates.
+    severity: "info"
+
+  - id: "personal_allowance"
+    title: "Personal Allowance (Mínimo Personal)"
+    body: |
+      The personal allowance of €5,550 is applied as a tax credit (not a deduction from income).
+      The credit reduces your final tax liability by the tax that would be paid on €5,550.
+    severity: "info"
+
+  - id: "beckham_law_available"
+    title: "Beckham Law Option Available"
+    body: |
+      If you're relocating to Spain for work and meet eligibility requirements, you may
+      qualify for the Beckham Law (24% flat tax rate). See the "beckham-law" variant.
+      You must apply within 6 months of starting work in Spain.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Individual tax filing (standard in Spain)"
+      joint:
+        label: "Joint Filing"
+        description: "Married filing jointly (rare in Spain, usually less favorable)"
+
+parameters:
+  # National (State) IRPF tax brackets 2024-2025
+  # These are the state portion only; regions add their own
+  national_tax_brackets:
+    - threshold: 0
+      rate: 0.19
+    - threshold: 12450
+      rate: 0.24
+    - threshold: 20200
+      rate: 0.30
+    - threshold: 35200
+      rate: 0.37
+    - threshold: 60000
+      rate: 0.45
+    - threshold: 300000
+      rate: 0.47
+
+  # Personal allowance (Mínimo Personal) 2024-2025
+  # This is applied as a tax credit, not a deduction
+  personal_allowance: 5550
+
+  # Social Security contribution rates 2025
+  social_security_employee_rate: 0.0648  # 6.48%
+  social_security_max_base: 58914  # €4,909.50/month * 12
+
+  # Solidarity contribution 2025 (for income above SS max base)
+  # Simplified: using average rate of 0.17% for employee portion
+  solidarity_contribution_employee_rate: 0.0017
+
+calculations:
+  # Taxable income (for standard case, same as gross)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # National income tax (state portion only)
+  - id: national_income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$national_tax_brackets"
+    category: income_tax
+    label: "National Income Tax (IRPF - State)"
+    description: "Progressive national income tax at state level"
+
+  # Personal allowance tax credit
+  # Calculate the tax that would be paid on the personal allowance amount
+  - id: personal_allowance_tax_credit_amount
+    type: bracket_tax
+    base: "$personal_allowance"
+    brackets: "$national_tax_brackets"
+
+  - id: personal_allowance_credit
+    type: credit
+    amount: "$personal_allowance_tax_credit_amount"
+    refundable: false
+    category: credit
+    label: "Personal Allowance Credit"
+    description: "Tax credit based on personal allowance (Mínimo Personal) of €5,550"
+
+  # Social Security contributions
+  # Employee pays 6.48% up to maximum base
+  - id: social_security_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$social_security_max_base"
+
+  - id: social_security_contribution
+    type: mul
+    values:
+      - "$social_security_base"
+      - "$social_security_employee_rate"
+    category: contribution
+    label: "Social Security Contribution"
+    description: "Employee Social Security contribution (6.48% up to €58,914)"
+
+  # Solidarity contribution (for income above max SS base)
+  - id: income_above_ss_max
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$social_security_max_base"
+
+  - id: solidarity_contribution
+    type: mul
+    values:
+      - "$income_above_ss_max"
+      - "$solidarity_contribution_employee_rate"
+    category: contribution
+    label: "Solidarity Contribution"
+    description: "Progressive solidarity contribution on income above Social Security max base"
+
+  # Total tax before credits
+  - id: total_tax_before_credits
+    type: sum
+    values:
+      - "$national_income_tax"
+
+  # Tax after credits (cannot be negative)
+  - id: tax_after_credits
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$total_tax_before_credits"
+          - "$personal_allowance_tax_credit_amount"
+
+  # Total deductions (tax + social security + solidarity)
+  - id: total_deductions
+    type: sum
+    values:
+      - "$tax_after_credits"
+      - "$social_security_contribution"
+      - "$solidarity_contribution"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$national_income_tax"
+      - "$social_security_contribution"
+      - "$solidarity_contribution"
+    credits:
+      - "$personal_allowance_credit"

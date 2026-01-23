@@ -1,0 +1,22 @@
+{
+  "name": "Stockholm - Low Income (Below State Tax Threshold)",
+  "description": "Single person earning SEK 250,000 in Stockholm",
+  "inputs": {
+    "gross_annual": 250000,
+    "municipality": "stockholm"
+  },
+  "expected": {
+    "net": 195200,
+    "effective_rate": 0.2192
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on Swedish Tax Agency 2025 rates: Stockholm municipal tax 30.60%, grundavdrag SEK 17,300, jobbskatteavdrag calculation",
+      "url": "https://www.skatteverket.se/privat/skatter/arbeteochinkomst.4.15532c7b1442f256bae11b60.html",
+      "retrieved_at": "2026-01-23",
+      "notes": "Taxable: 250,000 - 17,300 = 232,700. Municipal tax: 232,700 × 30.60% = 71,206. Work credit: ~16,100. Net tax: ~54,800. Net: ~195,200"
+    }
+  ]
+}

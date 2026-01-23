@@ -1,0 +1,30 @@
+{
+  "name": "Single, Low Income (¥3M), Age 30, Tokyo",
+  "description": "Low income single worker - tests lower tax brackets",
+  "inputs": {
+    "gross_annual": 3000000,
+    "age": 30,
+    "filing_status": "single",
+    "num_dependents_19_22": 0
+  },
+  "expected": {
+    "employment_income": 2020000,
+    "health_insurance_annual": 148650,
+    "pension_annual": 274500,
+    "employment_insurance_annual": 16500,
+    "longterm_care_annual": 0,
+    "total_social_insurance": 439650,
+    "taxable_income_national": 1000350,
+    "national_income_tax_base": 50017,
+    "reconstruction_surtax": 1050,
+    "total_national_income_tax": 51067,
+    "taxable_income_resident": 1150350,
+    "resident_tax_income_levy": 115035,
+    "resident_tax_percapita_levy": 5000,
+    "total_resident_tax": 120035,
+    "net": 2389248,
+    "effective_rate": 0.2036
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.001
+}

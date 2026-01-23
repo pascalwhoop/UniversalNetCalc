@@ -1,0 +1,186 @@
+meta:
+  country: au
+  year: 2025
+  label: "Australia 2025"
+  description: "Australian tax system for residents with Stage 3 tax cuts"
+  currency: AUD
+  sources:
+    - "Australian Taxation Office: https://www.ato.gov.au"
+    - "Individual income tax rates: https://www.ato.gov.au/rates/individual-income-tax-rates"
+    - "Medicare levy: https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy"
+    - "Low Income Tax Offset: https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/offsets-and-rebates/income-offsets/low-income-tax-offset"
+
+# Financial year runs from 1 July 2024 to 30 June 2025
+# Stage 3 tax cuts implemented from 1 July 2024
+
+inputs:
+  gross_annual:
+    type: number
+    label: "Gross Annual Salary"
+    description: "Annual salary before tax (in AUD)"
+    validation:
+      min: 0
+      max: 10000000
+
+parameters:
+  # Tax brackets (Stage 3 tax cuts) - using threshold/rate structure
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0         # $0 - $18,200 (tax-free threshold)
+    - threshold: 18200
+      rate: 0.16      # $18,201 - $45,000
+    - threshold: 45000
+      rate: 0.30      # $45,001 - $135,000
+    - threshold: 135000
+      rate: 0.37      # $135,001 - $190,000
+    - threshold: 190000
+      rate: 0.45      # $190,001+
+
+  # Medicare levy
+  medicare_levy_rate: 0.02
+
+  # Low Income Tax Offset (LITO)
+  lito_max: 700
+  lito_threshold_1: 37500
+  lito_threshold_2: 45000
+  lito_threshold_3: 66667
+  lito_phase_out_rate_1: 0.05   # 5c per dollar over $37,500
+  lito_phase_out_rate_2: 0.015  # 1.5c per dollar over $45,000
+
+  # Superannuation (employer contribution - informational only)
+  super_guarantee_rate: 0.115  # 11.5% for 2024-25
+
+calculations:
+  # Taxable income (for now, assume gross = taxable)
+  - id: taxable_income
+    type: sum
+    values: ["@gross_annual"]
+    category: income
+
+  # Income tax calculation using progressive brackets
+  - id: income_tax
+    type: bracket_tax
+    base: $taxable_income
+    brackets: $income_tax_brackets
+    category: income_tax
+    label: "Income Tax"
+
+  # Low Income Tax Offset (LITO)
+  # Full $700 for income up to $37,500
+  # Phase out 1: $700 - 5c per dollar over $37,500 (until $45,000)
+  # Phase out 2: $325 - 1.5c per dollar over $45,000 (until $66,667)
+  - id: lito_phase_1_reduction
+    type: conditional
+    condition:
+      type: gt
+      left: $taxable_income
+      right: $lito_threshold_1
+    then:
+      type: mul
+      values:
+        - type: sub
+          values: [$taxable_income, $lito_threshold_1]
+        - $lito_phase_out_rate_1
+    else: 0
+
+  - id: lito_after_phase_1
+    type: sub
+    values: [$lito_max, $lito_phase_1_reduction]
+
+  - id: lito_phase_2_reduction
+    type: conditional
+    condition:
+      type: gt
+      left: $taxable_income
+      right: $lito_threshold_2
+    then:
+      type: mul
+      values:
+        - type: sub
+          values: [$taxable_income, $lito_threshold_2]
+        - $lito_phase_out_rate_2
+    else: 0
+
+  - id: lito_offset
+    type: max
+    values:
+      - type: sub
+        values: [$lito_after_phase_1, $lito_phase_2_reduction]
+      - 0
+    category: credit
+    label: "Low Income Tax Offset (LITO)"
+
+  # Medicare levy (2% of taxable income)
+  - id: medicare_levy
+    type: percent_of
+    base: $taxable_income
+    rate: $medicare_levy_rate
+    category: contribution
+    label: "Medicare Levy"
+
+  # Total tax before offsets
+  - id: total_tax_before_offsets
+    type: sum
+    values:
+      - $income_tax
+      - $medicare_levy
+
+  # Total tax after offsets
+  - id: total_tax
+    type: sub
+    values:
+      - $total_tax_before_offsets
+      - $lito_offset
+
+  # Net income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - $total_tax
+
+  # Superannuation (informational - not deducted from employee salary)
+  - id: employer_super
+    type: percent_of
+    base: "@gross_annual"
+    rate: $super_guarantee_rate
+    label: "Employer Superannuation Contribution (not deducted from salary)"
+
+outputs:
+  gross: "@gross_annual"
+  net: $net_annual
+  effective_rate:
+    type: div
+    values:
+      - $total_tax
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - $income_tax
+    contributions:
+      - $medicare_levy
+    credits:
+      - $lito_offset
+  informational:
+    - $employer_super
+
+notices:
+  - type: info
+    title: "Stage 3 Tax Cuts"
+    message: "These rates reflect the Stage 3 tax cuts implemented from 1 July 2024, which reduced the 19% rate to 16% and merged tax brackets for middle-income earners."
+
+  - type: info
+    title: "Superannuation"
+    message: "Your employer must contribute 11.5% of your salary to superannuation (retirement savings). This is paid ON TOP of your gross salary, not deducted from it. From 1 July 2025, this increases to 12%."
+
+  - type: info
+    title: "Future Tax Cuts"
+    message: "Further tax cuts are scheduled: the 16% rate reduces to 15% from 1 July 2026, and to 14% from 1 July 2027."
+
+  - type: warning
+    title: "Medicare Levy Surcharge"
+    message: "If you earn over $97,000 (singles) or $194,000 (families) without appropriate private health insurance, you may owe an additional Medicare Levy Surcharge of 1-1.5%. This calculator does not include MLS."
+
+  - type: info
+    title: "Tax-Free Threshold"
+    message: "Australian residents receive a tax-free threshold of $18,200. This means you pay no tax on the first $18,200 of income."

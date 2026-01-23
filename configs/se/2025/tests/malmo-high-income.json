@@ -1,0 +1,22 @@
+{
+  "name": "Malmö - High Income",
+  "description": "High earner in Malmö earning SEK 750,000",
+  "inputs": {
+    "gross_annual": 750000,
+    "municipality": "malmo"
+  },
+  "expected": {
+    "net": 526000,
+    "effective_rate": 0.2987
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on Swedish Tax Agency 2025 rates: Malmö municipal tax 31.20%, state tax 20% above SEK 625,800",
+      "url": "https://www.scb.se/en/finding-statistics/statistics-by-subject-area/public-finances/local-government-finances/local-taxes/",
+      "retrieved_at": "2026-01-23",
+      "notes": "Taxable: 750,000 - 17,300 = 732,700. Municipal tax: 732,700 × 31.20% = 228,602. State tax: (732,700 - 625,800) × 20% = 21,380. Work credit: ~47,000. Total tax: ~224,000. Net: ~526,000"
+    }
+  ]
+}

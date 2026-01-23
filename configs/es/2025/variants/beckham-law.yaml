@@ -1,0 +1,179 @@
+meta:
+  variant: "beckham-law"
+  label: "Beckham Law (Special Expat Regime)"
+  description: |
+    Special tax regime for inbound workers (Régimen especial para trabajadores desplazados).
+    Offers 24% flat tax rate on Spanish-sourced income up to €600,000, with foreign income exempt.
+    Named after footballer David Beckham who was one of the first beneficiaries.
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.lawants.com/en/beckham-law/"
+      description: "Comprehensive Beckham Law guide by Spanish law firm"
+      retrieved_at: "2026-01-23"
+    - url: "https://brighttax.com/blog/beckham-law-in-spain/"
+      description: "Beckham Law eligibility and benefits for expats"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.globalcitizensolutions.com/spain-special-expat-regime-tax/"
+      description: "Spain Special Expat Tax Regime detailed explanation"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    Beckham Law eligibility requirements:
+    - Must not have been Spanish tax resident in previous 5 years
+    - Must be relocating to Spain for work (employment contract required)
+    - Must perform at least 85% of work activities in Spain
+    - Must apply within 6 months of starting work or Social Security registration
+    - Valid for 6 tax years (year of arrival + 5 subsequent years)
+
+    Key benefits:
+    - 24% flat tax rate on Spanish-sourced income up to €600,000
+    - 47% rate on Spanish income above €600,000
+    - Foreign employment income, dividends, interest, rental income exempt from Spanish tax
+    - Foreign assets excluded from Spanish wealth tax
+    - No Modelo 720 obligation (overseas asset declaration)
+
+    Important notes:
+    - Social Security contributions still apply at standard rates (6.48%)
+    - No personal allowances or family deductions under this regime
+    - Missing the 6-month application deadline means complete loss of eligibility
+
+notices:
+  - id: "beckham_eligibility"
+    title: "Beckham Law Eligibility Requirements"
+    body: |
+      To qualify for the Beckham Law, you must meet ALL of these criteria:
+      - Not a Spanish tax resident in the previous 5 years
+      - Relocating to Spain for work (need employment contract)
+      - Performing at least 85% of work activities in Spain
+      - Apply within 6 months of starting work or Social Security registration
+
+      Missing the 6-month deadline means complete loss of eligibility with NO exceptions.
+      Consult with a Spanish tax advisor to confirm eligibility before assuming you qualify.
+    severity: "warning"
+
+  - id: "beckham_flat_rate"
+    title: "24% Flat Tax Rate"
+    body: |
+      Under the Beckham Law, you pay a 24% flat tax rate on Spanish-sourced income
+      up to €600,000. Income above €600,000 is taxed at 47%.
+
+      This replaces the progressive IRPF rates and provides significant tax savings
+      for high earners compared to the standard regime.
+    severity: "info"
+
+  - id: "beckham_foreign_income"
+    title: "Foreign Income Exemption"
+    body: |
+      Foreign employment income, dividends, interest, rental income, and capital gains
+      are NOT taxed in Spain under the Beckham Law.
+
+      IMPORTANT EXCEPTION: Income from work activities and entrepreneurial activities
+      performed abroad IS taxed in Spain.
+    severity: "info"
+
+  - id: "beckham_social_security"
+    title: "Social Security Still Applies"
+    body: |
+      The Beckham Law does NOT exempt you from Spanish Social Security contributions.
+      You still pay the standard 6.48% employee contribution up to the maximum base
+      (€58,914 for 2025), plus solidarity contributions on income above that threshold.
+    severity: "info"
+
+  - id: "beckham_duration"
+    title: "6-Year Duration"
+    body: |
+      The Beckham Law regime lasts for 6 tax years total: the year you arrive in Spain
+      plus the 5 subsequent years. After that, you revert to the standard IRPF regime.
+    severity: "info"
+
+parameters:
+  # Beckham Law flat rate
+  beckham_flat_rate: 0.24
+  beckham_threshold: 600000
+  beckham_high_rate: 0.47
+
+  # Social Security remains the same as standard regime
+  # (inherited from base.yaml)
+
+calculations:
+  # Override taxable income to be same as gross (no allowances under Beckham)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+    description: "Full gross income is taxable under Beckham Law (no allowances)"
+
+  # Replace national income tax with Beckham Law tax calculation
+  # 24% up to €600,000, then 47% above
+  - id: income_up_to_threshold
+    type: min
+    values:
+      - "$taxable_income"
+      - "$beckham_threshold"
+
+  - id: income_above_threshold
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$taxable_income"
+          - "$beckham_threshold"
+
+  - id: beckham_tax_below_threshold
+    type: mul
+    values:
+      - "$income_up_to_threshold"
+      - "$beckham_flat_rate"
+
+  - id: beckham_tax_above_threshold
+    type: mul
+    values:
+      - "$income_above_threshold"
+      - "$beckham_high_rate"
+
+  # Override national_income_tax with Beckham calculation
+  # This keeps the same node ID so base outputs still work
+  - id: national_income_tax
+    type: sum
+    values:
+      - "$beckham_tax_below_threshold"
+      - "$beckham_tax_above_threshold"
+    category: income_tax
+    label: "Beckham Law Income Tax"
+    description: "24% flat rate up to €600,000, then 47% above"
+
+  # Delete personal allowance credit (not applicable under Beckham)
+  - id: personal_allowance_tax_credit_amount
+    $delete: true
+
+  - id: personal_allowance_credit
+    $delete: true
+
+  # Social Security and solidarity contributions remain the same
+  # (inherited from base.yaml)
+
+  # Override total tax before credits to use Beckham tax
+  - id: total_tax_before_credits
+    type: sum
+    values:
+      - "$national_income_tax"
+
+  # Tax after credits (no credits under Beckham, so same as before)
+  - id: tax_after_credits
+    type: identity
+    value: "$national_income_tax"
+
+  # Total deductions (Beckham tax + social security + solidarity)
+  - id: total_deductions
+    type: sum
+    values:
+      - "$tax_after_credits"
+      - "$social_security_contribution"
+      - "$solidarity_contribution"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"

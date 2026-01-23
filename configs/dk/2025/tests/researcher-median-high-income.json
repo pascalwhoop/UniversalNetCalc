@@ -1,0 +1,17 @@
+{
+  "name": "Researcher Scheme - High Income (DKK 700,000)",
+  "variant": "researcher",
+  "inputs": {
+    "gross_annual": 700000
+  },
+  "expected": {
+    "net": 470000,
+    "effective_rate": 0.32857,
+    "breakdown": {
+      "am_bidrag": 56000,
+      "researcher_flat_tax": 189000
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

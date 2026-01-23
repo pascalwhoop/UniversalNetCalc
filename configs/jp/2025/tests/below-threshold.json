@@ -1,0 +1,30 @@
+{
+  "name": "Below Taxation Threshold (¥1.2M), Age 25",
+  "description": "Very low income - tests below taxation threshold behavior",
+  "inputs": {
+    "gross_annual": 1200000,
+    "age": 25,
+    "filing_status": "single",
+    "num_dependents_19_22": 0
+  },
+  "expected": {
+    "employment_income": 550000,
+    "health_insurance_annual": 59460,
+    "pension_annual": 109800,
+    "employment_insurance_annual": 6600,
+    "longterm_care_annual": 0,
+    "total_social_insurance": 175860,
+    "taxable_income_national": 0,
+    "national_income_tax_base": 0,
+    "reconstruction_surtax": 0,
+    "total_national_income_tax": 0,
+    "taxable_income_resident": 0,
+    "resident_tax_income_levy": 0,
+    "resident_tax_percapita_levy": 5000,
+    "total_resident_tax": 5000,
+    "net": 1019140,
+    "effective_rate": 0.1507
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.001
+}

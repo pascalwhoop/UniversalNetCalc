@@ -1,0 +1,22 @@
+{
+  "name": "Base - Very High Income (KRW 200M)",
+  "description": "Very high income, testing earned income deduction in fifth bracket (below 20M cap)",
+  "inputs": {
+    "gross_annual": 200000000
+  },
+  "expected": {
+    "net": 132701074,
+    "effective_rate": 0.3365,
+    "breakdown": {
+      "earned_income_deduction": 16750000,
+      "national_income_tax": 49125000,
+      "local_income_tax": 4912500,
+      "national_pension": 3439800,
+      "health_insurance": 7090000,
+      "long_term_care_insurance": 931626,
+      "employment_insurance": 1800000
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Base - High Income (DKK 700,000, Copenhagen) - Above Top Tax Threshold",
+  "inputs": {
+    "gross_annual": 700000,
+    "municipality": "copenhagen",
+    "church_member": false
+  },
+  "expected": {
+    "net": 448552,
+    "effective_rate": 0.35921,
+    "breakdown": {
+      "am_bidrag": 56000,
+      "bottom_tax": 64470,
+      "municipal_tax": 126148,
+      "top_tax": 4830,
+      "church_tax": 0,
+      "personal_allowance": -51600,
+      "employment_deduction": -55600
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

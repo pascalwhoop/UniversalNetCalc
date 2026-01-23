@@ -1,0 +1,23 @@
+{
+  "name": "Expert Tax - Stockholm - High Income (SEK 900,000)",
+  "description": "Foreign specialist earning SEK 900,000 in Stockholm with Expert Tax regime (significant savings)",
+  "variant": "expert-tax",
+  "inputs": {
+    "gross_annual": 900000,
+    "municipality": "stockholm"
+  },
+  "expected": {
+    "net": 739700,
+    "effective_rate": 0.178
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Expert Tax on high income: 25% exemption significantly reduces state tax exposure. Research example shows SEK 739,663 net on SEK 900,000 gross",
+      "url": "https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief",
+      "retrieved_at": "2026-01-23",
+      "notes": "Gross after 25% exemption: 675,000. Taxable: 675,000 - 17,300 = 657,700. Municipal tax: 657,700 × 30.60% = 201,257. State tax: (657,700 - 625,800) × 20% = 6,380. Work credit: ~47,300. Total tax: 201,257 + 6,380 - 47,300 = 160,337. Net: 739,663. Tax savings vs normal: SEK 113,849"
+    }
+  ]
+}

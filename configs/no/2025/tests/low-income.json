@@ -1,0 +1,11 @@
+{
+  "name": "Low income - Below bracket tax threshold",
+  "inputs": {
+    "gross_annual": 200000
+  },
+  "expected": {
+    "net": 179793,
+    "effective_rate": 0.10104
+  },
+  "tolerance": 10
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Ireland 2025 - Low Income (€20,000)",
+  "config": "base.yaml",
+  "inputs": {
+    "gross_annual": 20000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 18890,
+    "effective_rate": 0.0555,
+    "breakdown": {
+      "income_tax": 0,
+      "usc": 270,
+      "prsi": 840,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001
+}

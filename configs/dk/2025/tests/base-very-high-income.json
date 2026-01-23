@@ -1,0 +1,23 @@
+{
+  "name": "Base - Very High Income (DKK 1,000,000, Copenhagen)",
+  "inputs": {
+    "gross_annual": 1000000,
+    "municipality": "copenhagen",
+    "church_member": false
+  },
+  "expected": {
+    "net": 597752,
+    "effective_rate": 0.40225,
+    "breakdown": {
+      "am_bidrag": 80000,
+      "bottom_tax": 100470,
+      "municipal_tax": 196548,
+      "top_tax": 45230,
+      "church_tax": 0,
+      "personal_allowance": -51600,
+      "employment_deduction": -55600
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

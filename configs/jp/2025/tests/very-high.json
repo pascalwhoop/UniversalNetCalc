@@ -1,0 +1,30 @@
+{
+  "name": "Very High Income (¥20M), Single, Age 50",
+  "description": "Very high income - tests higher brackets and social insurance caps",
+  "inputs": {
+    "gross_annual": 20000000,
+    "age": 50,
+    "filing_status": "single",
+    "num_dependents_19_22": 0
+  },
+  "expected": {
+    "employment_income": 18050000,
+    "health_insurance_annual": 825433,
+    "pension_annual": 713100,
+    "employment_insurance_annual": 110000,
+    "longterm_care_annual": 132500,
+    "total_social_insurance": 1781033,
+    "taxable_income_national": 15888967,
+    "national_income_tax_base": 3559587,
+    "reconstruction_surtax": 74751,
+    "total_national_income_tax": 3634338,
+    "taxable_income_resident": 16038967,
+    "resident_tax_income_levy": 1603897,
+    "resident_tax_percapita_levy": 5000,
+    "total_resident_tax": 1608897,
+    "net": 12975732,
+    "effective_rate": 0.3512
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.001
+}

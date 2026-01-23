@@ -1,0 +1,22 @@
+{
+  "name": "Stockholm - Median Income (Below State Tax Threshold)",
+  "description": "Single person earning SEK 410,000 in Stockholm (Swedish median salary)",
+  "inputs": {
+    "gross_annual": 410000,
+    "municipality": "stockholm"
+  },
+  "expected": {
+    "net": 321300,
+    "effective_rate": 0.2163
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on Swedish Tax Agency 2025 rates: Stockholm municipal tax 30.60%, grundavdrag SEK 17,300, jobbskatteavdrag ~SEK 35,000",
+      "url": "https://www.skatteverket.se/privat/skatter/arbeteochinkomst.4.15532c7b1442f256bae11b60.html",
+      "retrieved_at": "2026-01-23",
+      "notes": "Taxable: 410,000 - 17,300 = 392,700. Municipal tax: 392,700 × 30.60% = 120,166. Work credit: ~31,500. Net tax: ~88,700. Net: ~321,300"
+    }
+  ]
+}

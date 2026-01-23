@@ -1,0 +1,23 @@
+{
+  "name": "Base - Low Income (DKK 300,000, Copenhagen)",
+  "inputs": {
+    "gross_annual": 300000,
+    "municipality": "copenhagen",
+    "church_member": false
+  },
+  "expected": {
+    "net": 213454,
+    "effective_rate": 0.28849,
+    "breakdown": {
+      "am_bidrag": 24000,
+      "bottom_tax": 21868,
+      "municipal_tax": 42811,
+      "top_tax": 0,
+      "church_tax": 0,
+      "personal_allowance": -51600,
+      "employment_deduction": -36900
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

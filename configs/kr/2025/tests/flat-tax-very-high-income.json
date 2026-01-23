@@ -1,0 +1,22 @@
+{
+  "name": "Flat Tax - Very High Income (KRW 200M)",
+  "description": "Very high income with 19% flat tax - significant savings vs progressive",
+  "variant": "flat-tax",
+  "inputs": {
+    "gross_annual": 200000000
+  },
+  "expected": {
+    "net": 144938574,
+    "effective_rate": 0.2753,
+    "breakdown": {
+      "national_income_tax_flat": 38000000,
+      "local_income_tax": 3800000,
+      "national_pension": 3439800,
+      "health_insurance": 7090000,
+      "long_term_care_insurance": 931626,
+      "employment_insurance": 1800000
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.005
+}

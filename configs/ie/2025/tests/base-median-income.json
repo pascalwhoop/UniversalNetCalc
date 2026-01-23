@@ -1,0 +1,21 @@
+{
+  "name": "Ireland 2025 - Median Income (€45,000)",
+  "config": "base.yaml",
+  "inputs": {
+    "gross_annual": 45000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 35844,
+    "effective_rate": 0.2035,
+    "breakdown": {
+      "income_tax": 5000,
+      "usc": 866,
+      "prsi": 1890,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001
+}

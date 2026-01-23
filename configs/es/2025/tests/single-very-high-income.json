@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at very high income",
+  "description": "Very high earner at €200,000 in Spain - top tax bracket",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 116096,
+    "effective_rate": 0.4195
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.015,
+  "sources": [
+    {
+      "description": "Calculated using 2025 Spanish national IRPF rates with 45% top bracket",
+      "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
+      "retrieved_at": "2026-01-23",
+      "notes": "National tax: 45% on €140,000 of income. SS capped at €58,914. Solidarity contribution on €141,086 excess."
+    }
+  ]
+}

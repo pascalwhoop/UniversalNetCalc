@@ -1,0 +1,30 @@
+{
+  "name": "Age 40 Threshold (¥6M), Long-term Care Insurance Activation",
+  "description": "Tests long-term care insurance activation at age 40",
+  "inputs": {
+    "gross_annual": 6000000,
+    "age": 40,
+    "filing_status": "single",
+    "num_dependents_19_22": 0
+  },
+  "expected": {
+    "employment_income": 4360000,
+    "health_insurance_annual": 297300,
+    "pension_annual": 549000,
+    "employment_insurance_annual": 33000,
+    "longterm_care_annual": 47700,
+    "total_social_insurance": 927000,
+    "taxable_income_national": 2853000,
+    "national_income_tax_base": 143100,
+    "reconstruction_surtax": 3005,
+    "total_national_income_tax": 146105,
+    "taxable_income_resident": 3003000,
+    "resident_tax_income_levy": 300300,
+    "resident_tax_percapita_levy": 5000,
+    "total_resident_tax": 305300,
+    "net": 4621595,
+    "effective_rate": 0.2297
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.001
+}

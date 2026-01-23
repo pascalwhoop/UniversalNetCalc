@@ -1,0 +1,26 @@
+{
+  "name": "Median income at IETC upper threshold",
+  "description": "Individual earning NZD 70,000 per year (at IETC upper limit, no credit)",
+  "inputs": {
+    "gross_annual": 70000
+  },
+  "expected": {
+    "net": 55610.50,
+    "effective_rate": 0.2056,
+    "breakdown": {
+      "income_tax": 13220.50,
+      "acc_levy": 1169,
+      "ietc_credit": 0
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using 2025-26 PAYE rates, ACC levy, and IETC from IRD",
+      "url": "https://www.ird.govt.nz/income-tax/income-tax-for-individuals/tax-codes-and-tax-rates-for-individuals/tax-rates-for-individuals",
+      "retrieved_at": "2026-01-23",
+      "notes": "PAYE: 10.5% up to $15,600 + 17.5% up to $53,500 + 30% up to $78,100. ACC: 1.67%. IETC: $0 at income of $70,000 (upper threshold)."
+    }
+  ]
+}

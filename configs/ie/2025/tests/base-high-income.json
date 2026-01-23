@@ -1,0 +1,21 @@
+{
+  "name": "Ireland 2025 - High Income (€80,000)",
+  "config": "base.yaml",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 57034,
+    "effective_rate": 0.2871,
+    "breakdown": {
+      "income_tax": 17400,
+      "usc": 2206,
+      "prsi": 3360,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001
+}

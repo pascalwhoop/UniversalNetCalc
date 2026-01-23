@@ -1,0 +1,22 @@
+{
+  "name": "Base - Median Income (KRW 50M)",
+  "description": "Median salary, testing earned income deduction in fourth bracket (45M-100M range)",
+  "inputs": {
+    "gross_annual": 50000000
+  },
+  "expected": {
+    "net": 40699344,
+    "effective_rate": 0.186,
+    "breakdown": {
+      "earned_income_deduction": 12250000,
+      "national_income_tax": 4177500,
+      "local_income_tax": 417750,
+      "national_pension": 2250000,
+      "health_insurance": 1772500,
+      "long_term_care_insurance": 232906,
+      "employment_insurance": 450000
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at median income",
+  "description": "Median professional earner at €50,000 in Spain",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 33613,
+    "effective_rate": 0.3277
+  },
+  "tolerance": 30,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2025 Spanish national IRPF rates and Social Security contributions",
+      "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
+      "retrieved_at": "2026-01-23",
+      "notes": "National tax: 19% to €12,450, 24% to €20,200, 30% to €35,200, 37% above. Personal allowance €5,550. SS: 6.48%."
+    }
+  ]
+}

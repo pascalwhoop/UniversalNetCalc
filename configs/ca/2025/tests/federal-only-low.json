@@ -1,0 +1,21 @@
+{
+  "name": "Federal only - Low income (CAD 30,000)",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 26133.25,
+    "effective_rate": 0.1289,
+    "breakdown": {
+      "federal_income_tax": 1798,
+      "cpp_base_contribution": 1576.75,
+      "cpp2_contribution": 0,
+      "ei_contribution": 492.00,
+      "basic_personal_credit": 2338.71,
+      "canada_employment_credit": 213.30
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

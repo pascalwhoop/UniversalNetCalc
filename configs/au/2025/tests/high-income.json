@@ -1,0 +1,18 @@
+{
+  "name": "High income - AUD 150,000",
+  "description": "Tests high tax bracket (37% tier) without Medicare Levy Surcharge",
+  "inputs": {
+    "gross_annual": 150000
+  },
+  "expected": {
+    "net": 110162,
+    "effective_rate": 0.26559,
+    "breakdown": {
+      "income_tax": 36838,
+      "medicare_levy": 3000,
+      "lito_offset": -0
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.005
+}

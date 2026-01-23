@@ -1,0 +1,127 @@
+meta:
+  variant: "paye"
+  label: "PAYE Scheme"
+  description: "Pay As You Earn (PAYE) scheme for foreign workers - flat 25% tax rate (includes 7.7% national insurance). Available only for foreign workers earning below NOK 697,150. No deductions allowed, no tax return required."
+  base: "base.yaml"
+  sources:
+    - url: "https://www.skatteetaten.no/en/person/foreign/are-you-intending-to-work-in-norway/tax-deduction-cards/paye/"
+      description: "Norwegian Tax Administration - PAYE for Foreign Workers"
+      retrieved_at: "2026-01-23"
+
+parameters:
+  paye_rate: 0.25
+  paye_income_limit: 697150
+
+calculations:
+  # Delete base calculations - PAYE uses a simple flat rate
+  - id: "minstefradrag_calculated"
+    $delete: true
+
+  - id: "minstefradrag"
+    $delete: true
+
+  - id: "general_income"
+    $delete: true
+
+  - id: "taxable_income_before_allowance"
+    $delete: true
+
+  - id: "taxable_income"
+    $delete: true
+
+  - id: "general_income_tax"
+    $delete: true
+
+  - id: "bracket_tax"
+    $delete: true
+
+  - id: "ni_base"
+    $delete: true
+
+  - id: "ni_base_positive"
+    $delete: true
+
+  - id: "ni_uncapped"
+    $delete: true
+
+  - id: "ni_cap"
+    $delete: true
+
+  - id: "national_insurance"
+    $delete: true
+
+  # PAYE calculations - simple flat tax
+  - id: "total_tax"
+    label: "PAYE Tax (25%)"
+    type: "mul"
+    category: "income_tax"
+    values:
+      - "@gross_annual"
+      - "$paye_rate"
+
+  - id: "net"
+    label: "Net Annual Salary"
+    type: "sub"
+    values:
+      - "@gross_annual"
+      - "$total_tax"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net"
+  effective_rate:
+    type: div
+    values:
+      - "$total_tax"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$total_tax"
+    contributions: []
+    deductions: []
+    credits: []
+
+notices:
+  - id: "paye_scheme"
+    title: "PAYE Scheme for Foreign Workers"
+    body: |
+      You are using the simplified PAYE (Pay As You Earn) scheme with a flat 25% tax rate.
+      This includes 7.7% national insurance contributions, making the effective income tax 17.3%.
+    severity: "info"
+
+  - id: "paye_income_limit"
+    title: "PAYE Income Limit"
+    body: |
+      The PAYE scheme is only available for foreign workers earning below NOK 697,150 (2025).
+      If your income exceeds this threshold, you must use the standard taxation rules.
+    severity: "warning"
+
+  - id: "no_deductions"
+    title: "No Deductions Allowed"
+    body: |
+      Under the PAYE scheme, you cannot claim any deductions (commuting expenses, interest payments, etc.).
+      The 25% tax rate is final and no tax return is required.
+    severity: "warning"
+
+  - id: "paye_eligibility"
+    title: "PAYE Eligibility"
+    body: |
+      To be eligible for PAYE, you must be a foreign worker who is either not a Norwegian tax resident,
+      or have work stays under 183 days in any 12-month period, or under 270 days in any 36-month period.
+      You cannot have business income, Norwegian public benefits, or capital income exceeding NOK 10,000.
+    severity: "info"
+
+  - id: "comparison"
+    title: "Comparison with General Taxation"
+    body: |
+      For incomes around NOK 600,000, PAYE may result in 3-4 percentage points higher tax than general
+      taxation rules (which allow deductions). However, PAYE offers simplicity: no tax return,
+      no year-end surprises, and immediate finality.
+    severity: "info"
+
+  - id: "opt_out"
+    title: "Opt-Out Period"
+    body: |
+      You can opt out of the PAYE scheme and switch to general taxation by December 31st, three years
+      after the income year. Contact the Norwegian Tax Administration if you wish to change your tax scheme.
+    severity: "info"

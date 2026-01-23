@@ -1,0 +1,12 @@
+{
+  "name": "PAYE scheme - At income threshold NOK 697,150",
+  "variant": "paye",
+  "inputs": {
+    "gross_annual": 697150
+  },
+  "expected": {
+    "net": 522862.5,
+    "effective_rate": 0.25
+  },
+  "tolerance": 1
+}

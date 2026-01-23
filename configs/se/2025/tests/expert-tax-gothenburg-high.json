@@ -1,0 +1,23 @@
+{
+  "name": "Expert Tax - Gothenburg - High Income",
+  "description": "Foreign specialist earning SEK 800,000 in Gothenburg with Expert Tax regime",
+  "variant": "expert-tax",
+  "inputs": {
+    "gross_annual": 800000,
+    "municipality": "gothenburg"
+  },
+  "expected": {
+    "net": 645000,
+    "effective_rate": 0.1938
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Expert Tax in Gothenburg (31.50% municipal tax). Only 75% of SEK 800,000 taxable",
+      "url": "https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief",
+      "retrieved_at": "2026-01-23",
+      "notes": "Gross after 25% exemption: 600,000. Taxable: 600,000 - 17,300 = 582,700. Municipal tax: 582,700 × 31.50% = 183,551. State tax: 0 (below threshold). Work credit: ~47,300. Net tax: ~155,000. Net: ~645,000"
+    }
+  ]
+}

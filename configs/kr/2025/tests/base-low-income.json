@@ -1,0 +1,22 @@
+{
+  "name": "Base - Low Income (KRW 25M)",
+  "description": "Below median salary, testing earned income deduction in third bracket (15M-45M range)",
+  "inputs": {
+    "gross_annual": 25000000
+  },
+  "expected": {
+    "net": 21640844,
+    "effective_rate": 0.1344,
+    "breakdown": {
+      "earned_income_deduction": 9000000,
+      "national_income_tax": 915000,
+      "local_income_tax": 91500,
+      "national_pension": 1125000,
+      "health_insurance": 886250,
+      "long_term_care_insurance": 116453,
+      "employment_insurance": 225000
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.005
+}

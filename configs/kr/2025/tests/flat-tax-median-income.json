@@ -1,0 +1,22 @@
+{
+  "name": "Flat Tax - Median Income (KRW 50M)",
+  "description": "Median income with 19% flat tax - worse than progressive at this income level",
+  "variant": "flat-tax",
+  "inputs": {
+    "gross_annual": 50000000
+  },
+  "expected": {
+    "net": 34844594,
+    "effective_rate": 0.3031,
+    "breakdown": {
+      "national_income_tax_flat": 9500000,
+      "local_income_tax": 950000,
+      "national_pension": 2250000,
+      "health_insurance": 1772500,
+      "long_term_care_insurance": 232906,
+      "employment_insurance": 450000
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.005
+}

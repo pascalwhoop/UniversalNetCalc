@@ -1,0 +1,17 @@
+{
+  "name": "Researcher Scheme - Ultra High Income (DKK 1,500,000)",
+  "variant": "researcher",
+  "inputs": {
+    "gross_annual": 1500000
+  },
+  "expected": {
+    "net": 1007142,
+    "effective_rate": 0.32857,
+    "breakdown": {
+      "am_bidrag": 120000,
+      "researcher_flat_tax": 405000
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

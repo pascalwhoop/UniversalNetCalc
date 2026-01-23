@@ -1,0 +1,30 @@
+{
+  "name": "Single, Median Income (¥6M), Age 35, Tokyo",
+  "description": "Most common scenario - single worker with ¥6M salary in Tokyo, under 40 (no long-term care)",
+  "inputs": {
+    "gross_annual": 6000000,
+    "age": 35,
+    "filing_status": "single",
+    "num_dependents_19_22": 0
+  },
+  "expected": {
+    "employment_income": 4360000,
+    "health_insurance_annual": 297300,
+    "pension_annual": 549000,
+    "employment_insurance_annual": 33000,
+    "longterm_care_annual": 0,
+    "total_social_insurance": 879300,
+    "taxable_income_national": 2900700,
+    "national_income_tax_base": 152640,
+    "reconstruction_surtax": 3205,
+    "total_national_income_tax": 155845,
+    "taxable_income_resident": 3050700,
+    "resident_tax_income_levy": 305070,
+    "resident_tax_percapita_levy": 5000,
+    "total_resident_tax": 310070,
+    "net": 4654785,
+    "effective_rate": 0.2242
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.001
+}

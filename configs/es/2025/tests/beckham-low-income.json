@@ -1,0 +1,23 @@
+{
+  "name": "Beckham Law at €50,000",
+  "description": "Expat under Beckham Law earning €50,000 - well below €600k threshold",
+  "variant": "beckham-law",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 38760,
+    "effective_rate": 0.2248
+  },
+  "tolerance": 30,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using Beckham Law 24% flat rate plus Social Security",
+      "url": "https://www.lawants.com/en/beckham-law/",
+      "retrieved_at": "2026-01-23",
+      "notes": "Beckham tax: 24% of €50,000 = €12,000. SS: 6.48% of €50,000 = €3,240. Total: €15,240. Net: €34,760. Effective: 30.48%"
+    }
+  ]
+}

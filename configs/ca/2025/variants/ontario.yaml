@@ -1,0 +1,305 @@
+meta:
+  variant: "ontario"
+  label: "Ontario"
+  description: "Ontario provincial tax rates including surtaxes and health premium"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/on.htm"
+      description: "Ontario tax rates for 2025"
+      retrieved_at: "2026-01-23"
+    - url: "https://data.ontario.ca/dataset/ontario-health-premium-rates"
+      description: "Ontario Health Premium rates"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds Ontario provincial income tax, surtaxes, and the Ontario Health
+    Premium to the federal base configuration.
+
+    Ontario features:
+    - 5 provincial tax brackets (5.05% to 13.16%)
+    - Two surtaxes: 20% on ON tax > $5,818, plus 36% on ON tax > $7,446
+    - Ontario Health Premium (separate from income tax, up to $900 annually)
+    - Basic Personal Amount of $12,747 (2025)
+
+notices:
+  - id: "ontario_health_premium"
+    title: "Ontario Health Premium"
+    body: |
+      The Ontario Health Premium (OHP) is a separate charge from income tax that is
+      NOT indexed for inflation, creating bracket creep over time. Maximum premium
+      is $900 annually at incomes of $200,600 and above.
+    severity: "info"
+
+  - id: "ontario_surtaxes"
+    title: "Ontario Surtaxes"
+    body: |
+      Ontario applies two surtaxes on provincial tax:
+      - 20% surtax on Ontario tax exceeding $5,818
+      - Additional 36% surtax on Ontario tax exceeding $7,446
+      Combined, this creates an effective 56% surtax on the highest bracket.
+    severity: "info"
+
+parameters:
+  # Ontario provincial tax brackets - 2025
+  ontario_tax_brackets:
+    - threshold: 0
+      rate: 0.0505
+    - threshold: 52886
+      rate: 0.0915
+    - threshold: 105775
+      rate: 0.1116
+    - threshold: 150000
+      rate: 0.1216
+    - threshold: 220000
+      rate: 0.1316
+
+  # Ontario Basic Personal Amount - 2025
+  ontario_bpa: 12747
+  ontario_lowest_rate: 0.0505
+
+  # Ontario surtax thresholds - 2025
+  ontario_surtax_1_threshold: 5818
+  ontario_surtax_1_rate: 0.20
+  ontario_surtax_2_threshold: 7446
+  ontario_surtax_2_rate: 0.36
+
+  # Ontario Health Premium brackets - 2025 (not indexed)
+  # Progressive calculation with complex bracket structure
+  ohp_bracket_1_threshold: 20000
+  ohp_bracket_2_threshold: 36000
+  ohp_bracket_3_threshold: 48000
+  ohp_bracket_4_threshold: 72000
+  ohp_bracket_5_threshold: 200000
+  ohp_bracket_6_threshold: 200600
+
+calculations:
+  # Ontario provincial income tax before credits
+  - id: ontario_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$ontario_tax_brackets"
+    category: income_tax
+    label: "Ontario Income Tax"
+    description: "Ontario provincial income tax before credits"
+
+  # Ontario basic personal credit
+  - id: ontario_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$ontario_bpa"
+        - "$ontario_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Ontario Basic Personal Credit"
+    description: "Ontario non-refundable tax credit for basic personal amount"
+
+  # Ontario tax after credits (before surtax)
+  - id: ontario_tax_before_surtax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$ontario_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$ontario_bpa"
+              - "$ontario_lowest_rate"
+
+  # Ontario surtax calculation
+  # 20% on tax > $5,818
+  - id: ontario_surtax_1
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "$ontario_tax_before_surtax"
+                  - "$ontario_surtax_1_threshold"
+          - "$ontario_surtax_1_rate"
+
+  # Additional 36% on tax > $7,446
+  - id: ontario_surtax_2
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "$ontario_tax_before_surtax"
+                  - "$ontario_surtax_2_threshold"
+          - "$ontario_surtax_2_rate"
+
+  # Total Ontario surtax
+  - id: ontario_total_surtax
+    type: sum
+    values:
+      - "$ontario_surtax_1"
+      - "$ontario_surtax_2"
+    category: surtax
+    label: "Ontario Surtax"
+    description: "Combined Ontario surtaxes (20% + 36%)"
+
+  # Ontario tax after surtax
+  - id: ontario_income_tax
+    type: sum
+    values:
+      - "$ontario_tax_before_surtax"
+      - "$ontario_total_surtax"
+    category: income_tax
+    label: "Ontario Income Tax (After Surtax)"
+    description: "Ontario provincial tax including surtaxes"
+
+  # Ontario Health Premium calculation (complex brackets)
+  - id: ontario_health_premium
+    type: conditional
+    condition:
+      type: lte
+      left: "$taxable_income"
+      right: 20000
+    then: 0
+    else:
+      type: conditional
+      condition:
+        type: lte
+        left: "$taxable_income"
+        right: 36000
+      then:
+        type: min
+        values:
+          - 300
+          - type: mul
+            values:
+              - type: sub
+                values:
+                  - "$taxable_income"
+                  - 20000
+              - 0.06
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "$taxable_income"
+          right: 48000
+        then:
+          type: min
+          values:
+            - 450
+            - type: sum
+              values:
+                - 300
+                - type: mul
+                  values:
+                    - type: sub
+                      values:
+                        - "$taxable_income"
+                        - 36000
+                    - 0.06
+        else:
+          type: conditional
+          condition:
+            type: lte
+            left: "$taxable_income"
+            right: 72000
+          then:
+            type: min
+            values:
+              - 600
+              - type: sum
+                values:
+                  - 450
+                  - type: mul
+                    values:
+                      - type: sub
+                        values:
+                          - "$taxable_income"
+                          - 48000
+                      - 0.25
+          else:
+            type: conditional
+            condition:
+              type: lte
+              left: "$taxable_income"
+              right: 200000
+            then:
+              type: min
+              values:
+                - 750
+                - type: sum
+                  values:
+                    - 600
+                    - type: mul
+                      values:
+                        - type: sub
+                          values:
+                            - "$taxable_income"
+                            - 72000
+                        - 0.25
+            else:
+              type: min
+              values:
+                - 900
+                - type: sum
+                  values:
+                    - 750
+                    - type: mul
+                      values:
+                        - type: sub
+                          values:
+                            - "$taxable_income"
+                            - 200000
+                        - 0.25
+    category: contribution
+    label: "Ontario Health Premium"
+    description: "Ontario Health Premium (not indexed for inflation)"
+
+  # Override net_annual to include Ontario tax and health premium
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - type: sum
+        values:
+          - "$federal_income_tax"
+          - "$ontario_income_tax"
+          - "$total_cpp"
+          - "$ei_contribution"
+          - "$ontario_health_premium"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$ontario_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+      - "$ontario_health_premium"
+    surtaxes:
+      - "$ontario_total_surtax"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$ontario_basic_personal_credit"

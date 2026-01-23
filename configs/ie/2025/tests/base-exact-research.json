@@ -1,0 +1,21 @@
+{
+  "name": "Ireland 2025 - €60,000 (matches research example)",
+  "config": "base.yaml",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 46734,
+    "effective_rate": 0.221,
+    "breakdown": {
+      "income_tax": 9400,
+      "usc": 1346,
+      "prsi": 2520,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001
+}
