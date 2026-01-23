@@ -5,7 +5,7 @@
     "gross_annual": 50000,
     "filing_status": "single",
     "has_children": true,
-    "region": "saxony",
+    "region": "sn",
     "health_insurance_surcharge": 2.9
   },
   "expected": {

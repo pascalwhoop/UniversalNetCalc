@@ -20,6 +20,13 @@ meta:
     - Solidarity surcharge (Solidaritätszuschlag) with exemption thresholds
     - Multiple social security contributions with separate caps
     - Optional church tax (not included in this base config)
+    - Regional variations in care insurance contributions
+
+    Regional Notes:
+    - 15 standard states (BW, BY, BE, BB, HB, HH, HE, MV, NI, NW, RP, SL, ST, SH, TH):
+      Care insurance rates: 1.8% with children, 2.4% without
+    - Saxony (SN): Care insurance rates 2.3% with children, 2.9% without
+      (0.5% higher due to employer/employee split - extra "Buß- und Bettag" holiday)
 
     Key changes from 2024:
     - Basic allowance (Grundfreibetrag) raised to €12,096 (from €11,784)
@@ -98,16 +105,58 @@ inputs:
   region:
     type: enum
     required: false
-    default: "standard"
-    label: "Federal State"
-    description: "Your German federal state (affects care insurance split due to regional variations)"
+    default: "bw"
+    label: "Federal State (Bundesland)"
+    description: "Your German federal state (affects care insurance contribution split)"
     options:
-      standard:
-        label: "Standard (Most States)"
-        description: "Standard care insurance split"
-      saxony:
+      bw:
+        label: "Baden-Württemberg"
+        description: "Standard care insurance rates"
+      by:
+        label: "Bavaria (Bayern)"
+        description: "Standard care insurance rates"
+      be:
+        label: "Berlin"
+        description: "Standard care insurance rates"
+      bb:
+        label: "Brandenburg"
+        description: "Standard care insurance rates"
+      hb:
+        label: "Bremen"
+        description: "Standard care insurance rates"
+      hh:
+        label: "Hamburg"
+        description: "Standard care insurance rates"
+      he:
+        label: "Hesse (Hessen)"
+        description: "Standard care insurance rates"
+      mv:
+        label: "Mecklenburg-Vorpommern"
+        description: "Standard care insurance rates"
+      ni:
+        label: "Lower Saxony (Niedersachsen)"
+        description: "Standard care insurance rates"
+      nw:
+        label: "North Rhine-Westphalia (Nordrhein-Westfalen)"
+        description: "Standard care insurance rates"
+      rp:
+        label: "Rhineland-Palatinate (Rheinland-Pfalz)"
+        description: "Standard care insurance rates"
+      sl:
+        label: "Saarland"
+        description: "Standard care insurance rates"
+      sn:
         label: "Saxony (Sachsen)"
-        description: "Special employee/employer split due to extra public holiday"
+        description: "Higher employee care insurance split due to additional public holiday"
+      st:
+        label: "Saxony-Anhalt (Sachsen-Anhalt)"
+        description: "Standard care insurance rates"
+      sh:
+        label: "Schleswig-Holstein"
+        description: "Standard care insurance rates"
+      th:
+        label: "Thuringia (Thüringen)"
+        description: "Standard care insurance rates"
 
   health_insurance_surcharge:
     type: number
@@ -152,10 +201,14 @@ parameters:
   unemployment_rate: 0.013
 
   # Care insurance rates (employee portion) - updated for 2025
-  # Standard states: 1.8% with children, 2.4% childless
+  # 15 standard states: 1.8% with children, 2.4% childless
+  # (Baden-Württemberg, Bavaria, Berlin, Brandenburg, Bremen, Hamburg, Hesse,
+  #  Mecklenburg-Vorpommern, Lower Saxony, North Rhine-Westphalia,
+  #  Rhineland-Palatinate, Saarland, Saxony-Anhalt, Schleswig-Holstein, Thuringia)
   care_rate_standard_with_children: 0.018
   care_rate_standard_without_children: 0.024
-  # Saxony: 2.3% with children, 2.9% childless (different split due to extra holiday)
+  # Saxony: 2.3% with children, 2.9% childless
+  # (0.5% higher due to different employer/employee split from extra public holiday "Buß- und Bettag")
   care_rate_saxony_with_children: 0.023
   care_rate_saxony_without_children: 0.029
 
@@ -233,27 +286,33 @@ calculations:
       - "@gross_annual"
       - "$health_care_cap"
 
-  # Determine care insurance rate based on region and children status
-  - id: care_rate_by_children
-    type: switch
-    on: "@has_children"
-    cases:
-      true:
-        type: switch
-        on: "@region"
-        cases:
-          standard: "$care_rate_standard_with_children"
-          saxony: "$care_rate_saxony_with_children"
-      false:
-        type: switch
-        on: "@region"
-        cases:
-          standard: "$care_rate_standard_without_children"
-          saxony: "$care_rate_saxony_without_children"
+  # Determine if region is Saxony (sn) - all other states use standard rates
+  - id: is_saxony_region
+    type: function
+    name: "is_region_saxony"
+    inputs:
+      region_value: 0  # Dummy input - not used, function will access @region from context
+    description: "Check if region is Saxony"
 
+  # Determine care insurance rate based on region and children status
   - id: care_rate
-    type: identity
-    value: "$care_rate_by_children"
+    type: conditional
+    condition:
+      type: gt
+      left: "$is_saxony_region"
+      right: 0.5
+    then:
+      type: switch
+      on: "@has_children"
+      cases:
+        true: "$care_rate_saxony_with_children"
+        false: "$care_rate_saxony_without_children"
+    else:
+      type: switch
+      on: "@has_children"
+      cases:
+        true: "$care_rate_standard_with_children"
+        false: "$care_rate_standard_without_children"
 
   - id: care_contribution
     type: percent_of

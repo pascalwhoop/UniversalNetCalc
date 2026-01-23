@@ -5,7 +5,7 @@
     "gross_annual": 150000,
     "filing_status": "married_joint",
     "has_children": false,
-    "region": "saxony",
+    "region": "sn",
     "health_insurance_surcharge": 2.9
   },
   "expected": {
