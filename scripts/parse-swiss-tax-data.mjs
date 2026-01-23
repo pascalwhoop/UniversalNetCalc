@@ -79,19 +79,21 @@ async function parseSwissTaxData() {
 
   // Extract data rows starting from dataStartIdx
   const cantonData = []
-  let skipNextRows = 0
+  let i = dataStartIdx
 
-  for (let i = dataStartIdx; i < data.length; i++) {
-    if (skipNextRows > 0) {
-      skipNextRows--
-      continue
-    }
-
+  while (i < data.length) {
     const row = data[i]
     const cityName = String(row[cantonColIdx] || '').trim()
 
-    // Skip empty rows, footnotes, or sub-rows (indented with spaces)
-    if (!cityName || cityName.match(/^\d+\)/) || cityName.length < 3 || cityName.startsWith('    ')) {
+    // Skip empty rows or footnotes
+    if (!cityName || cityName.match(/^\d+\)/) || cityName.length < 3) {
+      i++
+      continue
+    }
+
+    // Skip sub-rows (indented with spaces like "    Revenu", "    Einkommen")
+    if (cityName.match(/^\s{4,}/)) {
+      i++
       continue
     }
 
@@ -113,23 +115,29 @@ async function parseSwissTaxData() {
       }
     }
 
-    // Skip rows with footnote markers or invalid data
-    const cantonTaxValid = typeof cantonTax === 'number'
-    const municipalTaxValid = typeof municipalTax === 'number'
-
     // Special handling for cantons with sub-rows (Fribourg, Basel-Land)
     if (cityName === 'Fribourg' || cityName.includes('Liestal')) {
       // Use next row's data (Revenu/Einkommen)
       const nextRow = data[i + 1]
       if (nextRow) {
-        cantonTax = nextRow[cantonTaxColIdx]
-        municipalTax = nextRow[municipalTaxColIdx]
-        skipNextRows = 1 // Skip the "Fortune/Vermögen" row too
+        const nextCityName = String(nextRow[cantonColIdx] || '').trim()
+        // Only use next row if it's a sub-row
+        if (nextCityName.match(/^\s{4,}/) || nextCityName.includes('Revenu') || nextCityName.includes('Einkommen')) {
+          cantonTax = nextRow[cantonTaxColIdx]
+          municipalTax = nextRow[municipalTaxColIdx]
+          // Skip the next two sub-rows (Revenu/Fortune or Einkommen/Vermögen)
+          i += 3
+        }
       }
     }
 
+    // Skip rows with footnote markers or invalid data
+    const cantonTaxValid = typeof cantonTax === 'number'
+    const municipalTaxValid = typeof municipalTax === 'number'
+
     // Skip if we don't have at least one valid tax value
     if (!cantonTaxValid && !municipalTaxValid) {
+      i++
       continue
     }
 
