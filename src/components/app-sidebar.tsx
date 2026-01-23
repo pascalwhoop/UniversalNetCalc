@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Calculator, History, Settings, HelpCircle, Globe } from "lucide-react"
+import { Calculator, History, Settings, HelpCircle, Globe, Home } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -23,8 +23,13 @@ import {
 
 const navMain = [
   {
-    title: "Calculator",
+    title: "Home",
     url: "/",
+    icon: Home,
+  },
+  {
+    title: "Calculator",
+    url: "/calculator",
     icon: Calculator,
   },
   {
