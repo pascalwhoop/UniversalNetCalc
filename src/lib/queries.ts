@@ -81,6 +81,15 @@ interface ChartDataResponse {
   dataPoints: RangeDataPoint[]
 }
 
+interface ChartDataRequest {
+  country: string
+  year: string
+  variant?: string
+  max_salary: number
+  current_salary: number
+  [key: string]: string | number | undefined
+}
+
 export function useChartData() {
   return useMutation<ChartDataResponse, Error, {
     country: string
@@ -91,7 +100,7 @@ export function useChartData() {
     currentSalary?: number
   }>({
     mutationFn: async (params) => {
-      const requestBody: Record<string, any> = {
+      const requestBody: ChartDataRequest = {
         country: params.country,
         year: params.year,
         max_salary: params.maxSalary,

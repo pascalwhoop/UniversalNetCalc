@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip"
 import { ResultBreakdown } from "./result-breakdown"
 import { SalaryRangeChart } from "./salary-range-chart"
-import { getCountryName, getCurrencySymbol, type InputDefinition } from "@/lib/api"
+import { getCountryName, getCurrencySymbol, type InputDefinition, type CalcRequest } from "@/lib/api"
 import { CountryColumnState } from "@/lib/types"
 import { getCountryFlag, getCountryMetadata } from "@/lib/country-metadata"
 import { Crown } from "lucide-react"
@@ -151,7 +151,7 @@ export function CountryColumn({
     }
 
     // Build request
-    const request: Record<string, any> = {
+    const request: CalcRequest = {
       country,
       year,
       gross_annual: grossNum,
@@ -175,7 +175,7 @@ export function CountryColumn({
 
     onUpdate({ isCalculating: true })
 
-    calculateMutation.mutate(request as any, {
+    calculateMutation.mutate(request, {
       onSuccess: data => {
         onUpdate({
           result: data,
@@ -183,7 +183,7 @@ export function CountryColumn({
           calculationError: null,
         })
       },
-      onError: (e: any) => {
+      onError: (e: Error) => {
         const errorMessage = e.message || "Calculation failed"
         onUpdate({
           result: null,

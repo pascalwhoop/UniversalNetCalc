@@ -1,4 +1,6 @@
 // API client for the salary calculator
+import { CURRENCY_SYMBOLS, getCurrencySymbol, COUNTRY_NAMES, getCountryName } from "./country-metadata"
+import { UnsupportedCurrencyError } from "./errors"
 
 export interface BreakdownItem {
   id: string
@@ -131,23 +133,8 @@ export async function calculateSalary(
   return data as CalculationResult
 }
 
-// Currency symbols
-export const CURRENCY_SYMBOLS: Record<string, string> = {
-  EUR: "€",
-  USD: "$",
-  GBP: "£",
-  CHF: "CHF",
-  CAD: "C$",
-  AUD: "A$",
-  SGD: "S$",
-  HKD: "HK$",
-  AED: "AED",
-  JPY: "¥",
-}
-
-export function getCurrencySymbol(code: string): string {
-  return CURRENCY_SYMBOLS[code.toUpperCase()] || code
-}
+// Export re-exported for backward compatibility
+export { CURRENCY_SYMBOLS, getCurrencySymbol }
 
 // Exchange rate API
 export interface ExchangeRateResponse {
@@ -169,36 +156,18 @@ export async function fetchExchangeRate(
   }
 
   const res = await fetch(`/api/exchange-rates?from=${from}&to=${to}`, { signal })
+  const data = await res.json()
+
   if (!res.ok) {
-    const errorText = await res.text()
-    const error = new Error(`Failed to fetch exchange rate: ${errorText}`)
-    throw error
+    // Handle unsupported currency gracefully
+    if (res.status === 400 && data.unsupported_currency) {
+      throw new UnsupportedCurrencyError(data.unsupported_currency, data.message)
+    }
+    throw new Error(data.error || "Failed to fetch exchange rate")
   }
-  const data: ExchangeRateResponse = await res.json()
+
   return data.rate
 }
 
-// Country display names
-export const COUNTRY_NAMES: Record<string, string> = {
-  nl: "Netherlands",
-  ch: "Switzerland",
-  us: "United States",
-  de: "Germany",
-  gb: "United Kingdom",
-  uk: "United Kingdom",
-  fr: "France",
-  es: "Spain",
-  pt: "Portugal",
-  it: "Italy",
-  ie: "Ireland",
-  sg: "Singapore",
-  hk: "Hong Kong",
-  ae: "UAE",
-  au: "Australia",
-  ca: "Canada",
-  bg: "Bulgaria",
-}
-
-export function getCountryName(code: string): string {
-  return COUNTRY_NAMES[code.toLowerCase()] || code.toUpperCase()
-}
+// Export re-exported for backward compatibility
+export { COUNTRY_NAMES, getCountryName }

@@ -21,6 +21,16 @@ function getCacheKey(from: string, to: string): string {
   return `exchange_rate:${from.toUpperCase()}:${to.toUpperCase()}`
 }
 
+function getKVNamespace(): KVNamespace | undefined {
+  try {
+    const ctx = getCloudflareContext()
+    return (ctx.env as { EXCHANGE_RATES_CACHE?: KVNamespace }).EXCHANGE_RATES_CACHE
+  } catch {
+    // Running locally without Cloudflare context - caching disabled
+    return undefined
+  }
+}
+
 async function getFromCache(
   kv: KVNamespace | undefined,
   from: string,
@@ -78,6 +88,31 @@ async function fetchExchangeRate(
 
   if (!response.ok) {
     const errorText = await response.text()
+
+    // Handle 422 validation errors (typically unsupported currency)
+    if (response.status === 422) {
+      try {
+        const errorData = JSON.parse(errorText)
+        const errors = errorData.errors || {}
+
+        if (errors.base_currency) {
+          throw new Error(
+            `UNSUPPORTED_CURRENCY:${from.toUpperCase()}:${errors.base_currency[0]}`
+          )
+        }
+        if (errors.currencies) {
+          throw new Error(
+            `UNSUPPORTED_CURRENCY:${to.toUpperCase()}:${errors.currencies[0]}`
+          )
+        }
+      } catch {
+        // If we can't parse the error, fall through to generic error
+      }
+      throw new Error(
+        `UNSUPPORTED_CURRENCY:${from.toUpperCase()}_${to.toUpperCase()}:Invalid currency code`
+      )
+    }
+
     throw new Error(`FreeCurrencyAPI error: ${response.status} - ${errorText}`)
   }
 
@@ -114,13 +149,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Try to get Cloudflare KV for caching
-  let kv: KVNamespace | undefined
-  try {
-    const ctx = getCloudflareContext()
-    kv = (ctx.env as { EXCHANGE_RATES_CACHE?: KVNamespace }).EXCHANGE_RATES_CACHE
-  } catch {
-    // Running locally without Cloudflare context - caching disabled
-  }
+  const kv = getKVNamespace()
 
   // Check cache first
   const cached = await getFromCache(kv, from, to)
@@ -154,11 +183,28 @@ export async function GET(request: NextRequest) {
       expiresAt: expiresAt.toISOString(),
     })
   } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error"
+
+    // Handle unsupported currency
+    if (errorMessage.startsWith("UNSUPPORTED_CURRENCY:")) {
+      const [, currency] = errorMessage.split(":")
+      console.warn(`Unsupported currency requested: ${currency}`)
+      return NextResponse.json(
+        {
+          error: `Currency not supported: ${currency}`,
+          message: `The currency "${currency}" is not supported by the exchange rate service. Please check that you are using a valid ISO 4217 currency code (e.g., USD, EUR, GBP).`,
+          unsupported_currency: currency,
+        },
+        { status: 400 }
+      )
+    }
+
     console.error("Exchange rate fetch error:", error)
     return NextResponse.json(
       {
         error: "Failed to fetch exchange rate",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: errorMessage,
       },
       { status: 502 }
     )
@@ -193,23 +239,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let kv: KVNamespace | undefined
-    try {
-      const ctx = getCloudflareContext()
-      kv = (ctx.env as { EXCHANGE_RATES_CACHE?: KVNamespace }).EXCHANGE_RATES_CACHE
-    } catch {
-      // Running locally without Cloudflare context
-    }
+    const kv = getKVNamespace()
 
     const results: Record<
       string,
       {
-        rate: number
-        cached: boolean
-        fetchedAt: string
-        expiresAt: string
+        rate?: number
+        cached?: boolean
+        fetchedAt?: string
+        expiresAt?: string
+        error?: string
+        unsupported_currency?: string
       }
     > = {}
+    const unsupportedCurrencies = new Set<string>()
 
     // Process each pair
     for (const pair of pairs) {
@@ -245,11 +288,38 @@ export async function POST(request: NextRequest) {
           expiresAt: expiresAt.toISOString(),
         }
       } catch (error) {
-        console.error(`Failed to fetch ${from} -> ${to}:`, error)
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error"
+
+        if (errorMessage.startsWith("UNSUPPORTED_CURRENCY:")) {
+          const [, currency] = errorMessage.split(":")
+          unsupportedCurrencies.add(currency)
+          results[key] = {
+            error: `Currency not supported: ${currency}`,
+            unsupported_currency: currency,
+          }
+          console.warn(`Unsupported currency in batch: ${currency}`)
+        } else {
+          results[key] = {
+            error: "Failed to fetch exchange rate",
+          }
+          console.error(`Failed to fetch ${from} -> ${to}:`, error)
+        }
       }
     }
 
-    return NextResponse.json({ rates: results })
+    const response: {
+      rates: typeof results
+      unsupported_currencies?: string[]
+      message?: string
+    } = { rates: results }
+
+    if (unsupportedCurrencies.size > 0) {
+      response.unsupported_currencies = Array.from(unsupportedCurrencies)
+      response.message = `Some currencies are not supported: ${response.unsupported_currencies.join(", ")}. Please use valid ISO 4217 currency codes.`
+    }
+
+    return NextResponse.json(response)
   } catch (error: unknown) {
     console.error("Batch exchange rate error:", error)
     return NextResponse.json(

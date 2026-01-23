@@ -17,15 +17,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { CalculationResult, BreakdownItem } from "@/lib/api"
-
-function formatCurrency(amount: number, currency: string = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency || "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
+import { formatCurrency } from "@/lib/formatters"
 
 interface BreakdownLineProps {
   label: string
@@ -45,16 +37,14 @@ function BreakdownLine({
   const isNegative = type === "deduction" && amount > 0
   const isPositive = type === "credit" && amount > 0
 
-  const amountClass =
-    type === "income"
-      ? "text-foreground"
-      : type === "credit"
-        ? "text-green-600"
-        : type === "deduction"
-          ? "text-destructive"
-          : type === "total"
-            ? "text-primary font-semibold"
-            : "text-muted-foreground"
+  const amountClassMap: Record<string, string> = {
+    income: "text-foreground",
+    credit: "text-green-600",
+    deduction: "text-destructive",
+    total: "text-primary font-semibold",
+    subtotal: "text-muted-foreground",
+  }
+  const amountClass = amountClassMap[type] || "text-muted-foreground"
 
   const displayAmount = isNegative
     ? `-${formatCurrency(amount, currency)}`

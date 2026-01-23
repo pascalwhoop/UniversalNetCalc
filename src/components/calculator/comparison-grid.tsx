@@ -12,12 +12,29 @@ import { SaveDialog } from "./save-dialog"
 import { CountryColumnState } from "@/lib/types"
 import { decodeState, updateURL } from "@/lib/url-state"
 import { useSearchParams } from "next/navigation"
-import { CalculationResult, fetchExchangeRate } from "@/lib/api"
+import { fetchExchangeRate } from "@/lib/api"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCountrySelector } from "./mobile-country-selector"
-import { useCalculateSalary } from "@/lib/queries"
+import { UnsupportedCurrencyError } from "@/lib/errors"
+import { calculateNetDelta, findBestCountryByNet } from "@/lib/comparison-utils"
 
 const MAX_COUNTRIES = 4
+
+function createEmptyCountryState(index: number): CountryColumnState {
+  return {
+    id: crypto.randomUUID(),
+    index,
+    country: "",
+    year: "",
+    variant: "",
+    gross_annual: "",
+    formValues: {},
+    currency: "EUR",
+    result: null,
+    isCalculating: false,
+    calculationError: null,
+  }
+}
 
 export function ComparisonGrid() {
   const searchParams = useSearchParams()
@@ -27,19 +44,7 @@ export function ComparisonGrid() {
 
   // All country state in parent
   const [countries, setCountries] = useState<CountryColumnState[]>([
-    {
-      id: crypto.randomUUID(),
-      index: 0,
-      country: "",
-      year: "",
-      variant: "",
-      gross_annual: "",
-      formValues: {},
-      currency: "EUR",
-      result: null,
-      isCalculating: false,
-      calculationError: null,
-    },
+    createEmptyCountryState(0),
   ])
 
   const [isInitialized, setIsInitialized] = useState(false)
@@ -123,20 +128,7 @@ export function ComparisonGrid() {
   // Add new country
   const addCountry = useCallback(() => {
     if (countries.length < MAX_COUNTRIES) {
-      const newCountry: CountryColumnState = {
-        id: crypto.randomUUID(),
-        index: countries.length,
-        country: "",
-        year: "",
-        variant: "",
-        gross_annual: "",
-        formValues: {},
-        currency: "EUR",
-        result: null,
-        isCalculating: false,
-        calculationError: null,
-      }
-      setCountries(prev => [...prev, newCountry])
+      setCountries(prev => [...prev, createEmptyCountryState(prev.length)])
       if (isMobile) {
         setActiveTabIndex(countries.length)
       }
@@ -183,7 +175,12 @@ export function ComparisonGrid() {
               const converted = Math.round(sourceAmount * rate)
               return { ...c, gross_annual: String(converted) }
             } catch (e) {
-              console.error("Currency conversion failed:", e)
+              // Unsupported currency errors are expected, don't log as error
+              if (e instanceof UnsupportedCurrencyError) {
+                console.warn(`Currency conversion not available: ${e.currency}`)
+              } else {
+                console.error("Currency conversion failed:", e)
+              }
               return { ...c, gross_annual: source.gross_annual }
             }
           }
@@ -217,7 +214,14 @@ export function ComparisonGrid() {
             const rate = await fetchExchangeRate(cur, BASE_CURRENCY)
             normalized.set(country.id, net * rate)
           } catch (error) {
-            console.error(`Failed to convert ${cur} to ${BASE_CURRENCY}:`, error)
+            // Unsupported currency errors are expected, don't log as error
+            if (error instanceof UnsupportedCurrencyError) {
+              console.warn(
+                `Exchange rate not available for ${error.currency}, using original value`
+              )
+            } else {
+              console.error(`Failed to convert ${cur} to ${BASE_CURRENCY}:`, error)
+            }
             normalized.set(country.id, net)
           }
         }
@@ -235,12 +239,7 @@ export function ComparisonGrid() {
   }, [countries])
 
   // Find best country
-  const bestCountryId =
-    normalizedNetValues.size >= 2
-      ? Array.from(normalizedNetValues.entries()).reduce((best, [id, net]) =>
-          net > (normalizedNetValues.get(best) || -Infinity) ? id : best
-        , normalizedNetValues.keys().next().value as string)
-      : null
+  const bestCountryId = findBestCountryByNet(normalizedNetValues)
 
   // Calculate delta for a country
   const getComparisonDelta = useCallback(
@@ -251,22 +250,12 @@ export function ComparisonGrid() {
       const currentNormalizedNet = normalizedNetValues.get(id)
       const country = countries.find(c => c.id === id)
 
-      if (
-        bestNormalizedNet === undefined ||
-        currentNormalizedNet === undefined ||
-        !country?.result
-      ) {
+      if (!country?.result) {
         return undefined
       }
 
-      const deltaInEur = currentNormalizedNet - bestNormalizedNet
-
-      if (country.result.currency === "EUR") {
-        return deltaInEur
-      }
-
-      const ratio = country.result.net / currentNormalizedNet
-      return deltaInEur * ratio
+      const delta = calculateNetDelta(bestNormalizedNet, currentNormalizedNet, country.result)
+      return delta ?? undefined
     },
     [bestCountryId, normalizedNetValues, countries]
   )

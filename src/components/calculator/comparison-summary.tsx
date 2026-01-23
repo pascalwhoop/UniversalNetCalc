@@ -3,6 +3,8 @@
 import { Card } from "@/components/ui/card"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { type CalculationResult } from "@/lib/api"
+import { formatCurrency, formatPercent } from "@/lib/formatters"
+import { calculateNetDelta, calculateTotalDeductions } from "@/lib/comparison-utils"
 import { useMemo, useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,19 +17,6 @@ interface ComparisonSummaryProps {
   }>
   normalizedNetValues: Map<string, number>
   displayOrder?: string[]  // Optional array of IDs in display order
-}
-
-function formatCurrency(amount: number, currency: string = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency || "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
-
-function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`
 }
 
 export function ComparisonSummary({ results, normalizedNetValues, displayOrder }: ComparisonSummaryProps) {
@@ -70,30 +59,11 @@ export function ComparisonSummary({ results, normalizedNetValues, displayOrder }
     const currentNormalizedNet = normalizedNetValues.get(id)
     const currentResult = results.get(id)
 
-    if (bestNormalizedNet === undefined || currentNormalizedNet === undefined || !currentResult) {
+    if (!currentResult) {
       return null
     }
 
-    // Calculate delta in EUR
-    const deltaInEur = currentNormalizedNet - bestNormalizedNet
-
-    // Convert delta back to current country's currency
-    const currentCurrency = currentResult.result.currency
-    if (currentCurrency === "EUR") {
-      return deltaInEur
-    }
-
-    // Approximate conversion using the ratio
-    const originalNet = currentResult.result.net
-    const ratio = originalNet / currentNormalizedNet
-    return deltaInEur * ratio
-  }
-
-  // Calculate total deductions for each country
-  const getTotalDeductions = (result: CalculationResult): number => {
-    return result.breakdown
-      .filter(item => item.category === "income_tax" || item.category === "contribution" || item.category === "surtax")
-      .reduce((sum, item) => sum + item.amount, 0)
+    return calculateNetDelta(bestNormalizedNet, currentNormalizedNet, currentResult.result)
   }
 
   if (results.size < 2) {
@@ -209,7 +179,7 @@ export function ComparisonSummary({ results, normalizedNetValues, displayOrder }
               <tr>
                 <td className="py-2 pr-2 md:pr-4 text-muted-foreground whitespace-nowrap">Total Deductions</td>
                 {sortedResults.map(([id, data]) => {
-                  const totalDeductions = getTotalDeductions(data.result)
+                  const totalDeductions = calculateTotalDeductions(data.result)
                   return (
                     <td key={id} className="text-right py-2 px-2 md:px-3 font-mono text-destructive whitespace-nowrap">
                       {formatCurrency(totalDeductions, data.result.currency)}
