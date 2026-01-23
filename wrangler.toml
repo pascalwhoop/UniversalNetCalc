@@ -1,0 +1,14 @@
+name = "universal-net-calc"
+main = ".open-next/worker.js"
+compatibility_date = "2024-01-01"
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
+
+[[kv_namespaces]]
+binding = "EXCHANGE_RATES_CACHE"
+id = "23769d8b2bf540acb3f6118c87e45f29"
+
+[env.production]
+
+[[env.production.kv_namespaces]]
+binding = "EXCHANGE_RATES_CACHE"
+id = "23769d8b2bf540acb3f6118c87e45f29"

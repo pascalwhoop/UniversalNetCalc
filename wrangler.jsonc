@@ -13,6 +13,7 @@
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": [
 		"nodejs_compat",
+		"enable_nodejs_fs_module",
 		"global_fetch_strictly_public"
 	],
 	"assets": {
@@ -43,7 +44,7 @@
 	"kv_namespaces": [
 		{
 			"binding": "EXCHANGE_RATES_CACHE",
-			"id": "YOUR_KV_NAMESPACE_ID"
+			"id": "23769d8b2bf540acb3f6118c87e45f29"
 		}
 	]
 	/**
