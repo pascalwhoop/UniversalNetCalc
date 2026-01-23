@@ -15,12 +15,13 @@ description: |
 
 ## Workflow
 
-1. **Research** - Gather official tax rates, brackets, contributions, credits
+1. **Research** - Gather official tax rates, brackets, contributions, credits. See references/country-tax-research.md for guidance.
 2. **Plan** - Identify complexity level and required nodes
 3. **Implement** - Create base.yaml with all calculations
 4. **Write Tests** - Create test vectors with expected values
 5. **Validate** - Run test suite, debug failures until all tests pass
 6. **Document** - Add sources and notices
+7. **Add research to guides** - Add the research to the guides/countries/<country>.md file.
 
 ## Quick Reference
 
@@ -62,12 +63,12 @@ If the country already has a year in it, consider searching for the same / simil
 
 ### Step 2: Assess Complexity
 
-| Level | Characteristics | Approach |
-|-------|-----------------|----------|
-| Simple | No income tax or flat tax (UAE, SG, HK) | Pure YAML, minimal nodes |
-| Moderate | Progressive brackets + contributions (NL, AU, IE, UK) | Pure YAML |
-| High | Multi-level regions or special calculations (CH, US) | YAML + lookups |
-| Complex | Income splitting, family quotient (DE, FR) | Use `function` node |
+| Level    | Characteristics                                       | Approach                 |
+| -------- | ----------------------------------------------------- | ------------------------ |
+| Simple   | No income tax or flat tax (UAE, SG, HK)               | Pure YAML, minimal nodes |
+| Moderate | Progressive brackets + contributions (NL, AU, IE, UK) | Pure YAML                |
+| High     | Multi-level regions or special calculations (CH, US)  | YAML + lookups           |
+| Complex  | Income splitting, family quotient (DE, FR)            | Use `function` node      |
 
 ### Step 3: Create base.yaml
 
