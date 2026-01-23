@@ -8,7 +8,7 @@
 		"build:configs": "node scripts/bundle-configs.mjs",
 		"generate:manifest": "node generate-manifest.mjs",
 		"start": "next start",
-		"lint": "next lint",
+		"lint": "eslint .",
 		"test": "vitest",
 		"test:ui": "vitest --ui",
 		"test:run": "vitest run",
