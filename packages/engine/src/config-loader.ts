@@ -160,6 +160,19 @@ export class ConfigLoader {
       }
     }
 
+    // Merge outputs (replace if variant defines it)
+    if (variant.outputs) {
+      merged.outputs = { ...merged.outputs, ...variant.outputs }
+
+      // Deep merge breakdown if both exist
+      if (merged.outputs.breakdown && variant.outputs.breakdown) {
+        merged.outputs.breakdown = {
+          ...merged.outputs.breakdown,
+          ...variant.outputs.breakdown
+        }
+      }
+    }
+
     return merged
   }
 
