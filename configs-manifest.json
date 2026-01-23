@@ -10,6 +10,15 @@
         }
       }
     },
+    "au": {
+      "years": {
+        "2025": {
+          "variants": [
+            "non-resident"
+          ]
+        }
+      }
+    },
     "bg": {
       "years": {
         "2025": {
@@ -17,6 +26,16 @@
         },
         "2026": {
           "variants": []
+        }
+      }
+    },
+    "ca": {
+      "years": {
+        "2025": {
+          "variants": [
+            "bc",
+            "ontario"
+          ]
         }
       }
     },
@@ -37,6 +56,24 @@
         }
       }
     },
+    "dk": {
+      "years": {
+        "2025": {
+          "variants": [
+            "researcher"
+          ]
+        }
+      }
+    },
+    "es": {
+      "years": {
+        "2025": {
+          "variants": [
+            "beckham-law"
+          ]
+        }
+      }
+    },
     "fr": {
       "years": {
         "2025": {
@@ -51,6 +88,15 @@
         }
       }
     },
+    "ie": {
+      "years": {
+        "2025": {
+          "variants": [
+            "sarp"
+          ]
+        }
+      }
+    },
     "it": {
       "years": {
         "2025": {
@@ -61,6 +107,22 @@
         "2026": {
           "variants": [
             "impatriate"
+          ]
+        }
+      }
+    },
+    "jp": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "kr": {
+      "years": {
+        "2025": {
+          "variants": [
+            "flat-tax"
           ]
         }
       }
@@ -79,11 +141,36 @@
         }
       }
     },
+    "no": {
+      "years": {
+        "2025": {
+          "variants": [
+            "paye"
+          ]
+        }
+      }
+    },
+    "nz": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    },
     "pt": {
       "years": {
         "2025": {
           "variants": [
             "ifici"
+          ]
+        }
+      }
+    },
+    "se": {
+      "years": {
+        "2025": {
+          "variants": [
+            "expert-tax"
           ]
         }
       }
