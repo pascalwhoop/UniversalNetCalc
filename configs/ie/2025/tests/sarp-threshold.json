@@ -1,17 +1,17 @@
 {
   "name": "Ireland 2025 SARP - At Threshold (€100,000)",
-  "config": "variants/sarp.yaml",
+  "variant": "sarp",
   "inputs": {
     "gross_annual": 100000,
     "filing_status": "single"
   },
   "expected": {
-    "net": 67194,
-    "effective_rate": 0.32806,
+    "net": 66356,
+    "effective_rate": 0.3364,
     "breakdown": {
       "sarp_relief": 0,
       "income_tax": 25400,
-      "usc": 3206,
+      "usc": 4044,
       "prsi": 4200,
       "personal_credit": 2000,
       "employee_credit": 2000

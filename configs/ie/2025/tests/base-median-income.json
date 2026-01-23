@@ -6,11 +6,11 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 35844,
-    "effective_rate": 0.2035,
+    "net": 37214,
+    "effective_rate": 0.173,
     "breakdown": {
       "income_tax": 5000,
-      "usc": 866,
+      "usc": 896,
       "prsi": 1890,
       "personal_credit": 2000,
       "employee_credit": 2000

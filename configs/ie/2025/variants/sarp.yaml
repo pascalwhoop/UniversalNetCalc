@@ -13,54 +13,78 @@ parameters:
   sarp_income_cap: 1000000
 
 calculations:
-  # Calculate SARP relief amount
-  - id: "sarp_eligible_income"
-    label: "SARP Eligible Income"
-    type: "max"
-    values:
-      - 0
-      - type: "min"
-        values:
-          - type: "sub"
-            values:
-              - "@gross_annual"
-              - "$sarp_threshold"
-          - type: "sub"
-            values:
-              - "$sarp_income_cap"
-              - "$sarp_threshold"
-    category: "deduction"
-
+  # Calculate SARP relief amount for breakdown display
   - id: "sarp_relief"
-    label: "SARP Relief (30% of eligible income)"
+    label: "SARP Relief (30%)"
     type: "mul"
     values:
-      - "$sarp_eligible_income"
+      - type: "max"
+        values:
+          - 0
+          - type: "min"
+            values:
+              - type: "sub"
+                values:
+                  - "@gross_annual"
+                  - "$sarp_threshold"
+              - type: "sub"
+                values:
+                  - "$sarp_income_cap"
+                  - "$sarp_threshold"
       - "$sarp_relief_rate"
     category: "deduction"
 
-  - id: "taxable_income_after_sarp"
-    label: "Taxable Income After SARP"
-    type: "sub"
-    values:
-      - "@gross_annual"
-      - "$sarp_relief"
-    category: "deduction"
-
-  # Override income tax calculations to use SARP-adjusted income
+  # Override income_at_standard_rate with SARP adjustment inlined
   - id: "income_at_standard_rate"
     label: "Income Taxed at Standard Rate"
     type: "min"
     values:
-      - "$taxable_income_after_sarp"
+      - type: "sub"
+        values:
+          - "@gross_annual"
+          - type: "mul"
+            values:
+              - type: "max"
+                values:
+                  - 0
+                  - type: "min"
+                    values:
+                      - type: "sub"
+                        values:
+                          - "@gross_annual"
+                          - "$sarp_threshold"
+                      - type: "sub"
+                        values:
+                          - "$sarp_income_cap"
+                          - "$sarp_threshold"
+              - "$sarp_relief_rate"
       - "$standard_rate_band"
     category: "income_tax"
 
+  # Override income_at_higher_rate with SARP adjustment inlined
   - id: "income_at_higher_rate"
     label: "Income Taxed at Higher Rate"
     type: "sub"
     values:
-      - "$taxable_income_after_sarp"
+      - type: "sub"
+        values:
+          - "@gross_annual"
+          - type: "mul"
+            values:
+              - type: "max"
+                values:
+                  - 0
+                  - type: "min"
+                    values:
+                      - type: "sub"
+                        values:
+                          - "@gross_annual"
+                          - "$sarp_threshold"
+                      - type: "sub"
+                        values:
+                          - "$sarp_income_cap"
+                          - "$sarp_threshold"
+              - "$sarp_relief_rate"
       - "$income_at_standard_rate"
     category: "income_tax"
 

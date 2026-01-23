@@ -1,13 +1,13 @@
 {
   "name": "Ireland 2025 SARP - €150,000 (matches research example)",
-  "config": "variants/sarp.yaml",
+  "variant": "sarp",
   "inputs": {
     "gross_annual": 150000,
     "filing_status": "single"
   },
   "expected": {
     "net": 96256,
-    "effective_rate": 0.35829,
+    "effective_rate": 0.3583,
     "breakdown": {
       "sarp_relief": 15000,
       "income_tax": 39400,
