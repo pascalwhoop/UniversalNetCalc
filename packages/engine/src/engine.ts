@@ -4,13 +4,15 @@ import type {
   CalculationResult,
   InlineNode,
   NodeCategory,
+  BreakdownItem,
 } from '../../schema/src/config-types'
 import { evaluateNode } from './evaluators'
 import { resolveFunctions } from './functions'
 
 export class CalculationEngine {
   private config: TaxConfig
-  private functions: Map<string, (context: CalculationContext, ...args: unknown[]) => unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private functions: Map<string, any>
 
   constructor(config: TaxConfig) {
     this.config = config

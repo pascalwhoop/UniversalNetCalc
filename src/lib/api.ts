@@ -161,7 +161,7 @@ export async function fetchExchangeRate(
   if (!res.ok) {
     // Handle unsupported currency gracefully
     if (res.status === 400 && "unsupported_currency" in data && data.unsupported_currency) {
-      throw new UnsupportedCurrencyError(data.unsupported_currency, data.message)
+      throw new UnsupportedCurrencyError(data.unsupported_currency, data.message || "Unsupported currency")
     }
     throw new Error("error" in data && data.error ? data.error : "Failed to fetch exchange rate")
   }

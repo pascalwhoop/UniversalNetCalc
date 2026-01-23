@@ -6,7 +6,6 @@ import type { TaxConfig } from '../../schema/src/config-types'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let configBundle: any = null
 try {
-  // @ts-expect-error - bundle is generated at build time
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   configBundle = require('../../../.generated/config-bundle.ts').default
 } catch {
