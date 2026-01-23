@@ -26,6 +26,12 @@ export class CalculationEngine {
       inputs: { ...inputs },
       parameters: this.config.parameters,
       nodes: {},
+      config: {
+        meta: {
+          year: this.config.meta.year,
+          country: this.config.meta.country,
+        },
+      },
     }
 
     // Evaluate all calculation nodes in order

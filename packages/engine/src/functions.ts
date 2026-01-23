@@ -27,16 +27,22 @@ function incomeSplittingTax(
 ): number {
   const { taxable_income, splitting_factor } = inputs as any
 
+  // Detect tax year from config metadata
+  const taxYear = context.config?.meta?.year || 2024
+
+  // Select appropriate tax function based on year
+  const computeTax = taxYear === 2025 ? computeGermanTax2025 : computeGermanTax2024
+
   if (!splitting_factor || splitting_factor === 1) {
     // No splitting - compute normally
-    return computeGermanTax2024(taxable_income)
+    return computeTax(taxable_income)
   }
 
   // Split taxable income
   const splitIncome = taxable_income / splitting_factor
 
   // Compute tax on split income
-  const splitTax = computeGermanTax2024(splitIncome)
+  const splitTax = computeTax(splitIncome)
 
   // Multiply result by splitting factor
   return splitTax * splitting_factor
@@ -45,19 +51,38 @@ function incomeSplittingTax(
 /**
  * French Quotient Familial (family quotient)
  * Divides income by family units, computes tax, multiplies back
+ *
+ * Note: brackets parameter must be specified in config but is read from context.parameters
+ * This is because the evaluator can only pass numbers, not arrays
  */
 function familyQuotientTax(
-  inputs: Record<string, number>,
+  inputs: Record<string, any>,
   context: CalculationContext
 ): number {
-  const { gross, family_units, brackets: bracketsRef } = inputs as any
+  const { gross, family_units } = inputs as any
+
+  if (typeof gross !== 'number' || isNaN(gross)) {
+    throw new Error(`Invalid gross income: ${gross} (type: ${typeof gross})`)
+  }
+
+  if (typeof family_units !== 'number' || isNaN(family_units)) {
+    throw new Error(`Invalid family_units: ${family_units} (type: ${typeof family_units})`)
+  }
+
+  // Get brackets from context parameters
+  // The brackets parameter name is expected to be 'income_tax_brackets' by convention
+  const brackets = context.parameters.income_tax_brackets as BracketEntry[]
+
+  if (!Array.isArray(brackets) || brackets.length === 0) {
+    throw new Error(`income_tax_brackets not found in parameters or is empty`)
+  }
 
   if (!family_units || family_units === 1) {
-    return computeBracketTax(gross, getBrackets(bracketsRef, context))
+    return computeProgressiveBracketTax(gross, brackets)
   }
 
   const quotient = gross / family_units
-  const quotientTax = computeBracketTax(quotient, getBrackets(bracketsRef, context))
+  const quotientTax = computeProgressiveBracketTax(quotient, brackets)
 
   return quotientTax * family_units
 }
@@ -130,6 +155,41 @@ function computeBracketTax(income: number, brackets: BracketEntry[]): number {
 }
 
 /**
+ * Standard progressive bracket tax calculation
+ * Used by French quotient familial and other systems
+ */
+function computeProgressiveBracketTax(income: number, brackets: BracketEntry[]): number {
+  if (income <= 0) return 0
+
+  let tax = 0
+  let previousThreshold = 0
+
+  for (const bracket of brackets) {
+    if (income <= bracket.threshold) {
+      // Income is in this bracket
+      if (bracket.rate > 0) {
+        tax += (income - previousThreshold) * bracket.rate
+      }
+      break
+    } else {
+      // Income exceeds this bracket, tax the full bracket
+      if (bracket.rate > 0 && bracket.threshold > previousThreshold) {
+        tax += (bracket.threshold - previousThreshold) * bracket.rate
+      }
+      previousThreshold = bracket.threshold
+    }
+  }
+
+  // If income exceeds all brackets, apply the last bracket's rate to remaining income
+  const lastBracket = brackets[brackets.length - 1]
+  if (income > lastBracket.threshold) {
+    tax += (income - lastBracket.threshold) * lastBracket.rate
+  }
+
+  return Math.round(tax)
+}
+
+/**
  * German tax formula for 2024
  * Based on official BMF formula (§32a EStG) with continuous progression zones
  * Source: https://www.finanz-tools.de/einkommensteuer/berechnung-formeln/2024
@@ -163,4 +223,45 @@ function computeGermanTax2024(taxableIncome: number): number {
 
   // Zone 5: Linear rate 45% (≥ €277,826)
   return Math.floor(0.45 * x - 18971.06)
+}
+
+/**
+ * German tax formula for 2025
+ * Based on official BMF formula (§32a EStG) with continuous progression zones
+ * Source: https://taxrep.us/tax_guide/german-income-tax-guide/german-income-tax-rates-brackets/
+ *
+ * Key changes from 2024:
+ * - Basic allowance raised to €12,096
+ * - Zone thresholds adjusted: €17,443 (zone 2), €68,480 (zone 3)
+ * - Solidarity surcharge exemption threshold increased to €19,950 (single)
+ */
+function computeGermanTax2025(taxableIncome: number): number {
+  const x = Math.floor(taxableIncome)
+
+  // Zone 1: Below basic allowance (€12,096)
+  if (x <= 12096) {
+    return 0
+  }
+
+  // Zone 2: Linear progression (€12,097 - €17,443)
+  // Formula: E = (932.30 · y + 1,400) · y where y = (income - 12,096) / 10,000
+  if (x <= 17443) {
+    const y = (x - 12096) / 10000
+    return Math.floor((932.30 * y + 1400) * y)
+  }
+
+  // Zone 3: Linear progression (€17,444 - €68,480)
+  // Formula: E = (177.23 · z + 2,397) · z + 1,025.84 where z = (income - 17,443) / 10,000
+  if (x <= 68480) {
+    const z = (x - 17443) / 10000
+    return Math.floor((177.23 * z + 2397) * z + 1025.84)
+  }
+
+  // Zone 4: Linear rate 42% (€68,481 - €277,825)
+  if (x <= 277825) {
+    return Math.floor(0.42 * x - 10911.92)
+  }
+
+  // Zone 5: Linear rate 45% (≥ €277,826)
+  return Math.floor(0.45 * x - 19246.67)
 }

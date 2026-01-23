@@ -317,6 +317,12 @@ export interface CalculationContext {
   inputs: Record<string, any>
   parameters: Parameters
   nodes: Record<string, any> // Computed node values (can be number, string, array, etc.)
+  config?: {
+    meta?: {
+      year?: number
+      country?: string
+    }
+  }
 }
 
 export interface BreakdownItem {
