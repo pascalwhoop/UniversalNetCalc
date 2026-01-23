@@ -49,7 +49,10 @@ export function encodeState(state: ComparisonState): string {
  * Decode URL search params to comparison state
  */
 export function decodeState(searchParams: URLSearchParams): ComparisonState | null {
-  const countriesParam = searchParams.get("c")
+  // Support both formats:
+  // - ?c=nl-2025-60000,de-2025 (full format)
+  // - ?countries=us-ca,ch-zh,nl (preset format)
+  const countriesParam = searchParams.get("c") || searchParams.get("countries")
   const variantsParam = searchParams.get("v")
 
   if (!countriesParam) {
@@ -74,9 +77,13 @@ export function decodeState(searchParams: URLSearchParams): ComparisonState | nu
 
   for (const countryStr of countryStrings) {
     const parts = countryStr.split("-")
-    if (parts.length < 2) continue
+    if (parts.length < 1) continue
 
     const [country, year, gross, ...formParts] = parts
+
+    // Handle preset format (just country code or country-year)
+    // Full format: country-year-gross-formKey:value-...
+    // Preset format: country or country-year
 
     // Parse form values
     const formValues: Record<string, string> = {}
@@ -95,7 +102,7 @@ export function decodeState(searchParams: URLSearchParams): ComparisonState | nu
 
     countries.push({
       country,
-      year,
+      year: year || "", // Year can be empty for presets, will be auto-selected
       gross_annual: gross || "",
       variant: variantsMap.get(country),
       formValues,

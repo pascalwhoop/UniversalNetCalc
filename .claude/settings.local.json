@@ -26,16 +26,18 @@
       "Bash(docker-compose logs:*)",
       "Bash(docker-compose down:*)",
       "Bash(docker-compose:*)",
-      "WebFetch(domain:taverntesting.github.io)",
-      "WebFetch(domain:tavern.readthedocs.io)",
       "Bash(python merge.py:*)",
       "Bash(node merge.mjs:*)",
-      "WebFetch(domain:registry.npmjs.org)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:*.github.com)",
+      "WebFetch(domain:*.githubusercontent.com)",
+      "WebFetch(domain:*.blob.core.windows.net)"
     ]
   },
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowLocalBinding": true
+    }
   }
 }

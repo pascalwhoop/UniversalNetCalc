@@ -1,0 +1,72 @@
+name: Config Validation (Fast Track)
+
+on:
+  pull_request:
+    paths:
+      - 'configs/**'
+      - '!configs/**/*.md'
+      - '.github/workflows/config-validation.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  config-tests:
+    runs-on: ubuntu-latest
+    name: Config Tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run config tests
+        run: npm run test:configs
+
+      - name: Comment on config test failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ❌ Config Tests Failed
+
+              One or more test vectors did not produce expected results.
+
+              **Next steps:**
+              1. Review the test output above to see which test failed
+              2. Run locally: \`npm run test:configs\`
+              3. Check your calculations and test expected values
+              4. Verify tax rates/brackets match official sources
+
+              Need help? Check the docs in \`docs/\` folder.`
+            })
+
+  auto-label:
+    runs-on: ubuntu-latest
+    name: Auto-label Config PR
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Add config-only label
+        if: github.event.pull_request.draft == false
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['config-only']
+            })

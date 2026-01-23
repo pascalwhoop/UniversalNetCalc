@@ -41,6 +41,8 @@ npm run cf-typegen             # Generate Cloudflare environment types
 
 **Important:** Always run `npm run test:configs` after creating or modifying tax configurations to ensure all test vectors pass.
 
+Note: The developer often runs the server on port 3000 already. When 3000 is occupied assume the server is already running and use the existing service instead of trying to spin up your own
+
 ## Architecture
 
 ### Monorepo Structure
@@ -248,10 +250,18 @@ If you need a calculation primitive not covered by existing node types:
 4. Use `/api/calc` endpoint directly with curl/Postman for debugging
 5. Check `src/app/api/calc/route.ts` error handling
 
-### Documenting Gotchas
+### Documenting Gotchas & Project Documentation
 
-- as a developer sometimes you run into gotchas that are just good to note down somewhere
-- when you catch these, write a simple note in docs/gotchas.md explaining what trap to be aware of and how to solve it. that helps future devs to avoid it
+**Documentation Convention:**
+- All project documentation goes in the `docs/` folder
+- This includes guides, setup instructions, implementation notes, and reference material
+- The `docs/` folder is the single source of truth for all non-code documentation
+- When writing guides or implementation docs, create `.md` files in `docs/`
+- See existing files in `docs/` for examples: `README.md`, `prd.md`, `gotchas.md`, etc.
+
+**Gotchas specifically:**
+- When you catch a gotcha while developing, write a note in `docs/gotchas.md` explaining the trap and how to solve it
+- This helps future devs avoid the same pitfall
 
 ## Important Notes
 
@@ -261,6 +271,36 @@ If you need a calculation primitive not covered by existing node types:
 - **Cloudflare constraints:** Be mindful of Worker bundle size limits and CPU time constraints (see PRD.md section 8.1)
 - **Reference format:** Always use `@` for inputs and `$` for nodes/parameters - this is enforced by the engine
 - **Test coverage:** Every config must have at least low, median, and high income test vectors; add regional and variant tests as needed
+
+## CI/CD System
+
+This project uses GitHub Actions for continuous integration and deployment. The CI/CD workflows are designed for two different scenarios:
+
+**Fast Track for Config Contributions** (~30 seconds):
+- Validates YAML configs and test vectors
+- Auto-labels config-only PRs for easy filtering
+- Provides quick feedback for community contributors
+
+**Full Validation for Code Changes** (3-7 minutes):
+- Code quality checks (ESLint + TypeScript)
+- Unit tests (Vitest) + config tests
+- Build validation (Next.js build, manifest checks)
+- Optional E2E tests (Playwright, runs only if UI/API changed)
+
+**Documentation:**
+- **Overview & Setup:** `docs/ci-cd-implementation.md`
+- **GitHub Configuration:** `docs/github-branch-protection-setup.md`
+- **Verification Steps:** `docs/ci-cd-implementation-verification.md`
+- **Workflow Reference:** `docs/github-workflows.md`
+- **Workflow Files:** `.github/workflows/`
+
+**Key Commands:**
+- `npm run test:run` - Run all tests in CI mode
+- `npm run test:configs` - Run config tests only
+- `npm run lint` - Check linting
+- `npm run build` - Full build with manifest generation
+
+For CI/CD details, start with `docs/ci-cd-implementation.md`.
 
 ## UI Components
 
