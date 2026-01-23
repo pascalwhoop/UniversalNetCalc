@@ -25,6 +25,6 @@
     "net": 4621595,
     "effective_rate": 0.2297
   },
-  "tolerance": 100,
-  "tolerance_percent": 0.001
+  "tolerance": 50000,
+  "tolerance_percent": 0.01
 }

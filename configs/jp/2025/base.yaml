@@ -167,7 +167,8 @@ parameters:
 calculations:
   # Step 1: Calculate Employment Income (after employment income deduction)
   # Complex 5-bracket formula based on gross salary
-  - id: employment_income
+  # Note: Results are rounded down (floor) as per Japanese tax rules
+  - id: employment_income_raw
     type: switch
     on: "@gross_annual"
     cases:
@@ -243,6 +244,12 @@ calculations:
                     - "@gross_annual"
                     - 1950000
 
+  - id: employment_income
+    type: round
+    value: "$employment_income_raw"
+    precision: 0
+    mode: floor
+
   # Step 2: Calculate Social Insurance Premiums
   # Monthly salary for social insurance calculations
   - id: monthly_salary
@@ -258,7 +265,7 @@ calculations:
       - "$monthly_salary"
       - "$health_insurance_monthly_cap"
 
-  - id: health_insurance_annual
+  - id: health_insurance_annual_raw
     type: mul
     values:
       - type: mul
@@ -266,6 +273,12 @@ calculations:
           - "$health_insurance_base"
           - "$health_insurance_rate"
       - 12
+
+  - id: health_insurance_annual
+    type: round
+    value: "$health_insurance_annual_raw"
+    precision: 0
+    mode: floor
     category: contribution
     label: "Health Insurance"
     description: "健康保険 (Kenko Hoken) - Tokyo rate"
@@ -277,7 +290,7 @@ calculations:
       - "$monthly_salary"
       - "$pension_monthly_cap"
 
-  - id: pension_annual
+  - id: pension_annual_raw
     type: mul
     values:
       - type: mul
@@ -285,16 +298,28 @@ calculations:
           - "$pension_base"
           - "$pension_rate"
       - 12
+
+  - id: pension_annual
+    type: round
+    value: "$pension_annual_raw"
+    precision: 0
+    mode: floor
     category: contribution
     label: "Employees' Pension Insurance"
     description: "厚生年金保険 (Kosei Nenkin Hoken)"
 
   # Employment insurance (no cap, calculated on actual salary)
-  - id: employment_insurance_annual
+  - id: employment_insurance_annual_raw
     type: mul
     values:
       - "@gross_annual"
       - "$employment_insurance_rate"
+
+  - id: employment_insurance_annual
+    type: round
+    value: "$employment_insurance_annual_raw"
+    precision: 0
+    mode: floor
     category: contribution
     label: "Employment Insurance"
     description: "雇用保険 (Koyo Hoken)"
@@ -316,7 +341,7 @@ calculations:
       else: 0
     else: 0
 
-  - id: longterm_care_annual
+  - id: longterm_care_annual_raw
     type: mul
     values:
       - type: mul
@@ -327,6 +352,12 @@ calculations:
               - "$longterm_care_rate"
           - 12
       - "$longterm_care_applicable"
+
+  - id: longterm_care_annual
+    type: round
+    value: "$longterm_care_annual_raw"
+    precision: 0
+    mode: floor
     category: contribution
     label: "Long-term Care Insurance"
     description: "介護保険 (Kaigo Hoken) - Ages 40-64"
@@ -377,20 +408,32 @@ calculations:
           - "$total_deductions_national"
 
   # Base national income tax (before surtax)
-  - id: national_income_tax_base
+  - id: national_income_tax_base_raw
     type: bracket_tax
     base: "$taxable_income_national"
     brackets: "$national_tax_brackets"
+
+  - id: national_income_tax_base
+    type: round
+    value: "$national_income_tax_base_raw"
+    precision: 0
+    mode: floor
     category: income_tax
     label: "National Income Tax (Base)"
     description: "国税 - Base income tax before reconstruction surtax"
 
   # Reconstruction surtax (2.1% of base tax)
-  - id: reconstruction_surtax
+  - id: reconstruction_surtax_raw
     type: mul
     values:
       - "$national_income_tax_base"
       - "$reconstruction_surtax_rate"
+
+  - id: reconstruction_surtax
+    type: round
+    value: "$reconstruction_surtax_raw"
+    precision: 0
+    mode: floor
     category: surtax
     label: "Reconstruction Surtax"
     description: "復興特別所得税 - 2.1% surtax through 2037"
@@ -439,11 +482,17 @@ calculations:
           - "$total_deductions_resident"
 
   # Resident tax income levy (10% flat rate)
-  - id: resident_tax_income_levy
+  - id: resident_tax_income_levy_raw
     type: mul
     values:
       - "$taxable_income_resident"
       - "$resident_tax_rate"
+
+  - id: resident_tax_income_levy
+    type: round
+    value: "$resident_tax_income_levy_raw"
+    precision: 0
+    mode: floor
     category: income_tax
     label: "Resident Tax (Income Levy)"
     description: "住民税所得割 - 10% of prior year taxable income"
