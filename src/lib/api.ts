@@ -156,17 +156,17 @@ export async function fetchExchangeRate(
   }
 
   const res = await fetch(`/api/exchange-rates?from=${from}&to=${to}`, { signal })
-  const data = await res.json()
+  const data: ExchangeRateResponse | { error?: string; unsupported_currency?: string; message?: string } = await res.json()
 
   if (!res.ok) {
     // Handle unsupported currency gracefully
-    if (res.status === 400 && data.unsupported_currency) {
+    if (res.status === 400 && "unsupported_currency" in data && data.unsupported_currency) {
       throw new UnsupportedCurrencyError(data.unsupported_currency, data.message)
     }
-    throw new Error(data.error || "Failed to fetch exchange rate")
+    throw new Error("error" in data && data.error ? data.error : "Failed to fetch exchange rate")
   }
 
-  return data.rate
+  return (data as ExchangeRateResponse).rate
 }
 
 // Export re-exported for backward compatibility
