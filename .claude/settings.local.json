@@ -30,7 +30,8 @@
       "WebFetch(domain:tavern.readthedocs.io)",
       "Bash(python merge.py:*)",
       "Bash(node merge.mjs:*)",
-      "WebFetch(domain:registry.npmjs.org)"
+      "WebFetch(domain:registry.npmjs.org)",
+      "WebFetch(domain:api.github.com)"
     ]
   },
   "sandbox": {
