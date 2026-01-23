@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Run tests
+        run: make test-ci
+
+      - name: Run config tests
+        run: make test-configs
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: validate
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$GITHUB_REF#refs/tags/" >> $GITHUB_OUTPUT
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Build for Cloudflare
+        run: make build-cloudflare
+
+      - name: Deploy to production
+        run: make deploy-prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${{ github.ref }}^" 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # First release
+            CHANGELOG=$(git log --oneline | head -20)
+          else
+            # Generate changelog between tags
+            CHANGELOG=$(git log "$PREVIOUS_TAG..${{ github.ref }}" --oneline)
+          fi
+
+          # Format for GitHub release
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            ## Changes in this release
+
+            ${{ steps.release-notes.outputs.changelog }}
+
+            ---
+
+            **Deployed to production:** https://universal-net-calc.reconnct.workers.dev
+          draft: false
+          prerelease: false

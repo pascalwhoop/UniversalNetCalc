@@ -34,6 +34,9 @@ npm run preview                # Preview on Cloudflare runtime locally
 npm run deploy                 # Build and deploy to Cloudflare
 npm run upload                 # Build and upload to Cloudflare (no deploy)
 
+# Release Management
+make release                   # Interactive release creation (version bump, tag, push)
+
 # Other
 npm run lint                   # Run ESLint
 npm run cf-typegen             # Generate Cloudflare environment types
@@ -41,7 +44,28 @@ npm run cf-typegen             # Generate Cloudflare environment types
 
 **Important:** Always run `npm run test:configs` after creating or modifying tax configurations to ensure all test vectors pass.
 
-Note: The developer often runs the server on port 3000 already. When 3000 is occupied assume the server is already running and use the existing service instead of trying to spin up your own
+### Release Workflow
+
+To create a production release:
+```bash
+make release  # Interactive process:
+              # - Validates you're on main branch
+              # - Pulls latest changes
+              # - Runs all tests
+              # - Prompts for version bump (patch/minor/major)
+              # - Updates CHANGELOG.md
+              # - Creates git tag
+              # - Pushes to remote
+              # → GitHub Actions automatically deploys to production
+```
+
+To create a PR preview deployment:
+```
+# Comment `/release-preview` on any pull request to deploy a preview version to:
+# https://universal-net-calc-pr-{PR_NUMBER}.reconnct.workers.dev
+```
+
+**Note:** The developer often runs the server on port 3000 already. When 3000 is occupied assume the server is already running and use the existing service instead of trying to spin up your own
 
 ## Architecture
 
@@ -274,28 +298,46 @@ If you need a calculation primitive not covered by existing node types:
 
 ## CI/CD System
 
-This project uses GitHub Actions for continuous integration and deployment. The CI/CD workflows are designed for two different scenarios:
+This project uses GitHub Actions for tag-based releases and PR previews:
 
-**Fast Track for Config Contributions** (~30 seconds):
-- Validates YAML configs and test vectors
-- Auto-labels config-only PRs for easy filtering
-- Provides quick feedback for community contributors
+### Deployment Workflow
 
-**Full Validation for Code Changes** (3-7 minutes):
+**PR Preview (Comment-Triggered):**
+- Comment `/release-preview` on any pull request
+- Deploys to: `https://universal-net-calc-pr-{PR_NUMBER}.reconnct.workers.dev`
+- Only users with write access can trigger previews
+- Available for testing until PR is closed
+
+**Production Release (Tag-Based):**
+- Create a release locally with `make release`
+- Automatically:
+  - Validates tests pass
+  - Builds for Cloudflare
+  - Deploys to production
+  - Creates GitHub release with changelog
+  - Available at: `https://universal-net-calc.reconnct.workers.dev`
+
+**PR Validation (Automatic):**
+- Runs on all pull requests
 - Code quality checks (ESLint + TypeScript)
 - Unit tests (Vitest) + config tests
-- Build validation (Next.js build, manifest checks)
-- Optional E2E tests (Playwright, runs only if UI/API changed)
+- Build validation
 
-**Documentation:**
+### Documentation
+
 - **Complete guide:** `docs/ci-cd.md` - Workflows, setup, troubleshooting
 - **Workflow files:** `.github/workflows/`
+  - `pr.yml` - PR validation
+  - `pr-preview.yml` - PR preview deployment (comment-triggered)
+  - `release.yml` - Production release (tag-triggered)
+  - `deploy.yml` - Reusable deployment workflow
 
-**Key Commands:**
-- `npm run test:run` - Run all tests in CI mode
-- `npm run test:configs` - Run config tests only
-- `npm run lint` - Check linting
-- `npm run build` - Full build with manifest generation
+### Release Management
+
+- Version management is manual via `make release`
+- Changelog is auto-generated from conventional commits
+- Each release creates an immutable git tag and GitHub release
+- All releases are stored in `CHANGELOG.md`
 
 For CI/CD details, see `docs/ci-cd.md`.
 
