@@ -130,15 +130,6 @@ parameters:
   taxable_percentage: 0.75
 
 calculations:
-  # Override taxable income calculation
-  # Apply 25% exemption BEFORE basic deduction
-  - id: gross_after_exemption
-    type: mul
-    values:
-      - "@gross_annual"
-      - "$taxable_percentage"
-    description: "Only 75% of gross income is taxable under Expert Tax regime"
-
   # Show the tax-exempt amount
   - id: expert_tax_exemption
     type: mul
@@ -149,12 +140,15 @@ calculations:
     label: "Expert Tax Exemption (25%)"
     description: "25% of gross salary excluded from taxation"
 
-  # Taxable income after exemption and basic deduction
+  # Taxable income after 25% exemption and basic deduction
   - id: taxable_income
     type: max
     values:
       - 0
       - type: sub
         values:
-          - "$gross_after_exemption"
+          - type: mul
+            values:
+              - "@gross_annual"
+              - "$taxable_percentage"
           - "$basic_deduction"

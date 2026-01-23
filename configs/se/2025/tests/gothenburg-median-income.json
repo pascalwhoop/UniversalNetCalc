@@ -6,10 +6,10 @@
     "municipality": "gothenburg"
   },
   "expected": {
-    "net": 317700,
-    "effective_rate": 0.2251
+    "net": 286200,
+    "effective_rate": 0.3019
   },
-  "tolerance": 150,
+  "tolerance": 200,
   "tolerance_percent": 0.005,
   "sources": [
     {

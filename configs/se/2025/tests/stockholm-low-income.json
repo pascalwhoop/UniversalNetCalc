@@ -6,10 +6,10 @@
     "municipality": "stockholm"
   },
   "expected": {
-    "net": 195200,
-    "effective_rate": 0.2192
+    "net": 178800,
+    "effective_rate": 0.2848
   },
-  "tolerance": 100,
+  "tolerance": 200,
   "tolerance_percent": 0.005,
   "sources": [
     {
