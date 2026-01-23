@@ -33,7 +33,13 @@
       "WebFetch(domain:*.blob.core.windows.net)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:telemetry.nextjs.org)",
-      "WebFetch(domain:sparrow.cloudflare.com)"
+      "WebFetch(domain:sparrow.cloudflare.com)",
+      "Bash(gh workflow run:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "sandbox": {
