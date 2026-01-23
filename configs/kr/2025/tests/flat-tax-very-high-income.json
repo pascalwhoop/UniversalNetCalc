@@ -9,7 +9,7 @@
     "net": 144938574,
     "effective_rate": 0.2753,
     "breakdown": {
-      "national_income_tax_flat": 38000000,
+      "national_income_tax": 38000000,
       "local_income_tax": 3800000,
       "national_pension": 3439800,
       "health_insurance": 7090000,

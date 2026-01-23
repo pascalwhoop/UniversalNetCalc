@@ -85,12 +85,8 @@ calculations:
   - id: taxable_income
     $delete: true
 
-  # Delete the progressive tax calculation
+  # Override national income tax with flat rate calculation
   - id: national_income_tax
-    $delete: true
-
-  # Replace with flat tax calculation
-  - id: national_income_tax_flat
     type: mul
     values:
       - "@gross_annual"
@@ -99,10 +95,11 @@ calculations:
     label: "National Income Tax (Flat 19%)"
     description: "Flat 19% rate for eligible foreign workers"
 
+  # Local tax calculation references the overridden national tax
   - id: local_income_tax
     type: mul
     values:
-      - "$national_income_tax_flat"
+      - "$national_income_tax"
       - "$local_tax_rate"
     category: income_tax
     label: "Local Income Tax"
@@ -111,7 +108,7 @@ calculations:
   - id: total_income_tax
     type: sum
     values:
-      - "$national_income_tax_flat"
+      - "$national_income_tax"
       - "$local_income_tax"
 
   # Social insurance calculations remain the same (not deleted from base)
@@ -202,7 +199,7 @@ outputs:
       - "@gross_annual"
   breakdown:
     taxes:
-      - "$national_income_tax_flat"
+      - "$national_income_tax"
       - "$local_income_tax"
     contributions:
       - "$national_pension"
