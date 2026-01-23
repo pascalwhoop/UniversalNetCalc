@@ -32,6 +32,9 @@ jobs:
         # Current: 142 errors (mostly 'any' types and HTML entities)
         # Will be re-enabled as a required check once fixed
 
+      - name: Generate Cloudflare types
+        run: npm run cf-typegen
+
       - name: TypeScript type check
         run: npx tsc --noEmit
 
