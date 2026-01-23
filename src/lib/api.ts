@@ -57,8 +57,8 @@ export interface ConfigInputs {
 
 const API_BASE = "/api/calc"
 
-export async function fetchCountries(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}?action=countries`)
+export async function fetchCountries(signal?: AbortSignal): Promise<string[]> {
+  const res = await fetch(`${API_BASE}?action=countries`, { signal })
   if (!res.ok) {
     throw new Error("Failed to fetch countries")
   }
@@ -66,8 +66,8 @@ export async function fetchCountries(): Promise<string[]> {
   return data.countries
 }
 
-export async function fetchYears(country: string): Promise<string[]> {
-  const res = await fetch(`${API_BASE}?action=years&country=${country}`)
+export async function fetchYears(country: string, signal?: AbortSignal): Promise<string[]> {
+  const res = await fetch(`${API_BASE}?action=years&country=${country}`, { signal })
   if (!res.ok) {
     throw new Error("Failed to fetch years")
   }
@@ -77,10 +77,12 @@ export async function fetchYears(country: string): Promise<string[]> {
 
 export async function fetchVariants(
   country: string,
-  year: string
+  year: string,
+  signal?: AbortSignal
 ): Promise<string[]> {
   const res = await fetch(
-    `${API_BASE}?action=variants&country=${country}&year=${year}`
+    `${API_BASE}?action=variants&country=${country}&year=${year}`,
+    { signal }
   )
   if (!res.ok) {
     throw new Error("Failed to fetch variants")
@@ -92,12 +94,13 @@ export async function fetchVariants(
 export async function fetchInputs(
   country: string,
   year: string,
-  variant?: string
+  variant?: string,
+  signal?: AbortSignal
 ): Promise<ConfigInputs> {
   const url = variant
     ? `${API_BASE}?action=inputs&country=${country}&year=${year}&variant=${variant}`
     : `${API_BASE}?action=inputs&country=${country}&year=${year}`
-  const res = await fetch(url)
+  const res = await fetch(url, { signal })
   if (!res.ok) {
     throw new Error("Failed to fetch inputs")
   }
@@ -106,7 +109,8 @@ export async function fetchInputs(
 }
 
 export async function calculateSalary(
-  request: CalcRequest
+  request: CalcRequest,
+  signal?: AbortSignal
 ): Promise<CalculationResult> {
   const res = await fetch(API_BASE, {
     method: "POST",
@@ -114,6 +118,7 @@ export async function calculateSalary(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(request),
+    signal,
   })
 
   const data: CalculationResult | ApiError = await res.json()
@@ -156,13 +161,14 @@ export interface ExchangeRateResponse {
 
 export async function fetchExchangeRate(
   from: string,
-  to: string
+  to: string,
+  signal?: AbortSignal
 ): Promise<number> {
   if (from.toUpperCase() === to.toUpperCase()) {
     return 1
   }
 
-  const res = await fetch(`/api/exchange-rates?from=${from}&to=${to}`)
+  const res = await fetch(`/api/exchange-rates?from=${from}&to=${to}`, { signal })
   if (!res.ok) {
     console.error("Failed to fetch exchange rate:", await res.text())
     return 1 // Fallback to 1:1 if API fails
@@ -189,6 +195,7 @@ export const COUNTRY_NAMES: Record<string, string> = {
   ae: "UAE",
   au: "Australia",
   ca: "Canada",
+  bg: "Bulgaria",
 }
 
 export function getCountryName(code: string): string {
