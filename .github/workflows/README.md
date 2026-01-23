@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-Two lean workflows. That's it.
+Three lean workflows for CI/CD and versioning.
 
 ## Workflows
 
@@ -22,6 +22,16 @@ Two lean workflows. That's it.
 **Environments:**
 - `preview` - https://universal-net-calc-preview.reconnct.workers.dev
 - `production` - Requires approval
+
+### `version-bump.yml` - Auto Version Bump
+**Triggers:** Push to `main` (except docs/workflows changes)
+**Duration:** ~30 seconds
+**What it does:**
+- Automatically increments patch version in package.json
+- Commits with `[skip ci]` to avoid triggering other workflows
+- Skips if commit already contains `[skip ci]` or is a version bump commit
+
+**Note:** Version bumps happen after merging to main, not on every commit during PR review.
 
 ## Local Testing
 
