@@ -1,0 +1,146 @@
+name: Deploy
+
+on:
+  # Auto-deploy preview on main branch pushes
+  push:
+    branches: [main]
+
+  # Manual preview deployment via label
+  pull_request:
+    types: [labeled]
+
+  # Manual production deployment
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - preview
+          - production
+      reason:
+        description: 'Deployment reason'
+        required: false
+        type: string
+
+  # Auto-deploy production on version tags
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || (startsWith(github.ref, 'refs/tags/v') && 'production') || 'preview' }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # Run if:
+    # - Push to main (preview)
+    # - PR with deploy-preview label
+    # - Manual workflow dispatch
+    # - Version tag (production)
+    if: |
+      github.ref == 'refs/heads/main' ||
+      contains(github.event.pull_request.labels.*.name, 'deploy-preview') ||
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (github.event.inputs.environment == 'production' || startsWith(github.ref, 'refs/tags/v')) && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: make install
+
+      # Safety checks for production only
+      - name: Run tests (production only)
+        if: github.event.inputs.environment == 'production' || startsWith(github.ref, 'refs/tags/v')
+        run: make test-ci
+        timeout-minutes: 5
+
+      # Determine environment
+      - name: Set deployment environment
+        id: env
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "production" ] || [ "${{ startsWith(github.ref, 'refs/tags/v') }}" == "true" ]; then
+            echo "env=production" >> $GITHUB_OUTPUT
+            echo "url=https://universal-salary-calculator.workers.dev" >> $GITHUB_OUTPUT
+          else
+            echo "env=preview" >> $GITHUB_OUTPUT
+            echo "url=https://universal-net-calc-preview.workers.dev" >> $GITHUB_OUTPUT
+          fi
+
+      # Deploy
+      - name: Deploy to ${{ steps.env.outputs.env }}
+        id: deploy
+        run: |
+          if [ "${{ steps.env.outputs.env }}" == "production" ]; then
+            make deploy-prod 2>&1 | tee deploy-output.txt
+          else
+            make deploy-preview 2>&1 | tee deploy-output.txt
+          fi
+
+          # Extract deployment URL from wrangler output
+          DEPLOYMENT_URL=$(grep -oP 'https://[^[:space:]]+\.workers\.dev' deploy-output.txt | head -1 || echo "${{ steps.env.outputs.url }}")
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: $DEPLOYMENT_URL"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Comment on PR with preview URL
+      - name: Comment preview URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewUrl = '${{ steps.deploy.outputs.url }}';
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Preview Deployed!\n\nYour changes have been deployed to the preview environment.\n\n**Preview URL:** ${previewUrl}\n\nThe preview will be updated automatically on new commits.`
+            });
+
+      # Create GitHub release for version tags
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `Release ${tag}`,
+              generate_release_notes: true,
+              draft: false,
+              prerelease: tag.includes('rc') || tag.includes('beta') || tag.includes('alpha')
+            });
+            console.log(`Created release: ${release.data.html_url}`);
+
+      # Notify production deployment
+      - name: Notify production deployment
+        if: steps.env.outputs.env == 'production'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reason = '${{ github.event.inputs.reason || 'Version tag pushed' }}';
+            const tag = context.ref.replace('refs/tags/', '');
+            const deployUrl = '${{ steps.deploy.outputs.url }}';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `✅ Production deployment: ${tag || context.sha.substring(0, 7)}`,
+              body: `## Production Deployment Notification\n\n**Deployed at:** ${new Date().toISOString()}\n**Reason:** ${reason}\n**Commit:** ${context.sha}\n**URL:** ${deployUrl}\n\nThe application has been successfully deployed to production.`,
+              labels: ['deployment']
+            });

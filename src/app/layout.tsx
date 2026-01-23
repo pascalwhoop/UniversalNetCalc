@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/providers"
+import { SentryProvider } from "@/components/sentry-provider"
 import { Toaster } from "@/components/ui/sonner"
 import packageJson from "../../package.json"
 import "./globals.css"
@@ -36,17 +37,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </QueryProvider>
+        <SentryProvider>
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </QueryProvider>
+        </SentryProvider>
       </body>
     </html>
   )
