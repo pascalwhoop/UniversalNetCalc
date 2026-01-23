@@ -29,17 +29,7 @@ inputs:
       aarhus:
         label: "Aarhus (24.52%)"
 
-  church_member:
-    type: boolean
-    required: false
-    default: false
-    label: "Member of Danish National Church"
-    description: "Only members of the Danish State Church (Lutheran) pay church tax"
-
 parameters:
-  # AM-bidrag (Labour Market Contribution)
-  am_bidrag_rate: 0.08
-
   # Personal allowance (Personfradrag)
   personal_allowance_amount: 51600
 
@@ -50,16 +40,6 @@ parameters:
   # Bottom tax (Bundskat)
   bottom_tax_rate: 0.1201
 
-  # Municipal tax rates by municipality
-  municipal_tax_rates:
-    copenhagen: 0.235
-    aarhus: 0.2452
-
-  # Church tax rates by municipality (optional)
-  church_tax_rates:
-    copenhagen: 0.008
-    aarhus: 0.008
-
   # Top tax (Topskat)
   top_tax_rate: 0.15
   top_tax_threshold: 611800  # Applied to income after AM-bidrag
@@ -68,9 +48,8 @@ calculations:
   # Step 1: Calculate AM-bidrag (8% of gross income)
   - id: am_bidrag
     label: "Labour Market Contribution (AM-bidrag)"
-    type: percent_of
-    base: "@gross_annual"
-    rate: 0.08
+    type: mul
+    values: ["@gross_annual", 0.08]
     category: contribution
 
   # Income after AM-bidrag (used for all subsequent calculations)
@@ -88,9 +67,8 @@ calculations:
 
   - id: employment_deduction_calculated
     label: "Employment Deduction Calculated"
-    type: percent_of
-    base: "@gross_annual"
-    rate: 0.1230
+    type: mul
+    values: ["@gross_annual", "$employment_deduction_rate"]
 
   - id: employment_deduction
     label: "Employment Deduction (Beskæftigelsesfradrag)"
@@ -112,16 +90,18 @@ calculations:
   # Step 4: Calculate taxes
   - id: bottom_tax
     label: "Bottom Tax (Bundskat)"
-    type: percent_of
-    base: "$taxable_income"
-    rate: 0.1201
+    type: mul
+    values: ["$taxable_income", "$bottom_tax_rate"]
     category: income_tax
 
   - id: municipal_tax_rate
     label: "Municipal Tax Rate"
-    type: lookup
-    table: "$municipal_tax_rates"
-    key: "@municipality"
+    type: switch
+    on: "@municipality"
+    cases:
+      copenhagen: 0.235
+      aarhus: 0.2452
+      _: 0.235
 
   - id: municipal_tax
     label: "Municipal Tax (Kommuneskat)"
@@ -142,39 +122,15 @@ calculations:
 
   - id: top_tax
     label: "Top Tax (Topskat)"
-    type: percent_of
-    base: "$income_above_top_threshold_clamped"
-    rate: 0.15
-    category: income_tax
-
-  # Church tax (optional, only for church members)
-  - id: church_tax_base_rate
-    label: "Church Tax Base Rate"
-    type: lookup
-    table: "$church_tax_rates"
-    key: "@municipality"
-
-  - id: church_tax_rate
-    label: "Church Tax Rate"
-    type: conditional
-    condition:
-      type: eq
-      left: "@church_member"
-      right: true
-    then: "$church_tax_base_rate"
-    else: 0
-
-  - id: church_tax
-    label: "Church Tax (Kirkeskat)"
     type: mul
-    values: ["$taxable_income", "$church_tax_rate"]
+    values: ["$income_above_top_threshold_clamped", "$top_tax_rate"]
     category: income_tax
 
   # Total tax
   - id: total_tax
     label: "Total Tax"
     type: sum
-    values: ["$am_bidrag", "$bottom_tax", "$municipal_tax", "$top_tax", "$church_tax"]
+    values: ["$am_bidrag", "$bottom_tax", "$municipal_tax", "$top_tax"]
 
   # Net income
   - id: net
@@ -193,29 +149,15 @@ outputs:
   net: "$net"
   effective_rate: "$effective_rate"
   breakdown:
-    - id: "am_bidrag"
-      label: "Labour Market Contribution (AM-bidrag)"
-      value: "$am_bidrag"
-    - id: "bottom_tax"
-      label: "Bottom Tax (Bundskat)"
-      value: "$bottom_tax"
-    - id: "municipal_tax"
-      label: "Municipal Tax (Kommuneskat)"
-      value: "$municipal_tax"
-    - id: "top_tax"
-      label: "Top Tax (Topskat)"
-      value: "$top_tax"
-    - id: "church_tax"
-      label: "Church Tax (Kirkeskat)"
-      value: "$church_tax"
-    - id: "personal_allowance"
-      label: "Personal Allowance (Personfradrag)"
-      value: "$personal_allowance"
-      subtract: true
-    - id: "employment_deduction"
-      label: "Employment Deduction (Beskæftigelsesfradrag)"
-      value: "$employment_deduction"
-      subtract: true
+    contributions:
+      - "$am_bidrag"
+    taxes:
+      - "$bottom_tax"
+      - "$municipal_tax"
+      - "$top_tax"
+    deductions:
+      - "$personal_allowance"
+      - "$employment_deduction"
 
 notices:
   - type: info

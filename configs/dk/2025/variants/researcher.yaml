@@ -6,35 +6,17 @@ meta:
   sources:
     - "https://skat.dk/en-us/businesses/employees-and-pay/non-danish-labour/tax-scheme-for-researchers"
     - "https://www.oresunddirekt.se/en/working-in-denmark/taxes/the-danish-tax-scheme-for-foreign-researchers-and-highly-paid-employees-forskerordningen/"
-    - "https://www.azets.com/en-dk/insights/blog/tax-scheme-for-researchers-denmark-2026"
-
-parameters:
-  # Researcher scheme flat tax rate (excluding AM-bidrag)
-  researcher_flat_tax_rate: 0.27
-
-  # Minimum monthly salary requirement for 2025
-  researcher_min_monthly_salary: 78000
 
 # Remove inputs that are not needed for the flat rate scheme
 inputs:
-  - id: municipality
-    $delete: true
-  - id: church_member
+  municipality:
     $delete: true
 
 calculations:
   # Keep AM-bidrag calculation (same as base)
-  # AM-bidrag is already defined in base.yaml
+  # Keep income_after_am calculation (needed by base)
 
-  # Replace all tax calculations with flat rate
-  - id: researcher_flat_tax
-    label: "Researcher Scheme Flat Tax"
-    type: percent_of
-    base: "@gross_annual"
-    rate: 0.27
-    category: income_tax
-
-  # Delete all deduction and standard tax calculations
+  # Delete all deduction calculations
   - id: personal_allowance
     $delete: true
 
@@ -50,15 +32,21 @@ calculations:
   - id: taxable_income
     $delete: true
 
+  # Replace bottom_tax with the flat tax calculation
   - id: bottom_tax
-    $delete: true
+    label: "Researcher Scheme Flat Tax (27%)"
+    type: mul
+    values: ["@gross_annual", 0.27]
+    category: income_tax
 
+  # Delete municipal tax calculations
   - id: municipal_tax_rate
     $delete: true
 
   - id: municipal_tax
     $delete: true
 
+  # Delete top tax calculations
   - id: income_above_top_threshold
     $delete: true
 
@@ -68,39 +56,25 @@ calculations:
   - id: top_tax
     $delete: true
 
-  - id: church_tax_base_rate
-    $delete: true
-
-  - id: church_tax_rate
-    $delete: true
-
-  - id: church_tax
-    $delete: true
-
-  # Replace total tax calculation
+  # Replace total tax calculation to only include AM-bidrag and the flat tax
   - id: total_tax
     label: "Total Tax"
     type: sum
-    values: ["$am_bidrag", "$researcher_flat_tax"]
-
-  # Net income calculation remains the same
-  # (already defined in base.yaml as gross - total_tax)
+    values: ["$am_bidrag", "$bottom_tax"]
 
 outputs:
   gross: "@gross_annual"
   net: "$net"
   effective_rate: "$effective_rate"
   breakdown:
-    - id: "am_bidrag"
-      label: "Labour Market Contribution (AM-bidrag)"
-      value: "$am_bidrag"
-    - id: "researcher_flat_tax"
-      label: "Researcher Scheme Flat Tax (27%)"
-      value: "$researcher_flat_tax"
+    contributions:
+      - "$am_bidrag"
+    taxes:
+      - "$bottom_tax"
 
 notices:
   - type: info
-    message: "This calculation uses the Researcher Tax Scheme (Forskerordningen): 27% flat tax + 8% AM-bidrag = 32.84% total effective rate."
+    message: "This calculation uses the Researcher Tax Scheme (Forskerordningen): 27% flat tax + 8% AM-bidrag = 35% total effective rate (32.84% after rounding)."
   - type: warning
     message: "Eligibility requirements: (1) Minimum monthly salary of DKK 78,000 (2025) after ATP contributions, (2) Not a Danish tax resident in the previous 10 years, (3) Must apply within 1 month of employment start."
   - type: info

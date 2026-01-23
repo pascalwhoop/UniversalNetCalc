@@ -1,0 +1,13 @@
+{
+  "name": "Copenhagen - Low Income (DKK 300,000)",
+  "inputs": {
+    "gross_annual": 300000,
+    "municipality": "copenhagen"
+  },
+  "expected": {
+    "net": 209418,
+    "effective_rate": 0.30194
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}
