@@ -52,6 +52,9 @@ next-env.d.ts
 !.dev.vars.example
 .playwright-mcp/
 .claude/
+playwright-report/
+test-results/
+cloudflare-env.d.ts
 
 # Generated config modules
 /.generated
