@@ -170,8 +170,9 @@ export async function fetchExchangeRate(
 
   const res = await fetch(`/api/exchange-rates?from=${from}&to=${to}`, { signal })
   if (!res.ok) {
-    console.error("Failed to fetch exchange rate:", await res.text())
-    return 1 // Fallback to 1:1 if API fails
+    const errorText = await res.text()
+    const error = new Error(`Failed to fetch exchange rate: ${errorText}`)
+    throw error
   }
   const data: ExchangeRateResponse = await res.json()
   return data.rate

@@ -60,3 +60,5 @@ cloudflare-env.d.ts
 /.generated
 
 **/.temp-execution*
+# Sentry Config File
+.env.sentry-build-plugin
