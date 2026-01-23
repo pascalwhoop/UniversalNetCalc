@@ -71,50 +71,50 @@ parameters:
 
 calculations:
   # Step 1: Calculate minimum standard deduction (minstefradrag)
-  - id: "minstefradrag_calculated"
+  - id: minstefradrag_calculated
     label: "Minimum Standard Deduction (Calculated)"
-    type: "mul"
-    category: "deduction"
+    type: mul
+    category: deduction
     values:
       - "@gross_annual"
       - "$minstefradrag_rate"
 
-  - id: "minstefradrag"
+  - id: minstefradrag
     label: "Minimum Standard Deduction (Minstefradrag)"
-    type: "min"
-    category: "deduction"
+    type: min
+    category: deduction
     values:
       - "$minstefradrag_calculated"
       - "$minstefradrag_max"
 
   # Step 2: Calculate general income (after minstefradrag)
-  - id: "general_income"
+  - id: general_income
     label: "General Income"
-    type: "sub"
+    type: sub
     values:
       - "@gross_annual"
       - "$minstefradrag"
 
   # Step 3: Calculate taxable income (after personal allowance)
-  - id: "taxable_income_before_allowance"
+  - id: taxable_income_before_allowance
     label: "Income Before Personal Allowance"
-    type: "sub"
+    type: sub
     values:
       - "$general_income"
       - "$personal_allowance"
 
-  - id: "taxable_income"
+  - id: taxable_income
     label: "Taxable Income (After Personfradrag)"
-    type: "max"
+    type: max
     values:
       - "$taxable_income_before_allowance"
       - 0
 
   # Step 4: Calculate general income tax (22%)
-  - id: "general_income_tax"
+  - id: general_income_tax
     label: "General Income Tax (22%)"
-    type: "mul"
-    category: "income_tax"
+    type: mul
+    category: income_tax
     values:
       - "$taxable_income"
       - "$general_income_tax_rate"
@@ -129,54 +129,54 @@ calculations:
     description: "Progressive state tax (Trinnskatt) on personal income"
 
   # Step 6: Calculate national insurance contributions
-  - id: "ni_base"
+  - id: ni_base
     label: "National Insurance Base"
-    type: "sub"
+    type: sub
     values:
       - "@gross_annual"
       - "$national_insurance_threshold"
 
-  - id: "ni_base_positive"
+  - id: ni_base_positive
     label: "National Insurance Base (Positive)"
-    type: "max"
+    type: max
     values:
       - "$ni_base"
       - 0
 
-  - id: "ni_uncapped"
+  - id: ni_uncapped
     label: "National Insurance (Uncapped)"
-    type: "mul"
+    type: mul
     values:
       - "$ni_base_positive"
       - "$national_insurance_rate"
 
-  - id: "ni_cap"
+  - id: ni_cap
     label: "National Insurance Cap (25% of base)"
-    type: "mul"
+    type: mul
     values:
       - "$ni_base_positive"
       - "$national_insurance_cap_rate"
 
-  - id: "national_insurance"
+  - id: national_insurance
     label: "National Insurance Contributions (Trygdeavgift)"
-    type: "min"
-    category: "contribution"
+    type: min
+    category: contribution
     values:
       - "$ni_uncapped"
       - "$ni_cap"
 
   # Step 7: Calculate total tax and net income
-  - id: "total_tax"
+  - id: total_tax
     label: "Total Tax"
-    type: "sum"
+    type: sum
     values:
       - "$general_income_tax"
       - "$bracket_tax"
       - "$national_insurance"
 
-  - id: "net"
+  - id: net
     label: "Net Annual Salary"
-    type: "sub"
+    type: sub
     values:
       - "@gross_annual"
       - "$total_tax"

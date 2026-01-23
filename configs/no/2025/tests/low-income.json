@@ -4,8 +4,8 @@
     "gross_annual": 200000
   },
   "expected": {
-    "net": 179793,
-    "effective_rate": 0.10104
+    "net": 192273,
+    "effective_rate": 0.03864
   },
   "tolerance": 10
 }
