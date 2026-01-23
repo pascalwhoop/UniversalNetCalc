@@ -121,4 +121,68 @@
   body {
     @apply bg-background text-foreground;
 	}
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Card entrance animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+  }
+
+  /* Value change highlight */
+  @keyframes pulseYellow {
+    0%, 100% {
+      background-color: transparent;
+    }
+    50% {
+      background-color: rgb(254 240 138 / 0.3);
+    }
+  }
+
+  /* Smooth transitions */
+  .animate-fade-in {
+    animation: fadeIn 400ms ease-out;
+  }
+
+  .animate-slide-out {
+    animation: slideOut 300ms ease-in forwards;
+  }
+
+  .animate-pulse-yellow {
+    animation: pulseYellow 600ms ease-out;
+  }
+
+  /* Smooth all transitions */
+  .transition-smooth {
+    transition: all 300ms ease-in-out;
+  }
 }
