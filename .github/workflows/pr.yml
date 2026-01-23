@@ -94,6 +94,9 @@ jobs:
       - name: Bundle configs
         run: npm run build:configs
 
+      - name: Generate Cloudflare types
+        run: npm run cf-typegen
+
       - name: Build Next.js app
         run: npm run build
 
