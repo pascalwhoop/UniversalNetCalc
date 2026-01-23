@@ -35,7 +35,7 @@ export function HistoryItem({ calculation, onDelete, onRename }: HistoryItemProp
       countries: calculation.countries,
       timestamp: Date.now(),
     })
-    router.push(`/?${encoded}`)
+    router.push(`/calculator?${encoded}`)
   }
 
   const formatDate = (timestamp: number) => {
