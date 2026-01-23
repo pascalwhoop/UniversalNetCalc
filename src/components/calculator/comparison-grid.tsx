@@ -356,7 +356,7 @@ export function ComparisonGrid() {
       )}
 
       {/* Comparison Summary */}
-      {countryResults.size >= 2 && (
+      {countries.filter(c => c.country && c.year).length >= 2 && (
         <div className={isMobile ? "mb-4" : ""}>
           <ComparisonSummary
             results={countryResults}
