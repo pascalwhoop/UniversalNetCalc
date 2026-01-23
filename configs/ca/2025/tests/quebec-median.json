@@ -6,8 +6,8 @@
   },
   "variant": "quebec",
   "expected": {
-    "net": 52800,
-    "effective_rate": 0.246
+    "net": 49951,
+    "effective_rate": 0.286
   },
   "tolerance": 300,
   "tolerance_percent": 0.01

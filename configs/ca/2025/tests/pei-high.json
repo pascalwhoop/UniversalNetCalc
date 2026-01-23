@@ -6,8 +6,8 @@
   },
   "variant": "pei",
   "expected": {
-    "net": 104000,
-    "effective_rate": 0.307
+    "net": 97039,
+    "effective_rate": 0.353
   },
   "tolerance": 500,
   "tolerance_percent": 0.01

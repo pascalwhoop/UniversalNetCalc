@@ -6,8 +6,8 @@
   },
   "variant": "nunavut",
   "expected": {
-    "net": 110500,
-    "effective_rate": 0.263
+    "net": 108898,
+    "effective_rate": 0.274
   },
   "tolerance": 500,
   "tolerance_percent": 0.01

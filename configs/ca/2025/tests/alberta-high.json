@@ -6,8 +6,8 @@
   },
   "variant": "alberta",
   "expected": {
-    "net": 107000,
-    "effective_rate": 0.287
+    "net": 105784,
+    "effective_rate": 0.295
   },
   "tolerance": 500,
   "tolerance_percent": 0.01

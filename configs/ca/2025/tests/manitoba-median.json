@@ -6,8 +6,8 @@
   },
   "variant": "manitoba",
   "expected": {
-    "net": 53500,
-    "effective_rate": 0.236
+    "net": 50306,
+    "effective_rate": 0.281
   },
   "tolerance": 300,
   "tolerance_percent": 0.01

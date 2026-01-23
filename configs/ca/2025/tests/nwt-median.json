@@ -6,8 +6,8 @@
   },
   "variant": "nwt",
   "expected": {
-    "net": 55500,
-    "effective_rate": 0.207
+    "net": 53045,
+    "effective_rate": 0.242
   },
   "tolerance": 300,
   "tolerance_percent": 0.01

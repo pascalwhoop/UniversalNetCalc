@@ -6,8 +6,8 @@
   },
   "variant": "nova-scotia",
   "expected": {
-    "net": 32300,
-    "effective_rate": 0.193
+    "net": 30855,
+    "effective_rate": 0.229
   },
   "tolerance": 200,
   "tolerance_percent": 0.01

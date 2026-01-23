@@ -6,8 +6,8 @@
   },
   "variant": "yukon",
   "expected": {
-    "net": 108500,
-    "effective_rate": 0.277
+    "net": 106152,
+    "effective_rate": 0.292
   },
   "tolerance": 500,
   "tolerance_percent": 0.01

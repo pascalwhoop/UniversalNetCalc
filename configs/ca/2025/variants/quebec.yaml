@@ -47,37 +47,26 @@ parameters:
   federal_abatement_rate: 0.165
 
 calculations:
-  # Delete base net_annual and federal_income_tax so we can redefine them
+  # Delete base net_annual so we can redefine it at the end
   - id: net_annual
     $delete: true
 
-  - id: federal_income_tax
-    $delete: true
-
-  # Recalculate federal tax with Quebec abatement
-  # Federal tax after credits, then apply 16.5% abatement
-  - id: federal_income_tax_before_abatement
-    type: max
-    values:
-      - 0
-      - type: sub
-        values:
-          - "$federal_income_tax_before_credits"
-          - "$total_federal_credits"
-
+  # Calculate federal abatement (16.5% of federal tax)
+  # Use the federal_income_tax from base which is already calculated
   - id: federal_abatement
     type: mul
     values:
-      - "$federal_income_tax_before_abatement"
+      - "$federal_income_tax"
       - "$federal_abatement_rate"
     category: credit
     label: "Federal Abatement (Quebec)"
     description: "16.5% reduction in federal tax for Quebec residents"
 
-  - id: federal_income_tax
+  # Federal tax after Quebec abatement
+  - id: federal_income_tax_after_abatement
     type: sub
     values:
-      - "$federal_income_tax_before_abatement"
+      - "$federal_income_tax"
       - "$federal_abatement"
     category: income_tax
     label: "Federal Income Tax (After Abatement)"
@@ -125,7 +114,7 @@ calculations:
   - id: total_deductions_quebec
     type: sum
     values:
-      - "$federal_income_tax"
+      - "$federal_income_tax_after_abatement"
       - "$quebec_income_tax"
       - "$total_cpp"
       - "$ei_contribution"
@@ -150,7 +139,7 @@ outputs:
       - "@gross_annual"
   breakdown:
     taxes:
-      - "$federal_income_tax"
+      - "$federal_income_tax_after_abatement"
       - "$quebec_income_tax"
     contributions:
       - "$cpp_base_contribution"

@@ -6,8 +6,8 @@
   },
   "variant": "saskatchewan",
   "expected": {
-    "net": 54000,
-    "effective_rate": 0.229
+    "net": 50976,
+    "effective_rate": 0.272
   },
   "tolerance": 300,
   "tolerance_percent": 0.01

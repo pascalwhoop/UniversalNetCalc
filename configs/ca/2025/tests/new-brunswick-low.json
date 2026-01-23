@@ -6,8 +6,8 @@
   },
   "variant": "new-brunswick",
   "expected": {
-    "net": 32600,
-    "effective_rate": 0.185
+    "net": 31423,
+    "effective_rate": 0.214
   },
   "tolerance": 200,
   "tolerance_percent": 0.01

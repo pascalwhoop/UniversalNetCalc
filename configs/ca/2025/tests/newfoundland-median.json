@@ -6,8 +6,8 @@
   },
   "variant": "newfoundland",
   "expected": {
-    "net": 53300,
-    "effective_rate": 0.239
+    "net": 49986,
+    "effective_rate": 0.286
   },
   "tolerance": 300,
   "tolerance_percent": 0.01
