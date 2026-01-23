@@ -1,0 +1,14 @@
+{
+  "name": "Ontario - Median income (CAD 60,000)",
+  "variant": "ontario",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 46070.80,
+    "effective_rate": 0.2322
+  },
+  "tolerance": 15,
+  "tolerance_percent": 0.005
+}

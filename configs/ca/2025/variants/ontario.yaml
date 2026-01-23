@@ -73,6 +73,10 @@ parameters:
   ohp_bracket_6_threshold: 200600
 
 calculations:
+  # Delete base net_annual so we can redefine it at the end after all Ontario calculations
+  - id: net_annual
+    $delete: true
+
   # Ontario provincial income tax before credits
   - id: ontario_income_tax_before_credits
     type: bracket_tax
@@ -158,7 +162,7 @@ calculations:
       - "$ontario_tax_before_surtax"
       - "$ontario_total_surtax"
     category: income_tax
-    label: "Ontario Income Tax (After Surtax)"
+    label: "Ontario Income Tax"
     description: "Ontario provincial tax including surtaxes"
 
   # Ontario Health Premium calculation (complex brackets)
@@ -264,18 +268,23 @@ calculations:
     label: "Ontario Health Premium"
     description: "Ontario Health Premium (not indexed for inflation)"
 
+  # Total deductions (federal + Ontario + CPP/EI)
+  - id: total_deductions_ontario
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$ontario_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+      - "$ontario_health_premium"
+
   # Override net_annual to include Ontario tax and health premium
+  # This must come AFTER all ontario calculations
   - id: net_annual
     type: sub
     values:
       - "@gross_annual"
-      - type: sum
-        values:
-          - "$federal_income_tax"
-          - "$ontario_income_tax"
-          - "$total_cpp"
-          - "$ei_contribution"
-          - "$ontario_health_premium"
+      - "$total_deductions_ontario"
 
 outputs:
   gross: "@gross_annual"

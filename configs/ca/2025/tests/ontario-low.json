@@ -1,0 +1,14 @@
+{
+  "name": "Ontario - Low income (CAD 30,000)",
+  "variant": "ontario",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 24961.97,
+    "effective_rate": 0.1679
+  },
+  "tolerance": 15,
+  "tolerance_percent": 0.005
+}

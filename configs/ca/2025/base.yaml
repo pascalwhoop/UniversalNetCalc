@@ -299,6 +299,9 @@ calculations:
         values:
           - "$federal_income_tax_before_credits"
           - "$total_federal_credits"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Federal income tax after non-refundable credits"
 
   # Total federal deductions (tax + CPP + EI)
   - id: total_federal_deductions

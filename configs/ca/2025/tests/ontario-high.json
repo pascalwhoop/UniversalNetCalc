@@ -1,0 +1,14 @@
+{
+  "name": "Ontario - High income (CAD 120,000)",
+  "variant": "ontario",
+  "inputs": {
+    "gross_annual": 120000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 85504.29,
+    "effective_rate": 0.2875
+  },
+  "tolerance": 15,
+  "tolerance_percent": 0.005
+}

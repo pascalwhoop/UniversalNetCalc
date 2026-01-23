@@ -1,0 +1,135 @@
+meta:
+  variant: "bc"
+  label: "British Columbia"
+  description: "British Columbia provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/bc.htm"
+      description: "BC tax rates for 2025"
+      retrieved_at: "2026-01-23"
+    - url: "https://www2.gov.bc.ca/gov/content/taxes/income-taxes/personal/tax-rates"
+      description: "BC Personal Income Tax Rates"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds British Columbia provincial income tax to the federal base configuration.
+
+    BC features:
+    - 7 provincial tax brackets (5.06% to 20.50%) - most granular among major provinces
+    - Basic Personal Amount of $12,932 (2025)
+    - Combined top marginal rate of 53.5% (federal + provincial)
+    - No provincial surtaxes or health premiums
+
+notices:
+  - id: "bc_progressive_brackets"
+    title: "BC Has 7 Tax Brackets"
+    body: |
+      British Columbia has the most granular provincial tax bracket system in Canada
+      with 7 different brackets, providing a more progressive tax structure than other provinces.
+    severity: "info"
+
+parameters:
+  # BC provincial tax brackets - 2025
+  bc_tax_brackets:
+    - threshold: 0
+      rate: 0.0506
+    - threshold: 49279
+      rate: 0.0770
+    - threshold: 98560
+      rate: 0.1050
+    - threshold: 113158
+      rate: 0.1229
+    - threshold: 137407
+      rate: 0.1470
+    - threshold: 186306
+      rate: 0.1680
+    - threshold: 259829
+      rate: 0.2050
+
+  # BC Basic Personal Amount - 2025
+  bc_bpa: 12932
+  bc_lowest_rate: 0.0506
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end after BC calculations
+  - id: net_annual
+    $delete: true
+
+  # BC provincial income tax before credits
+  - id: bc_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$bc_tax_brackets"
+    category: income_tax
+    label: "BC Income Tax"
+    description: "British Columbia provincial income tax before credits"
+
+  # BC basic personal credit
+  - id: bc_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$bc_bpa"
+        - "$bc_lowest_rate"
+    refundable: false
+    category: credit
+    label: "BC Basic Personal Credit"
+    description: "BC non-refundable tax credit for basic personal amount"
+
+  # BC tax after credits
+  - id: bc_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$bc_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$bc_bpa"
+              - "$bc_lowest_rate"
+    category: income_tax
+    label: "BC Income Tax (After Credits)"
+    description: "BC provincial tax after basic personal credit"
+
+  # Total deductions (federal + BC + CPP/EI)
+  - id: total_deductions_bc
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$bc_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual to include BC tax
+  # This must come AFTER all BC calculations
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_bc"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$bc_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$bc_basic_personal_credit"
