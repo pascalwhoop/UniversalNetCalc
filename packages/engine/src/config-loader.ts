@@ -3,20 +3,16 @@ import { parse } from 'yaml'
 import type { TaxConfig } from '../../schema/src/config-types'
 
 // Import config bundle for production (Cloudflare Workers)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let configBundle: any = null
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   configBundle = require('../../../.generated/config-bundle.ts').default
 } catch {
   // Bundle not available, will use filesystem
 }
 
 // Import the manifest for listing operations
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let manifest: any = null
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   manifest = require('../../../configs-manifest.json')
 } catch {
   // Manifest not available in dev mode

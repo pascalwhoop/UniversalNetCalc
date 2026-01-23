@@ -11,7 +11,6 @@ import { resolveFunctions } from './functions'
 
 export class CalculationEngine {
   private config: TaxConfig
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private functions: Map<string, any>
 
   constructor(config: TaxConfig) {
