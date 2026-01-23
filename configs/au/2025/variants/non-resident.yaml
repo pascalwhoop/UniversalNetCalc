@@ -1,0 +1,79 @@
+meta:
+  variant: "non-resident"
+  label: "Non-Resident"
+  description: "Foreign residents (non-residents) taxed only on Australian-sourced income"
+  base: "base.yaml"
+  sources:
+    - "ATO Non-Resident Tax Rates: https://www.ato.gov.au/tax-rates-and-codes/tax-rates-foreign-residents"
+
+# Non-residents:
+# - No tax-free threshold (tax from first dollar)
+# - No Medicare levy
+# - No LITO (Low Income Tax Offset)
+# - Different tax brackets
+
+parameters:
+  # Non-resident tax brackets (Stage 3 tax cuts apply)
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0.30      # $0 - $135,000
+    - threshold: 135000
+      rate: 0.37      # $135,001 - $190,000
+    - threshold: 190000
+      rate: 0.45      # $190,001+
+
+calculations:
+  # Remove Medicare levy node
+  - id: medicare_levy
+    $delete: true
+
+  # Remove all LITO calculation nodes
+  - id: lito_phase_1_reduction
+    $delete: true
+
+  - id: lito_after_phase_1
+    $delete: true
+
+  - id: lito_phase_2_reduction
+    $delete: true
+
+  - id: lito_offset
+    $delete: true
+
+  # Recalculate total tax (no Medicare, no LITO)
+  - id: total_tax_before_offsets
+    type: sum
+    values:
+      - $income_tax
+
+  - id: total_tax
+    type: sum
+    values:
+      - $income_tax
+
+outputs:
+  gross: "@gross_annual"
+  net: $net_annual
+  effective_rate:
+    type: div
+    values:
+      - $total_tax
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - $income_tax
+  informational:
+    - $employer_super
+
+notices:
+  - type: info
+    title: "Non-Resident Taxation"
+    message: "As a non-resident, you pay tax from the first dollar earned (no tax-free threshold) and do NOT pay the Medicare levy."
+
+  - type: info
+    title: "Superannuation"
+    message: "If employed in Australia, your employer must still contribute 11.5% (or 12% from 1 July 2025) to superannuation, regardless of residency status."
+
+  - type: info
+    title: "Tax Treaties"
+    message: "Tax treaties between Australia and your home country may affect your tax obligations. Consult a tax professional for treaty benefits."

@@ -1,0 +1,17 @@
+{
+  "name": "Non-resident - AUD 80,000",
+  "description": "Foreign resident with no tax-free threshold and no Medicare levy",
+  "variant": "non-resident",
+  "inputs": {
+    "gross_annual": 80000
+  },
+  "expected": {
+    "net": 56000,
+    "effective_rate": 0.30,
+    "breakdown": {
+      "income_tax": 24000
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.005
+}

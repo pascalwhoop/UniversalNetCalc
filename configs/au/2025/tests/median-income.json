@@ -10,7 +10,7 @@
     "breakdown": {
       "income_tax": 14788,
       "medicare_levy": 1600,
-      "lito_offset": -0
+      "lito_offset": 0
     }
   },
   "tolerance": 5,
