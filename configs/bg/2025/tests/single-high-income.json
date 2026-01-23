@@ -1,0 +1,24 @@
+{
+  "name": "High income - BGN 100,000",
+  "description": "Above social security cap, demonstrates cap effect on effective rate",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 83853.57,
+    "effective_rate": 0.16146,
+    "breakdown": {
+      "income_tax": 9317.06,
+      "employee_social_security": 6829.37
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Calculated: SSC capped at 49,560 * 13.78% = 6,829.37; Taxable = 100,000 - 6,829.37 = 93,170.63; Tax = 93,170.63 * 10% = 9,317.06; Net = 100,000 - 6,829.37 - 9,317.06 = 83,853.57",
+      "url": "https://www.acciyo.com/bulgaria-payroll-calculator-for-gross-to-net-salary-and-employer-costs-2025/",
+      "retrieved_at": "2026-01-23"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+meta:
+  country: "bg"
+  year: 2025
+  currency: "BGN"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.minfin.bg/en/827"
+      description: "Ministry of Finance - Personal Income Taxes"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.acciyo.com/bulgaria-payroll-calculator-for-gross-to-net-salary-and-employer-costs-2025/"
+      description: "Bulgaria Payroll Calculator 2025 - Detailed breakdown"
+      retrieved_at: "2026-01-23"
+    - url: "https://smartpeople.bg/changes-to-social-security-income-thresholds-in-bulgaria-for-2025/"
+      description: "Social Security Income Thresholds 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    Bulgaria uses a flat 10% personal income tax rate, one of the lowest in Europe.
+    Social security contributions are mandatory and capped at a maximum monthly base.
+    
+    Key features:
+    - Flat 10% income tax on taxable base (gross minus employee SSC)
+    - Employee social security: 13.78% (capped at BGN 4,130/month = BGN 49,560/year)
+    - Maximum insurance base effective April 1, 2025
+    - Taxable base = Gross - Employee Social Security Contributions
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary in BGN (Bulgarian Leva) before any deductions.
+      This is the amount agreed upon in your employment contract.
+    severity: "info"
+
+  - id: "social_security_cap"
+    title: "Social Security Cap"
+    body: |
+      Social security contributions are calculated only on income up to BGN 49,560 per year
+      (BGN 4,130 per month). Income above this cap is exempt from social security contributions
+      but still subject to the 10% income tax.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Total yearly gross salary in BGN before deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    description: "Tax filing status (Bulgaria uses individual taxation)"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual"
+      married:
+        label: "Married"
+        description: "Married individual (Bulgaria uses individual taxation, not joint filing)"
+
+parameters:
+  # Bulgaria flat income tax rate
+  income_tax_rate: 0.10
+
+  # Employee social security contribution rate
+  employee_social_security_rate: 0.1378
+
+  # Maximum monthly social security base (effective April 1, 2025)
+  # Annual maximum = 4,130 * 12 = 49,560
+  max_monthly_social_security_base: 4130
+  max_annual_social_security_base: 49560
+
+calculations:
+  # Determine the base for social security (capped at maximum)
+  - id: social_security_base
+    type: min
+    values: ["@gross_annual", "$max_annual_social_security_base"]
+    label: "Social Security Base"
+
+  # Calculate employee social security contributions
+  - id: employee_social_security
+    type: mul
+    values: ["$social_security_base", "$employee_social_security_rate"]
+    category: contribution
+    label: "Employee Social Security (13.78%)"
+    description: "Pension (10.58%) + Health Insurance (3.20%)"
+
+  # Calculate taxable base (gross minus employee SSC)
+  - id: taxable_base
+    type: sub
+    values: ["@gross_annual", "$employee_social_security"]
+    label: "Taxable Base"
+
+  # Calculate income tax (10% flat rate on taxable base)
+  - id: income_tax
+    type: mul
+    values: ["$taxable_base", "$income_tax_rate"]
+    category: income_tax
+    label: "Personal Income Tax (10%)"
+
+  # Calculate net annual income
+  - id: net_annual
+    type: sub
+    values: ["@gross_annual", "$employee_social_security", "$income_tax"]
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$employee_social_security"

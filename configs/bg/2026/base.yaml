@@ -1,0 +1,127 @@
+meta:
+  country: "bg"
+  year: 2026
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://sb-bg.com/2026/01/14/amendments-to-tax-and-accounting-legislation-in-force-of-1-january-2026/"
+      description: "Amendments to Tax and Accounting Legislation 2026"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.bta.bg/en/news/economy/1001055-finance-ministry-publishes-draft-2026-state-budget-updated-medium-term-budget-forecast"
+      description: "Finance Ministry 2026 State Budget"
+      retrieved_at: "2026-01-23"
+    - url: "https://taxsummaries.pwc.com/bulgaria/individual/significant-developments"
+      description: "PwC Tax Summaries - Bulgaria Individual Tax Developments"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    Bulgaria adopted the euro as its official currency on January 1, 2026 (1 EUR = 1.95583 BGN).
+    The tax system remains largely unchanged with a flat 10% income tax rate.
+    
+    Key features:
+    - Flat 10% income tax on taxable base (gross minus employee SSC)
+    - Employee social security: 13.78% (capped at EUR 2,352/month = EUR 28,224/year)
+    - Pension contribution component increased by 2 percentage points as of January 1, 2026
+    - Taxable base = Gross - Employee Social Security Contributions
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary in EUR (Euros) before any deductions.
+      Bulgaria adopted the euro as its official currency on January 1, 2026.
+    severity: "info"
+
+  - id: "social_security_cap"
+    title: "Social Security Cap"
+    body: |
+      Social security contributions are calculated only on income up to EUR 28,224 per year
+      (EUR 2,352 per month). Income above this cap is exempt from social security contributions
+      but still subject to the 10% income tax.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Total yearly gross salary in EUR before deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    description: "Tax filing status (Bulgaria uses individual taxation)"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual"
+      married:
+        label: "Married"
+        description: "Married individual (Bulgaria uses individual taxation, not joint filing)"
+
+parameters:
+  # Bulgaria flat income tax rate
+  income_tax_rate: 0.10
+
+  # Employee social security contribution rate
+  employee_social_security_rate: 0.1378
+
+  # Maximum monthly social security base (2026)
+  # Annual maximum = 2,352 * 12 = 28,224
+  max_monthly_social_security_base: 2352
+  max_annual_social_security_base: 28224
+
+calculations:
+  # Determine the base for social security (capped at maximum)
+  - id: social_security_base
+    type: min
+    values: ["@gross_annual", "$max_annual_social_security_base"]
+    label: "Social Security Base"
+
+  # Calculate employee social security contributions
+  - id: employee_social_security
+    type: mul
+    values: ["$social_security_base", "$employee_social_security_rate"]
+    category: contribution
+    label: "Employee Social Security (13.78%)"
+    description: "Pension + Health Insurance (pension component increased by 2pp in 2026)"
+
+  # Calculate taxable base (gross minus employee SSC)
+  - id: taxable_base
+    type: sub
+    values: ["@gross_annual", "$employee_social_security"]
+    label: "Taxable Base"
+
+  # Calculate income tax (10% flat rate on taxable base)
+  - id: income_tax
+    type: mul
+    values: ["$taxable_base", "$income_tax_rate"]
+    category: income_tax
+    label: "Personal Income Tax (10%)"
+
+  # Calculate net annual income
+  - id: net_annual
+    type: sub
+    values: ["@gross_annual", "$employee_social_security", "$income_tax"]
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$employee_social_security"

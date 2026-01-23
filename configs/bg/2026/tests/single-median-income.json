@@ -1,0 +1,24 @@
+{
+  "name": "Median income - EUR 30,000",
+  "description": "Typical middle-income earner, above social security cap",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 23499.66,
+    "effective_rate": 0.21668,
+    "breakdown": {
+      "income_tax": 2611.07,
+      "employee_social_security": 3889.27
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Calculated: SSC capped at 28,224 * 13.78% = 3,889.27; Taxable = 30,000 - 3,889.27 = 26,110.73; Tax = 26,110.73 * 10% = 2,611.07; Net = 30,000 - 3,889.27 - 2,611.07 = 23,499.66",
+      "url": "https://sb-bg.com/2026/01/14/amendments-to-tax-and-accounting-legislation-in-force-of-1-january-2026/",
+      "retrieved_at": "2026-01-23"
+    }
+  ]
+}

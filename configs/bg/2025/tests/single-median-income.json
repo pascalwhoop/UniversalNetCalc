@@ -1,0 +1,24 @@
+{
+  "name": "Median income - BGN 36,000",
+  "description": "Typical middle-income earner (BGN 3,000/month), verified against official calculator",
+  "inputs": {
+    "gross_annual": 36000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 27935.28,
+    "effective_rate": 0.22402,
+    "breakdown": {
+      "income_tax": 3103.92,
+      "employee_social_security": 4960.80
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Verified: Monthly gross BGN 3,000 → Net BGN 2,327.94 (annual: BGN 27,935.28). Source calculator matches this calculation.",
+      "url": "https://www.acciyo.com/bulgaria-payroll-calculator-for-gross-to-net-salary-and-employer-costs-2025/",
+      "retrieved_at": "2026-01-23"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Low income - BGN 20,000",
+  "description": "Below social security cap, typical entry-level salary",
+  "inputs": {
+    "gross_annual": 20000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 15519.60,
+    "effective_rate": 0.22402,
+    "breakdown": {
+      "income_tax": 1724.40,
+      "employee_social_security": 2756.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Calculated: SSC = 20,000 * 13.78% = 2,756; Taxable = 20,000 - 2,756 = 17,244; Tax = 17,244 * 10% = 1,724.40; Net = 20,000 - 2,756 - 1,724.40 = 15,519.60",
+      "url": "https://www.acciyo.com/bulgaria-payroll-calculator-for-gross-to-net-salary-and-employer-costs-2025/",
+      "retrieved_at": "2026-01-23"
+    }
+  ]
+}
