@@ -57,7 +57,10 @@ export async function POST(request: NextRequest) {
     const engine = new CalculationEngine(config)
     const result = engine.calculate(inputs as Record<string, string | number | boolean | Record<string, unknown> | undefined>)
 
-    return NextResponse.json(result)
+    // Calculate marginal rate
+    const marginal_rate = engine.calculateMarginalRate(inputs as Record<string, string | number | boolean | Record<string, unknown> | undefined>)
+
+    return NextResponse.json({ ...result, marginal_rate })
   } catch (error: unknown) {
     console.error("Calculation error:", error)
 

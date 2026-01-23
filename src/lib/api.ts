@@ -14,6 +14,7 @@ export interface CalculationResult {
   gross: number
   net: number
   effective_rate: number
+  marginal_rate?: number // Tax rate on the next earned amount
   breakdown: BreakdownItem[]
   currency: string // ISO 4217 currency code (EUR, USD, CHF, etc.)
   config_version_hash: string

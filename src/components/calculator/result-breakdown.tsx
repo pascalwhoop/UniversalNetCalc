@@ -151,6 +151,7 @@ export function ResultBreakdown({
   const creditTotal = categorySum(grouped.credit)
   const deductionTotal = categorySum(grouped.deduction)
   const effectiveRatePercent = (result.effective_rate * 100).toFixed(1)
+  const marginalRatePercent = result.marginal_rate ? (result.marginal_rate * 100).toFixed(1) : null
   const monthlyNet = result.net / 12
 
   return (
@@ -176,10 +177,33 @@ export function ResultBreakdown({
             )}
           </div>
         )}
-        <div className="mt-1 flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {effectiveRatePercent}% eff. rate
-          </Badge>
+        <div className="mt-1 flex items-center gap-2 flex-wrap">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="text-xs cursor-help">
+                  {effectiveRatePercent}% eff. rate
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs text-xs">Average tax rate on your total income</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {marginalRatePercent && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="secondary" className="text-xs cursor-help">
+                    {marginalRatePercent}% marginal
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-xs">Tax rate on your next earned {formatCurrency(1000, currency)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <Badge variant="outline" className="text-xs">
             {formatCurrency(monthlyNet, currency)}/mo
           </Badge>

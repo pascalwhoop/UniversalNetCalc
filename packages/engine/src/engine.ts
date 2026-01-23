@@ -153,6 +153,38 @@ export class CalculationEngine {
     return items
   }
 
+  /**
+   * Calculate marginal tax rate by computing how much of the next earned amount is taxed.
+   * This shows the tax rate on the next dollar/euro earned.
+   *
+   * @param inputs - The current input values
+   * @param delta - The additional gross income to test (default: 1000)
+   * @returns Marginal tax rate as a decimal (e.g., 0.42 for 42%)
+   */
+  calculateMarginalRate(
+    inputs: Record<string, string | number | boolean | Record<string, unknown> | undefined>,
+    delta: number = 1000
+  ): number {
+    // Calculate net at current gross
+    const currentResult = this.calculate(inputs)
+    const currentGross = currentResult.gross
+    const currentNet = currentResult.net
+
+    // Calculate net at gross + delta
+    const increasedInputs = {
+      ...inputs,
+      gross_annual: Number(inputs.gross_annual) + delta,
+    }
+    const increasedResult = this.calculate(increasedInputs)
+    const increasedNet = increasedResult.net
+
+    // Marginal rate = (delta - increase in net) / delta
+    const netIncrease = increasedNet - currentNet
+    const marginalRate = (delta - netIncrease) / delta
+
+    return Math.max(0, Math.min(1, marginalRate)) // Clamp between 0 and 1
+  }
+
   private hashConfig(): string {
     // Simple hash for now - in production use crypto
     return `${this.config.meta.country}-${this.config.meta.year}-${this.config.meta.version}`
