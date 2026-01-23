@@ -6,12 +6,13 @@ import { describe, it, expect } from 'vitest'
  */
 describe('Manifest Consistency', () => {
   it('should load manifest without errors', () => {
-    let manifest: any = null
+    let manifest: Record<string, unknown> | null = null
     let error: Error | null = null
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       manifest = require('../../../configs-manifest.json')
-    } catch (e) {
+    } catch (e: unknown) {
       error = e as Error
     }
 
@@ -20,26 +21,32 @@ describe('Manifest Consistency', () => {
   })
 
   it('should have Italy in manifest', () => {
-    const manifest = require('../../../configs-manifest.json')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require('../../../configs-manifest.json') as Record<string, unknown>
     expect(manifest.countries).toBeDefined()
-    expect(manifest.countries.it).toBeDefined()
+    expect((manifest.countries as Record<string, unknown>).it).toBeDefined()
   })
 
   it('should have Italy 2025 and 2026 in manifest', () => {
-    const manifest = require('../../../configs-manifest.json')
-    expect(manifest.countries.it.years).toBeDefined()
-    expect(manifest.countries.it.years['2025']).toBeDefined()
-    expect(manifest.countries.it.years['2026']).toBeDefined()
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require('../../../configs-manifest.json') as Record<string, unknown>
+    const itData = (manifest.countries as Record<string, Record<string, unknown>>).it
+    expect(itData.years).toBeDefined()
+    expect((itData.years as Record<string, unknown>)['2025']).toBeDefined()
+    expect((itData.years as Record<string, unknown>)['2026']).toBeDefined()
   })
 
   it('should have impatriate variants in manifest for Italy', () => {
-    const manifest = require('../../../configs-manifest.json')
-    expect(manifest.countries.it.years['2025'].variants).toContain('impatriate')
-    expect(manifest.countries.it.years['2026'].variants).toContain('impatriate')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require('../../../configs-manifest.json') as Record<string, unknown>
+    const itData = (manifest.countries as Record<string, Record<string, unknown>>).it
+    expect(((itData.years as Record<string, Record<string, unknown>>)['2025'].variants as string[])).toContain('impatriate')
+    expect(((itData.years as Record<string, Record<string, unknown>>)['2026'].variants as string[])).toContain('impatriate')
   })
 
   it('manifest should be valid JSON serializable', () => {
-    const manifest = require('../../../configs-manifest.json')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require('../../../configs-manifest.json') as Record<string, unknown>
     expect(() => JSON.stringify(manifest)).not.toThrow()
 
     const jsonStr = JSON.stringify(manifest)
@@ -48,22 +55,24 @@ describe('Manifest Consistency', () => {
   })
 
   it('manifest structure should match expected format', () => {
-    const manifest = require('../../../configs-manifest.json')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require('../../../configs-manifest.json') as Record<string, unknown>
 
     // Verify structure for each country/year/variant
-    for (const [country, countryData] of Object.entries(manifest.countries)) {
+    for (const [_country, countryData] of Object.entries((manifest.countries as Record<string, unknown>))) {
       expect(countryData).toHaveProperty('years')
 
-      for (const [year, yearData] of Object.entries(
-        (countryData as any).years
+      for (const [_year, yearData] of Object.entries(
+        (countryData as Record<string, Record<string, unknown>>).years
       )) {
-        expect((yearData as any)).toHaveProperty('variants')
-        expect(Array.isArray((yearData as any).variants)).toBe(true)
+        expect((yearData as Record<string, unknown>)).toHaveProperty('variants')
+        expect(Array.isArray(((yearData as Record<string, unknown>).variants))).toBe(true)
       }
     }
   })
 
   it('should have non-empty variants array for Italy 2025', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require('../../../configs-manifest.json')
     const variants = manifest.countries.it.years['2025'].variants
     expect(Array.isArray(variants)).toBe(true)
@@ -71,6 +80,7 @@ describe('Manifest Consistency', () => {
   })
 
   it('should have non-empty variants array for Italy 2026', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require('../../../configs-manifest.json')
     const variants = manifest.countries.it.years['2026'].variants
     expect(Array.isArray(variants)).toBe(true)
@@ -84,6 +94,7 @@ describe('Manifest Consistency', () => {
 describe('UI Flow Simulation - Year/Variant Selection', () => {
   it('step 1: user selects Italy country - listYears should return 2025 and 2026', async () => {
     // User picks Italy from country dropdown
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require('../../../configs-manifest.json')
     const italyYears = manifest.countries.it.years
 
@@ -98,6 +109,7 @@ describe('UI Flow Simulation - Year/Variant Selection', () => {
 
   it('step 2: user selects 2025 year - listVariants should return impatriate', async () => {
     // User picks 2025 from year dropdown
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require('../../../configs-manifest.json')
     const variants2025 = manifest.countries.it.years['2025'].variants
 
@@ -110,6 +122,7 @@ describe('UI Flow Simulation - Year/Variant Selection', () => {
 
   it('step 3: user selects 2026 year - listVariants should return impatriate', async () => {
     // User picks 2026 from year dropdown
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require('../../../configs-manifest.json')
     const variants2026 = manifest.countries.it.years['2026'].variants
 
@@ -122,6 +135,7 @@ describe('UI Flow Simulation - Year/Variant Selection', () => {
   it('step 4: user selects impatriate variant - config should load', async () => {
     // User picks impatriate from variant dropdown
     // This will trigger a loadConfig call via the API
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const manifest = require('../../../configs-manifest.json')
     const hasImpatriate2025 = manifest.countries.it.years['2025'].variants.includes(
       'impatriate'

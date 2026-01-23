@@ -1,26 +1,23 @@
 import type {
   TaxConfig,
-  CalculationNode,
   CalculationContext,
   CalculationResult,
-  BreakdownItem,
-  BracketEntry,
-  PhaseoutConfig,
   InlineNode,
+  NodeCategory,
 } from '../../schema/src/config-types'
 import { evaluateNode } from './evaluators'
 import { resolveFunctions } from './functions'
 
 export class CalculationEngine {
   private config: TaxConfig
-  private functions: Map<string, Function>
+  private functions: Map<string, (context: CalculationContext, ...args: unknown[]) => unknown>
 
   constructor(config: TaxConfig) {
     this.config = config
     this.functions = resolveFunctions()
   }
 
-  calculate(inputs: Record<string, any>): CalculationResult {
+  calculate(inputs: Record<string, string | number | boolean | Record<string, unknown> | undefined>): CalculationResult {
     // Initialize context
     const context: CalculationContext = {
       inputs: { ...inputs },
@@ -131,13 +128,16 @@ export class CalculationEngine {
         const node = this.config.calculations.find((n) => n.id === id)
 
         if (node && context.nodes[id] !== undefined) {
-          items.push({
-            id,
-            label: node.label || id,
-            amount: context.nodes[id],
-            category: node.category as any,
-            description: node.description,
-          })
+          const amount = context.nodes[id]
+          if (typeof amount === 'number') {
+            items.push({
+              id,
+              label: node.label || id,
+              amount,
+              category: (node.category || 'deduction') as NodeCategory,
+              description: node.description,
+            })
+          }
         }
       }
     }

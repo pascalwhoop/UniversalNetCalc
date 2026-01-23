@@ -30,12 +30,15 @@
       "Bash(node merge.mjs:*)",
       "WebFetch(domain:*.github.com)",
       "WebFetch(domain:*.githubusercontent.com)",
-      "WebFetch(domain:*.blob.core.windows.net)"
+      "WebFetch(domain:*.blob.core.windows.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:telemetry.nextjs.org)",
+      "WebFetch(domain:sparrow.cloudflare.com)"
     ]
   },
   "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true,
+    "enabled": false,
+    "autoAllowBashIfSandboxed": false,
     "network": {
       "allowLocalBinding": true
     }

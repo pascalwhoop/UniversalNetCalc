@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
 /**
  * Regression test for Italy selector issue
@@ -25,12 +25,12 @@ test.describe('Italy Country Selector Regression', () => {
     const response = await page.request.get('http://localhost:3000/api/calc?action=years&country=it')
     expect(response.status()).toBe(200)
 
-    const data = await response.json() as any
+    const data = await response.json() as { years?: string[] }
     console.log('🔍 Years API Response:', JSON.stringify(data, null, 2))
 
     expect(data.years).toBeDefined()
     expect(Array.isArray(data.years)).toBe(true)
-    expect(data.years.length).toBeGreaterThan(0)
+    expect(data.years!.length).toBeGreaterThan(0)
     expect(data.years).toContain('2025')
 
     console.log('✅ API returns years correctly')
@@ -40,12 +40,12 @@ test.describe('Italy Country Selector Regression', () => {
     const response = await page.request.get('http://localhost:3000/api/calc?action=variants&country=it&year=2025')
     expect(response.status()).toBe(200)
 
-    const data = await response.json() as any
+    const data = await response.json() as { variants?: string[] }
     console.log('🔍 Variants API Response:', JSON.stringify(data, null, 2))
 
     expect(data.variants).toBeDefined()
     expect(Array.isArray(data.variants)).toBe(true)
-    expect(data.variants.length).toBeGreaterThan(0)
+    expect(data.variants!.length).toBeGreaterThan(0)
     expect(data.variants).toContain('impatriate')
 
     console.log('✅ API returns variants correctly')
@@ -79,7 +79,7 @@ test.describe('Italy Country Selector Regression', () => {
 
   test('UI + API: Complete Italy flow (best effort)', async ({ page }) => {
     // Set up network interception to see what's happening
-    const apiCalls: { url: string; response: any }[] = []
+    const apiCalls: { url: string; response: Record<string, unknown> | string }[] = []
 
     page.on('response', async (response) => {
       if (response.url().includes('/api/calc')) {
@@ -89,7 +89,7 @@ test.describe('Italy Country Selector Regression', () => {
             url: response.url(),
             response: data,
           })
-        } catch (e) {
+        } catch (_e: unknown) {
           apiCalls.push({
             url: response.url(),
             response: 'Could not parse JSON',
@@ -159,13 +159,13 @@ test.describe('Italy Country Selector Regression', () => {
     console.log(`Calculation API status: ${response.status()}`)
     expect(response.status()).toBe(200)
 
-    const data = await response.json() as any
+    const data = await response.json() as { net?: number; gross?: number; effective_rate?: number }
     console.log('🔍 Calculation Response:', { net: data.net, gross: data.gross, effective_rate: data.effective_rate })
 
     expect(data.net).toBeDefined()
     expect(data.gross).toBe(60000)
-    expect(data.net).toBeGreaterThan(0)
-    expect(data.net).toBeLessThan(60000)
+    expect(data.net!).toBeGreaterThan(0)
+    expect(data.net!).toBeLessThan(60000)
 
     console.log('✅ Calculation works correctly')
   })
@@ -183,11 +183,11 @@ test.describe('Italy Country Selector Regression', () => {
 
     expect(response.status()).toBe(200)
 
-    const data = await response.json() as any
+    const data = await response.json() as { net?: number; effective_rate?: number }
     console.log('🔍 Impatriate Calculation:', { net: data.net, effective_rate: data.effective_rate })
 
     expect(data.net).toBeDefined()
-    expect(data.net).toBeGreaterThan(40000)
+    expect(data.net!).toBeGreaterThan(40000)
 
     console.log('✅ Impatriate variant calculation works')
   })

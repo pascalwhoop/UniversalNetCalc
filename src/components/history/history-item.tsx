@@ -91,7 +91,7 @@ export function HistoryItem({ calculation, onDelete, onRename }: HistoryItemProp
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete calculation?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will permanently delete "{calculation.name}". This action cannot be
+                    This will permanently delete &quot;{calculation.name}&quot;. This action cannot be
                     undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>

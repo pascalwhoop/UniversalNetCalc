@@ -32,7 +32,7 @@ test.describe('Italy Selector - E2E Regression Test', () => {
     await page.waitForTimeout(500)
 
     // Verify country is selected
-    const countryValue = await countrySelect.locator('[role="option"]')
+    const _countryValue = await countrySelect.locator('[role="option"]')
     console.log('Country selected')
 
     // Now check Year selector
@@ -40,7 +40,7 @@ test.describe('Italy Selector - E2E Regression Test', () => {
 
     // Year selector should be enabled (not disabled)
     const yearTrigger = yearSelect.locator('[role="combobox"]').first()
-    const isDisabled = await yearTrigger.evaluate((el: any) => el.disabled)
+    const isDisabled = await yearTrigger.evaluate((el: HTMLElement) => (el as HTMLButtonElement).disabled)
 
     console.log(`Year selector disabled: ${isDisabled}`)
     expect(isDisabled).toBe(false)
@@ -210,7 +210,7 @@ test.describe('Italy API Responses', () => {
     const response = await page.request.get('http://localhost:3000/api/calc?action=inputs&country=it&year=2025')
     expect(response.status()).toBe(200)
 
-    const data = await response.json() as { inputs: Record<string, any> }
+    const data = await response.json() as { inputs: Record<string, Record<string, unknown>> }
     console.log('Inputs keys:', Object.keys(data.inputs))
 
     expect(data.inputs).toBeDefined()
@@ -222,7 +222,7 @@ test.describe('Italy API Responses', () => {
     const response = await page.request.get('http://localhost:3000/api/calc?action=inputs&country=it&year=2025&variant=impatriate')
     expect(response.status()).toBe(200)
 
-    const data = await response.json() as { inputs: Record<string, any> }
+    const data = await response.json() as { inputs: Record<string, Record<string, unknown>> }
     console.log('Inputs (with variant) keys:', Object.keys(data.inputs))
 
     expect(data.inputs).toBeDefined()
