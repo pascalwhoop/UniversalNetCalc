@@ -9,6 +9,12 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "universal-net-calc",
+	"routes": [
+    {
+      "pattern": "netcalc.curiloo.com",
+      "custom_domain": true
+    }
+    ],
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": [
