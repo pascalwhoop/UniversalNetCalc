@@ -1,0 +1,106 @@
+{
+  "countries": {
+    "ae": {
+      "years": {
+        "2024": {
+          "variants": []
+        },
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "bg": {
+      "years": {
+        "2025": {
+          "variants": []
+        },
+        "2026": {
+          "variants": []
+        }
+      }
+    },
+    "ch": {
+      "years": {
+        "2024": {
+          "variants": []
+        },
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "de": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "fr": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "gb": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "it": {
+      "years": {
+        "2025": {
+          "variants": [
+            "impatriate"
+          ]
+        },
+        "2026": {
+          "variants": [
+            "impatriate"
+          ]
+        }
+      }
+    },
+    "nl": {
+      "years": {
+        "2024": {
+          "variants": [
+            "30-ruling"
+          ]
+        },
+        "2025": {
+          "variants": [
+            "30-ruling"
+          ]
+        }
+      }
+    },
+    "pt": {
+      "years": {
+        "2025": {
+          "variants": [
+            "ifici"
+          ]
+        }
+      }
+    },
+    "sg": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    },
+    "us": {
+      "years": {
+        "2025": {
+          "variants": []
+        }
+      }
+    }
+  }
+}
