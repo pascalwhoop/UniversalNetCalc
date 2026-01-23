@@ -14,7 +14,11 @@ interface CalcRequest {
 }
 
 // Singleton config loader
-const configLoader = new ConfigLoader(join(process.cwd(), "configs"))
+// In Cloudflare Workers, use relative path since everything is bundled together
+// In local dev, use process.cwd()
+const isCloudflareWorkers = typeof caches !== 'undefined' && 'default' in caches
+const configsPath = isCloudflareWorkers ? "configs" : join(process.cwd(), "configs")
+const configLoader = new ConfigLoader(configsPath)
 
 export async function POST(request: NextRequest) {
   try {

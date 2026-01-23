@@ -6,6 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import ModeToggle from "@/components/mode-toggle"
+import packageJson from "../../package.json"
 import {
   Sidebar,
   SidebarContent,
@@ -109,6 +110,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <div className="px-2 py-1.5 text-xs text-sidebar-foreground/70">
+          v{packageJson.version}
+        </div>
       </SidebarFooter>
 
       <SidebarRail />
