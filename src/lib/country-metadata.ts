@@ -23,6 +23,11 @@ export const COUNTRY_FLAGS: Record<string, string> = {
   ca: "🇨🇦",
   hk: "🇭🇰",
   jp: "🇯🇵",
+  dk: "🇩🇰",
+  kr: "🇰🇷",
+  no: "🇳🇴",
+  nz: "🇳🇿",
+  se: "🇸🇪",
 }
 
 /**
@@ -41,12 +46,17 @@ export const COUNTRY_NAMES: Record<string, string> = {
   pt: "Portugal",
   ie: "Ireland",
   sg: "Singapore",
-  ae: "UAE",
+  ae: "United Arab Emirates",
   au: "Australia",
   bg: "Bulgaria",
   ca: "Canada",
   hk: "Hong Kong",
   jp: "Japan",
+  dk: "Denmark",
+  kr: "South Korea",
+  no: "Norway",
+  nz: "New Zealand",
+  se: "Sweden",
 }
 
 /**
@@ -71,6 +81,11 @@ export const CURRENCY_BY_COUNTRY: Record<string, string> = {
   ca: "CAD",
   hk: "HKD",
   jp: "JPY",
+  dk: "DKK",
+  kr: "KRW",
+  no: "NOK",
+  nz: "NZD",
+  se: "SEK",
 }
 
 /**
@@ -88,6 +103,11 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   AED: "AED",
   JPY: "¥",
   BGN: "BGN",
+  DKK: "kr",
+  KRW: "₩",
+  NOK: "kr",
+  NZD: "NZ$",
+  SEK: "kr",
 }
 
 /**

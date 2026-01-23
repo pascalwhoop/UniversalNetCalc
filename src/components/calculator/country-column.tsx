@@ -266,11 +266,13 @@ export function CountryColumn({
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map(code => (
-                    <SelectItem key={code} value={code}>
-                      {getCountryName(code)}
-                    </SelectItem>
-                  ))}
+                  {countries
+                    .sort((a, b) => getCountryName(a).localeCompare(getCountryName(b)))
+                    .map(code => (
+                      <SelectItem key={code} value={code}>
+                        {getCountryName(code)}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

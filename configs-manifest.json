@@ -33,8 +33,19 @@
       "years": {
         "2025": {
           "variants": [
+            "alberta",
             "bc",
-            "ontario"
+            "manitoba",
+            "new-brunswick",
+            "newfoundland",
+            "nova-scotia",
+            "nunavut",
+            "nwt",
+            "ontario",
+            "pei",
+            "quebec",
+            "saskatchewan",
+            "yukon"
           ]
         }
       }
