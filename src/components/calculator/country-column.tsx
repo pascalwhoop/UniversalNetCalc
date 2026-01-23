@@ -450,6 +450,27 @@ export function CountryColumn({
             result={result}
             error={calculationError}
             comparisonDelta={comparisonDelta}
+            calculationRequest={
+              result
+                ? {
+                    country,
+                    year,
+                    gross_annual: parseFloat(gross_annual),
+                    ...(variant && { variant }),
+                    ...Object.fromEntries(
+                      Object.entries(formValues)
+                        .filter(([key]) => key !== "gross_annual")
+                        .map(([key, value]) => {
+                          const inputDef = inputsData?.inputs[key]
+                          if (inputDef?.type === "boolean") {
+                            return [key, value === "true"]
+                          }
+                          return [key, value]
+                        })
+                    ),
+                  }
+                : undefined
+            }
           />
         </div>
 

@@ -17,6 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { MobileCountrySelector } from "./mobile-country-selector"
 import { UnsupportedCurrencyError } from "@/lib/errors"
 import { calculateNetDelta, findBestCountryByNet } from "@/lib/comparison-utils"
+import { detectUserCountry } from "@/lib/detect-country"
 
 const MAX_COUNTRIES = 4
 
@@ -36,6 +37,23 @@ function createEmptyCountryState(index: number): CountryColumnState {
   }
 }
 
+function createDefaultCountryState(index: number): CountryColumnState {
+  const detectedCountry = detectUserCountry()
+  return {
+    id: crypto.randomUUID(),
+    index,
+    country: detectedCountry,
+    year: "",
+    variant: "",
+    gross_annual: "100000",
+    formValues: {},
+    currency: "EUR",
+    result: null,
+    isCalculating: false,
+    calculationError: null,
+  }
+}
+
 export function ComparisonGrid() {
   const searchParams = useSearchParams()
   const isMobile = useIsMobile()
@@ -44,7 +62,7 @@ export function ComparisonGrid() {
 
   // All country state in parent
   const [countries, setCountries] = useState<CountryColumnState[]>([
-    createEmptyCountryState(0),
+    createDefaultCountryState(0),
   ])
 
   const [isInitialized, setIsInitialized] = useState(false)
@@ -73,6 +91,9 @@ export function ComparisonGrid() {
       }))
 
       setCountries(entries)
+    } else {
+      // No URL state, use detected country with default salary
+      setCountries([createDefaultCountryState(0)])
     }
 
     hasInitializedFromUrl.current = true

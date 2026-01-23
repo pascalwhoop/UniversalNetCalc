@@ -1,6 +1,6 @@
 "use client"
 
-import { Info, AlertCircle } from "lucide-react"
+import { Info, AlertCircle, Flag } from "lucide-react"
 import {
   Accordion,
   AccordionContent,
@@ -16,8 +16,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import type { CalculationResult, BreakdownItem } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import type { CalculationResult, BreakdownItem, CalcRequest } from "@/lib/api"
 import { formatCurrency } from "@/lib/formatters"
+import { ReportIssueDialog } from "./report-issue-dialog"
+import { useState } from "react"
 
 interface BreakdownLineProps {
   label: string
@@ -81,6 +84,7 @@ interface ResultBreakdownProps {
   result?: CalculationResult | null
   error?: string | null
   comparisonDelta?: number
+  calculationRequest?: CalcRequest
 }
 
 // Group breakdown items by category
@@ -112,7 +116,9 @@ export function ResultBreakdown({
   result = null,
   error = null,
   comparisonDelta,
+  calculationRequest,
 }: ResultBreakdownProps) {
+  const [reportDialogOpen, setReportDialogOpen] = useState(false)
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -217,7 +223,7 @@ export function ResultBreakdown({
       <Accordion type="single" collapsible className="w-full">
         {/* Gross Income */}
         <AccordionItem value="income" className="border-b-0">
-          <AccordionTrigger className="text-sm py-2 hover:no-underline">
+          <AccordionTrigger className="text-sm py-2 hover:no-underline [&:hover]:opacity-100">
             <div className="flex w-full items-center justify-between pr-2">
               <span>Gross Income</span>
               <span className="font-mono text-sm">{formatCurrency(result.gross, currency)}</span>
@@ -238,7 +244,7 @@ export function ResultBreakdown({
         {/* Income Taxes */}
         {(grouped.income_tax.length > 0 || grouped.surtax.length > 0) && (
           <AccordionItem value="taxes" className="border-b-0">
-            <AccordionTrigger className="text-sm py-2 hover:no-underline">
+            <AccordionTrigger className="text-sm py-2 hover:no-underline [&:hover]:opacity-100">
               <div className="flex w-full items-center justify-between pr-2">
                 <span>Income Taxes</span>
                 <span className="font-mono text-sm text-destructive">
@@ -276,7 +282,7 @@ export function ResultBreakdown({
         {/* Social Contributions */}
         {grouped.contribution.length > 0 && (
           <AccordionItem value="contributions" className="border-b-0">
-            <AccordionTrigger className="text-sm py-2 hover:no-underline">
+            <AccordionTrigger className="text-sm py-2 hover:no-underline [&:hover]:opacity-100">
               <div className="flex w-full items-center justify-between pr-2">
                 <span>Social Contributions</span>
                 <span className="font-mono text-sm text-destructive">
@@ -304,7 +310,7 @@ export function ResultBreakdown({
         {/* Credits */}
         {grouped.credit.length > 0 && (
           <AccordionItem value="credits" className="border-b-0">
-            <AccordionTrigger className="text-sm py-2 hover:no-underline">
+            <AccordionTrigger className="text-sm py-2 hover:no-underline [&:hover]:opacity-100">
               <div className="flex w-full items-center justify-between pr-2">
                 <span>Credits</span>
                 <span className="font-mono text-sm text-green-600">
@@ -332,7 +338,7 @@ export function ResultBreakdown({
         {/* Deductions */}
         {grouped.deduction.length > 0 && (
           <AccordionItem value="deductions" className="border-b-0">
-            <AccordionTrigger className="text-sm py-2 hover:no-underline">
+            <AccordionTrigger className="text-sm py-2 hover:no-underline [&:hover]:opacity-100">
               <div className="flex w-full items-center justify-between pr-2">
                 <span>Deductions</span>
                 <span className="font-mono text-sm text-muted-foreground">
@@ -363,6 +369,27 @@ export function ResultBreakdown({
         <span>{result.config_version_hash}</span>
         <span>{result.config_last_updated}</span>
       </div>
+
+      {/* Report Issue Button */}
+      {calculationRequest && (
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-2"
+            onClick={() => setReportDialogOpen(true)}
+          >
+            <Flag className="h-4 w-4 mr-2" />
+            Report Calculation Issue
+          </Button>
+
+          <ReportIssueDialog
+            open={reportDialogOpen}
+            onOpenChange={setReportDialogOpen}
+            calculationData={{ request: calculationRequest, result }}
+          />
+        </>
+      )}
     </div>
   )
 }
