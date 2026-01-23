@@ -51,7 +51,6 @@ next-env.d.ts
 
 !.dev.vars.example
 .playwright-mcp/
-.claude/
 playwright-report/
 test-results/
 cloudflare-env.d.ts
@@ -63,3 +62,5 @@ cloudflare-env.d.ts
 # Sentry Config File
 .env.sentry-build-plugin
 bundle-analysis*.html
+
+.claude/settings.local.json
