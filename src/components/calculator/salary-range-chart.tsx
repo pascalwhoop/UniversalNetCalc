@@ -214,6 +214,9 @@ export function SalaryRangeChart({
               nameKey="name"
               innerRadius={50}
               strokeWidth={5}
+              isAnimationActive={true}
+              animationDuration={800}
+              animationEasing="ease-out"
             >
               <Label
                 content={({ viewBox }) => {
@@ -325,6 +328,9 @@ export function SalaryRangeChart({
                   dataKey="net"
                   stackId="a"
                   radius={[0, 0, 4, 4]}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 >
                   {data.map((entry, index) => {
                     const baseColor = entry.isAboveCurrent 
@@ -342,6 +348,9 @@ export function SalaryRangeChart({
                   dataKey="social"
                   stackId="a"
                   radius={[0, 0, 0, 0]}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 >
                   {data.map((entry, index) => {
                     const baseColor = entry.isAboveCurrent 
@@ -359,6 +368,9 @@ export function SalaryRangeChart({
                   dataKey="tax"
                   stackId="a"
                   radius={[4, 4, 0, 0]}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 >
                   {data.map((entry, index) => {
                     const baseColor = entry.isAboveCurrent 

@@ -1,56 +1,54 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 
 /**
- * Hook for animating numbers from 0 to target value
- * Uses requestAnimationFrame for smooth 60fps animation
+ * Animates a number value from start to end with smooth easing
+ * Uses requestAnimationFrame for 60fps performance
  */
 export function useCountUp(
-  target: number,
-  duration: number = 800,
-  enabled: boolean = true
-): number {
-  const [count, setCount] = useState(enabled ? 0 : target)
-  const frameRef = useRef<number>()
-  const startTimeRef = useRef<number>()
-  const startValueRef = useRef<number>(0)
+  end: number,
+  options: {
+    start?: number
+    duration?: number
+    enabled?: boolean
+  } = {}
+) {
+  const { start = 0, duration = 800, enabled = true } = options
+  const [count, setCount] = useState(start)
 
   useEffect(() => {
     if (!enabled) {
-      setCount(target)
+      setCount(end)
       return
     }
 
-    // Reset for new target
-    startTimeRef.current = undefined
-    startValueRef.current = count
+    // If already at target, don't animate
+    if (count === end) return
 
-    const animate = (currentTime: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = currentTime
-      }
+    let startTime: number | null = null
+    let animationFrame: number
 
-      const elapsed = currentTime - startTimeRef.current
-      const progress = Math.min(elapsed / duration, 1)
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
 
-      // Ease out cubic for smooth deceleration
+      // easeOutCubic easing function
       const easeOutCubic = 1 - Math.pow(1 - progress, 3)
-      const currentCount = startValueRef.current + (target - startValueRef.current) * easeOutCubic
 
-      setCount(currentCount)
+      setCount(start + (end - start) * easeOutCubic)
 
       if (progress < 1) {
-        frameRef.current = requestAnimationFrame(animate)
+        animationFrame = requestAnimationFrame(animate)
       }
     }
 
-    frameRef.current = requestAnimationFrame(animate)
+    animationFrame = requestAnimationFrame(animate)
 
     return () => {
-      if (frameRef.current) {
-        cancelAnimationFrame(frameRef.current)
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame)
       }
     }
-  }, [target, duration, enabled])
+  }, [end, start, duration, enabled, count])
 
-  return count
+  return Math.round(count)
 }

@@ -1,0 +1,184 @@
+[
+  {
+    "canton": "Zürich",
+    "slug": "zurich",
+    "capitalCity": "Zürich",
+    "cantonMultiplier": 0.98,
+    "municipalMultiplier": 1.19
+  },
+  {
+    "canton": "Bern",
+    "slug": "bern",
+    "capitalCity": "Bern",
+    "cantonMultiplier": 2.975,
+    "municipalMultiplier": 1.54
+  },
+  {
+    "canton": "Luzern",
+    "slug": "lucerne",
+    "capitalCity": "Luzern",
+    "cantonMultiplier": 1.55,
+    "municipalMultiplier": 1.55
+  },
+  {
+    "canton": "Uri",
+    "slug": "uri",
+    "capitalCity": "Altdorf (UR)",
+    "cantonMultiplier": 1,
+    "municipalMultiplier": 0.95
+  },
+  {
+    "canton": "Schwyz",
+    "slug": "schwyz",
+    "capitalCity": "Schwyz",
+    "cantonMultiplier": 1.15,
+    "municipalMultiplier": 1.75
+  },
+  {
+    "canton": "Obwalden",
+    "slug": "obwalden",
+    "capitalCity": "Sarnen (OW)",
+    "cantonMultiplier": 3.25,
+    "municipalMultiplier": 3.86
+  },
+  {
+    "canton": "Nidwalden",
+    "slug": "nidwalden",
+    "capitalCity": "Stans (NW)",
+    "cantonMultiplier": 2.66,
+    "municipalMultiplier": 2.35
+  },
+  {
+    "canton": "Glarus",
+    "slug": "glarus",
+    "capitalCity": "Glarus",
+    "cantonMultiplier": 0.597,
+    "municipalMultiplier": 0.56
+  },
+  {
+    "canton": "Zug",
+    "slug": "zug",
+    "capitalCity": "Zug",
+    "cantonMultiplier": 0.82,
+    "municipalMultiplier": 0.5211
+  },
+  {
+    "canton": "Fortune",
+    "slug": "fortune",
+    "capitalCity": "Fortune",
+    "cantonMultiplier": 1,
+    "municipalMultiplier": 0.8
+  },
+  {
+    "canton": "Solothurn",
+    "slug": "solothurn",
+    "capitalCity": "Solothurn",
+    "cantonMultiplier": 1.04,
+    "municipalMultiplier": 1.07
+  },
+  {
+    "canton": "Basel-Stadt",
+    "slug": "basel_stadt",
+    "capitalCity": "Basel (BS)",
+    "cantonMultiplier": 1,
+    "municipalMultiplier": null
+  },
+  {
+    "canton": "Vermögen",
+    "slug": "verm_gen",
+    "capitalCity": "Vermögen",
+    "cantonMultiplier": null,
+    "municipalMultiplier": 0.65
+  },
+  {
+    "canton": "Schaffhausen",
+    "slug": "schaffhausen",
+    "capitalCity": "Schaffhausen",
+    "cantonMultiplier": 0.79,
+    "municipalMultiplier": 0.86
+  },
+  {
+    "canton": "Appenzell Ausserrhoden",
+    "slug": "appenzell_ausserrhoden",
+    "capitalCity": "Herisau (AR)",
+    "cantonMultiplier": 3.3,
+    "municipalMultiplier": 4.1
+  },
+  {
+    "canton": "Appenzell Innerrhoden",
+    "slug": "appenzell_innerrhoden",
+    "capitalCity": "Appenzell (AI)",
+    "cantonMultiplier": 0.96,
+    "municipalMultiplier": 0.56
+  },
+  {
+    "canton": "St. Gallen",
+    "slug": "st_gallen",
+    "capitalCity": "St. Gallen",
+    "cantonMultiplier": 1.05,
+    "municipalMultiplier": 1.38
+  },
+  {
+    "canton": "Graubünden",
+    "slug": "graubunden",
+    "capitalCity": "Chur (GR)",
+    "cantonMultiplier": 0.95,
+    "municipalMultiplier": 0.88
+  },
+  {
+    "canton": "Aargau",
+    "slug": "aargau",
+    "capitalCity": "Aarau (AG)",
+    "cantonMultiplier": 1.11,
+    "municipalMultiplier": 0.96
+  },
+  {
+    "canton": "Thurgau",
+    "slug": "thurgau",
+    "capitalCity": "Frauenfeld (TG)",
+    "cantonMultiplier": 1.09,
+    "municipalMultiplier": 1.44
+  },
+  {
+    "canton": "Ticino",
+    "slug": "ticino",
+    "capitalCity": "Bellinzona (TI)",
+    "cantonMultiplier": 1,
+    "municipalMultiplier": 0.93
+  },
+  {
+    "canton": "Vaud",
+    "slug": "vaud",
+    "capitalCity": "Lausanne (VD)",
+    "cantonMultiplier": 1.55,
+    "municipalMultiplier": 0.785
+  },
+  {
+    "canton": "Valais",
+    "slug": "valais",
+    "capitalCity": "Sion (VS)",
+    "cantonMultiplier": null,
+    "municipalMultiplier": 1.1
+  },
+  {
+    "canton": "Neuchâtel",
+    "slug": "neuchatel",
+    "capitalCity": "Neuchâtel",
+    "cantonMultiplier": 1.24,
+    "municipalMultiplier": 0.65
+  },
+  {
+    "canton": "Genève",
+    "slug": "geneva",
+    "capitalCity": "Genève",
+    "cantonMultiplier": 1.475,
+    "municipalMultiplier": 0.4549
+  },
+  {
+    "canton": "Jura",
+    "slug": "jura",
+    "capitalCity": "Delémont (JU)",
+    "cantonMultiplier": 2.85,
+    "municipalMultiplier": 1.9
+  }
+]

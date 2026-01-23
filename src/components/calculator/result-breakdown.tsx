@@ -160,7 +160,10 @@ export function ResultBreakdown({
       <div className="rounded-lg bg-muted/50 p-3">
         <div className="flex items-baseline justify-between">
           <span className="text-xs text-muted-foreground">Net Annual</span>
-          <span className="text-xl font-bold text-primary">
+          <span
+            key={result.net}
+            className="text-xl font-bold text-primary animate-pulse-yellow"
+          >
             {formatCurrency(result.net, currency)}
           </span>
         </div>

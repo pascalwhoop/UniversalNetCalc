@@ -222,7 +222,7 @@ export function CountryColumn({
   const countryFlag = country ? getCountryFlag(country) : ""
 
   return (
-    <Card className={`flex flex-col ${isBest ? "border-green-500 border-2" : ""}`}>
+    <Card className={`flex flex-col animate-fade-in ${isBest ? "border-green-500 border-2" : ""}`}>
       <CardHeader className="pb-2 pt-4 px-4 md:px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
