@@ -52,9 +52,18 @@ export interface InputDefinition {
   options?: Record<string, EnumOption>
 }
 
+export interface Notice {
+  id: string
+  title: string
+  body: string
+  severity?: "info" | "warning" | "error"
+  show_for_variants?: string[]
+}
+
 export interface ConfigInputs {
   inputs: Record<string, InputDefinition>
   currency: string
+  notices: Notice[]
 }
 
 const API_BASE = "/api/calc"

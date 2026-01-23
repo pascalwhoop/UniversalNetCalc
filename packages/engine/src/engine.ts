@@ -82,16 +82,16 @@ export class CalculationEngine {
       const inputName = ref.slice(1)
       const parts = inputName.split('.')
 
-      let value = context.inputs[parts[0]]
+      let value: unknown = context.inputs[parts[0]]
       for (let i = 1; i < parts.length; i++) {
-        value = value?.[parts[i]]
+        value = (value as Record<string, unknown>)?.[parts[i]]
       }
 
       if (value === undefined) {
         throw new Error(`Input not found: ${inputName}`)
       }
 
-      return typeof value === 'number' ? value : parseFloat(value)
+      return typeof value === 'number' ? value : parseFloat(String(value))
     }
 
     if (ref.startsWith('$')) {
@@ -100,7 +100,8 @@ export class CalculationEngine {
 
       // Check nodes first
       if (context.nodes[name] !== undefined) {
-        return context.nodes[name]
+        const nodeValue = context.nodes[name]
+        return typeof nodeValue === 'number' ? nodeValue : Number(nodeValue)
       }
 
       // Check parameters

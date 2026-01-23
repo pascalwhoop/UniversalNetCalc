@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip"
 import { ResultBreakdown } from "./result-breakdown"
 import { SalaryRangeChart } from "./salary-range-chart"
+import { NoticeIcon } from "./notices"
 import { getCountryName, getCurrencySymbol, type InputDefinition, type CalcRequest } from "@/lib/api"
 import { CountryColumnState } from "@/lib/types"
 import { getCountryFlag, getCountryMetadata } from "@/lib/country-metadata"
@@ -300,10 +301,19 @@ export function CountryColumn({
           {/* Gross Salary */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <Label htmlFor={`gross-${index}`} className="text-xs text-muted-foreground">
-                {inputDefs.gross_annual?.label || "Gross Annual Salary"} (
-                {getCurrencySymbol(currency || "EUR")})
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor={`gross-${index}`} className="text-xs text-muted-foreground">
+                  {inputDefs.gross_annual?.label || "Gross Annual Salary"} (
+                  {getCurrencySymbol(currency || "EUR")})
+                </Label>
+                {inputsData?.notices && (
+                  <NoticeIcon
+                    notices={inputsData.notices}
+                    noticeId="salary_input"
+                    variant={variant}
+                  />
+                )}
+              </div>
               {showCopyToAll && gross_annual && (
                 <TooltipProvider>
                   <Tooltip>

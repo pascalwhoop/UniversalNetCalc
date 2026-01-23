@@ -78,11 +78,14 @@ describe('API Endpoints - ConfigLoader Simulation', () => {
 
       expect(regionInput.type).toBe('enum')
       expect(regionInput.required).toBe(true)
-      expect(regionInput.options).toBeDefined()
 
-      // Verify has all 20 Italian regions
-      const regionCount = Object.keys(regionInput.options || {}).length
-      expect(regionCount).toBeGreaterThanOrEqual(20)
+      if (regionInput.type === 'enum') {
+        expect(regionInput.options).toBeDefined()
+
+        // Verify has all 20 Italian regions
+        const regionCount = Object.keys(regionInput.options || {}).length
+        expect(regionCount).toBeGreaterThanOrEqual(20)
+      }
     })
   })
 

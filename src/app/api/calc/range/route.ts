@@ -9,7 +9,7 @@ interface RangeCalcRequest {
   max_salary: number
   current_salary?: number // Current salary to split bars around
   step?: number // Default 1000
-  [key: string]: any // Allow additional inputs like filing_status, region_level_1, etc.
+  [key: string]: unknown // Allow additional inputs like filing_status, region_level_1, etc.
 }
 
 interface RangeDataPoint {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const dataPoints: RangeDataPoint[] = []
 
     // Prepare base inputs (excluding gross_annual which we'll iterate)
-    const baseInputs: Record<string, any> = {}
+    const baseInputs: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(body)) {
       if (!["country", "year", "variant", "max_salary", "current_salary", "step"].includes(key)) {
         baseInputs[key] = value
@@ -167,10 +167,12 @@ export async function POST(request: NextRequest) {
       step: stepBelow,
       dataPoints,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Range calculation error:", error)
 
-    if (error.code === "ENOENT") {
+    const err = error as { code?: string; message?: string }
+
+    if (err.code === "ENOENT") {
       return NextResponse.json(
         {
           error: "Configuration not found",
@@ -183,7 +185,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Calculation failed",
-        details: error.message || "An unexpected error occurred",
+        details: err.message || "An unexpected error occurred",
       },
       { status: 500 }
     )

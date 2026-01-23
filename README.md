@@ -1,47 +1,47 @@
-# OpenNext Starter
+# Universal Net Calculator
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Calculate accurate after-tax income for multiple countries using config-driven tax rules.
 
-## Getting Started
-
-Read the documentation at https://opennext.js.org/cloudflare.
-
-## Develop
-
-Run the Next.js development server:
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or similar package manager command
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-## Preview
+- `npm run dev` - Development server
+- `npm run test` - Run tests
+- `npm run test:configs` - Validate tax configs
+- `npm run build` - Build for production
+- `npm run deploy` - Deploy to Cloudflare
 
-Preview the application locally on the Cloudflare runtime:
+## Contributing
 
-```bash
-npm run preview
-# or similar package manager command
-```
+Add new countries, tax years, or variants by creating YAML configs. The easiest way is using Claude:
 
-## Deploy
+**With Claude (recommended):**
+1. Open this repo in Claude Code
+2. Say: "add country [country name]" or "add [year] for [country]"
+3. Follow the guided workflow - it handles research, config creation, tests, and validation
 
-Deploy the application to Cloudflare:
+**Manual workflow:**
+1. Create `configs/<country>/<year>/base.yaml` with tax rules
+2. Add test vectors in `tests/` directory
+3. Run `npm run test:configs` to validate
+4. Submit a PR
 
-```bash
-npm run deploy
-# or similar package manager command
-```
+Config-only PRs get fast-tracked (~30 seconds) with automated validation.
 
-## Learn More
+See `CLAUDE.md` for detailed contribution guide.
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Config-driven**: Tax rules defined in YAML files (`configs/`)
+- **Pure engine**: TypeScript calculation engine with no framework dependencies
+- **Next.js UI**: React frontend deployed to Cloudflare Workers
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+See `docs/` for detailed documentation.

@@ -64,7 +64,7 @@ export interface NumberInput extends BaseInput {
 export interface EnumOption {
   label: string
   description?: string
-  [key: string]: any // Allow additional properties for metadata
+  [key: string]: unknown // Allow additional properties for metadata
 }
 
 export interface EnumInput extends BaseInput {
@@ -106,8 +106,8 @@ export type ParameterValue =
   | string
   | boolean
   | BracketEntry[]
-  | Record<string, any>
-  | any[]
+  | Record<string, unknown>
+  | unknown[]
 
 export type Parameters = Record<string, ParameterValue>
 
@@ -208,8 +208,8 @@ export interface DeductionNode extends BaseNode {
 export interface SwitchNode extends BaseNode {
   type: 'switch'
   on: string // Input or parameter to switch on
-  cases: Record<string, any>
-  default?: any
+  cases: Record<string, unknown>
+  default?: unknown
 }
 
 export interface LookupNode extends BaseNode {
@@ -217,7 +217,7 @@ export interface LookupNode extends BaseNode {
   table: string // Reference to parameter
   key: string // Input or calculated value
   subkey?: string // For nested lookups
-  default?: any
+  default?: unknown
 }
 
 export interface ConditionalNode extends BaseNode {
@@ -314,9 +314,9 @@ export interface TaxConfig {
 // ============================================================================
 
 export interface CalculationContext {
-  inputs: Record<string, any>
+  inputs: Record<string, unknown>
   parameters: Parameters
-  nodes: Record<string, any> // Computed node values (can be number, string, array, etc.)
+  nodes: Record<string, unknown> // Computed node values (can be number, string, array, etc.)
   config?: {
     meta?: {
       year?: number
@@ -350,7 +350,8 @@ export interface CalculationResult {
 export interface TestVector {
   name: string
   description?: string
-  inputs: Record<string, any>
+  variant?: string
+  inputs: Record<string, unknown>
   expected: {
     net: number
     effective_rate: number

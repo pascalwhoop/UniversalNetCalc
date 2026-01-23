@@ -81,7 +81,7 @@ export default function LandingLayout({
               <h3 className="font-semibold mb-4">About</h3>
               <p className="text-sm text-muted-foreground">
                 Open-source salary calculator helping you understand your income
-                across the world's tax systems.
+                across the world&apos;s tax systems.
               </p>
             </div>
           </div>

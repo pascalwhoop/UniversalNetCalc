@@ -10,7 +10,7 @@ interface CalcRequest {
   region_level_2?: string
   gross_annual: number
   filing_status?: string
-  [key: string]: any // Allow additional inputs
+  [key: string]: unknown // Allow additional inputs
 }
 
 // Singleton config loader
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Prepare inputs for engine
-    const inputs: Record<string, any> = {
+    const inputs: Record<string, unknown> = {
       gross_annual: body.gross_annual,
     }
 
@@ -55,13 +55,15 @@ export async function POST(request: NextRequest) {
 
     // Execute calculation
     const engine = new CalculationEngine(config)
-    const result = engine.calculate(inputs)
+    const result = engine.calculate(inputs as Record<string, string | number | boolean | Record<string, unknown> | undefined>)
 
     return NextResponse.json(result)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Calculation error:", error)
 
-    if (error.code === "ENOENT") {
+    const err = error as { code?: string; name?: string; message?: string }
+
+    if (err.code === "ENOENT") {
       return NextResponse.json(
         {
           error: "Configuration not found",
@@ -72,22 +74,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle YAML parsing errors
-    if (error.name === "YAMLException" || error.message?.includes("YAML")) {
+    if (err.name === "YAMLException" || err.message?.includes("YAML")) {
       return NextResponse.json(
         {
           error: "Invalid configuration",
-          details: `The tax configuration for this country has errors: ${error.message}`,
+          details: `The tax configuration for this country has errors: ${err.message}`,
         },
         { status: 500 }
       )
     }
 
     // Handle calculation engine errors
-    if (error.message?.includes("not found") || error.message?.includes("undefined")) {
+    if (err.message?.includes("not found") || err.message?.includes("undefined")) {
       return NextResponse.json(
         {
           error: "Configuration error",
-          details: `The tax configuration is incomplete or invalid: ${error.message}`,
+          details: `The tax configuration is incomplete or invalid: ${err.message}`,
         },
         { status: 500 }
       )
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Calculation failed",
-        details: error.message || "An unexpected error occurred",
+        details: err.message || "An unexpected error occurred",
       },
       { status: 500 }
     )
@@ -152,6 +154,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         inputs: config.inputs,
         currency: config.meta.currency,
+        notices: config.notices || [],
       })
     }
 
@@ -189,10 +192,11 @@ export async function GET(request: NextRequest) {
         },
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API error:", error)
+    const err = error as { message?: string }
     return NextResponse.json(
-      { error: "Internal server error", details: error.message },
+      { error: "Internal server error", details: err.message },
       { status: 500 }
     )
   }

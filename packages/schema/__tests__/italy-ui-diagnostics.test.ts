@@ -131,7 +131,7 @@ describe('Italy UI - Component Logic Issues', () => {
 
     const defaults: Record<string, string> = {}
     for (const [key, def] of Object.entries(inputDefs)) {
-      if (def.default !== undefined) {
+      if ('default' in def && def.default !== undefined) {
         defaults[key] = String(def.default)
       } else if (def.type === 'enum' && def.options) {
         const firstOption = Object.keys(def.options)[0]

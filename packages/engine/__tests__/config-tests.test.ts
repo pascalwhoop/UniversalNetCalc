@@ -94,7 +94,7 @@ describe('Config Test Vectors', async () => {
 
       // Create engine and calculate
       const engine = new CalculationEngine(config)
-      const result = engine.calculate(test.testVector.inputs)
+      const result = engine.calculate(test.testVector.inputs as Record<string, string | number | boolean | Record<string, unknown> | undefined>)
 
       // Get tolerances
       const absTolerance = test.testVector.tolerance || 0
