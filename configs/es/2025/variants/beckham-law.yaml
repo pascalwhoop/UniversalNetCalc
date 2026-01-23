@@ -102,42 +102,31 @@ calculations:
     value: "@gross_annual"
     description: "Full gross income is taxable under Beckham Law (no allowances)"
 
-  # Replace national income tax with Beckham Law tax calculation
-  # 24% up to €600,000, then 47% above
-  - id: income_up_to_threshold
-    type: min
-    values:
-      - "$taxable_income"
-      - "$beckham_threshold"
-
-  - id: income_above_threshold
-    type: max
-    values:
-      - 0
-      - type: sub
-        values:
-          - "$taxable_income"
-          - "$beckham_threshold"
-
-  - id: beckham_tax_below_threshold
-    type: mul
-    values:
-      - "$income_up_to_threshold"
-      - "$beckham_flat_rate"
-
-  - id: beckham_tax_above_threshold
-    type: mul
-    values:
-      - "$income_above_threshold"
-      - "$beckham_high_rate"
-
   # Override national_income_tax with Beckham calculation
-  # This keeps the same node ID so base outputs still work
+  # 24% flat rate up to €600,000, then 47% above
+  # Using inline calculations to avoid ordering issues
   - id: national_income_tax
     type: sum
     values:
-      - "$beckham_tax_below_threshold"
-      - "$beckham_tax_above_threshold"
+      # Tax on income up to €600,000 at 24%
+      - type: mul
+        values:
+          - type: min
+            values:
+              - "$taxable_income"
+              - "$beckham_threshold"
+          - "$beckham_flat_rate"
+      # Tax on income above €600,000 at 47%
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "$taxable_income"
+                  - "$beckham_threshold"
+          - "$beckham_high_rate"
     category: income_tax
     label: "Beckham Law Income Tax"
     description: "24% flat rate up to €600,000, then 47% above"
