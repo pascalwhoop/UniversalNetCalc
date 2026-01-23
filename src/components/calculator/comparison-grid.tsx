@@ -37,12 +37,11 @@ function createEmptyCountryState(index: number): CountryColumnState {
   }
 }
 
-function createDefaultCountryState(index: number): CountryColumnState {
-  const detectedCountry = detectUserCountry()
+function createDefaultCountryState(index: number, country?: string): CountryColumnState {
   return {
     id: crypto.randomUUID(),
     index,
-    country: detectedCountry,
+    country: country || "",
     year: "",
     variant: "",
     gross_annual: "100000",
@@ -60,9 +59,9 @@ export function ComparisonGrid() {
   const hasInitializedFromUrl = useRef(false)
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // All country state in parent
+  // All country state in parent - start with empty country to avoid hydration mismatch
   const [countries, setCountries] = useState<CountryColumnState[]>([
-    createDefaultCountryState(0),
+    createEmptyCountryState(0),
   ])
 
   const [isInitialized, setIsInitialized] = useState(false)
@@ -92,8 +91,9 @@ export function ComparisonGrid() {
 
       setCountries(entries)
     } else {
-      // No URL state, use detected country with default salary
-      setCountries([createDefaultCountryState(0)])
+      // No URL state, detect country client-side only
+      const detectedCountry = detectUserCountry()
+      setCountries([createDefaultCountryState(0, detectedCountry)])
     }
 
     hasInitializedFromUrl.current = true
