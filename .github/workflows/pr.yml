@@ -106,12 +106,13 @@ jobs:
           echo "Build size: ${BUILD_SIZE_MB}MB"
 
           # Alert if approaching Cloudflare Workers limit (50MB)
-          if [ $BUILD_SIZE_MB -gt 45 ]; then
-            echo "⚠️  WARNING: Build size is ${BUILD_SIZE_MB}MB (approaching 50MB Cloudflare Workers limit)"
+          # NOTE: Sentry integration adds ~5MB for source maps
+          if [ $BUILD_SIZE_MB -gt 55 ]; then
+            echo "⚠️  WARNING: Build size is ${BUILD_SIZE_MB}MB (approaching 60MB Cloudflare Workers limit)"
           fi
 
-          if [ $BUILD_SIZE_MB -gt 50 ]; then
-            echo "❌ ERROR: Build exceeds 50MB limit for Cloudflare Workers"
+          if [ $BUILD_SIZE_MB -gt 60 ]; then
+            echo "❌ ERROR: Build exceeds 60MB limit for Cloudflare Workers"
             exit 1
           fi
 
