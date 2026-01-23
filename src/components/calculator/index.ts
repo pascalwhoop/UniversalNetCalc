@@ -1,3 +1,7 @@
 export { ComparisonGrid } from "./comparison-grid"
+export { ComparisonSummary } from "./comparison-summary"
 export { CountryColumn } from "./country-column"
 export { ResultBreakdown } from "./result-breakdown"
+export { SalaryRangeChart } from "./salary-range-chart"
+export { ShareButton } from "./share-button"
+export { MobileCountrySelector } from "./mobile-country-selector"

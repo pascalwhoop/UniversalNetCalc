@@ -90,6 +90,7 @@ interface ResultBreakdownProps {
   isLoading?: boolean
   result?: CalculationResult | null
   error?: string | null
+  comparisonDelta?: number
 }
 
 // Group breakdown items by category
@@ -120,6 +121,7 @@ export function ResultBreakdown({
   isLoading = false,
   result = null,
   error = null,
+  comparisonDelta,
 }: ResultBreakdownProps) {
   if (isLoading) {
     return (
@@ -171,6 +173,19 @@ export function ResultBreakdown({
             {formatCurrency(result.net, currency)}
           </span>
         </div>
+        {comparisonDelta !== undefined && comparisonDelta !== 0 && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            {comparisonDelta < 0 ? (
+              <span className="text-destructive">
+                {formatCurrency(Math.abs(comparisonDelta), currency)} less than best
+              </span>
+            ) : (
+              <span className="text-green-600">
+                +{formatCurrency(comparisonDelta, currency)} more than average
+              </span>
+            )}
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">
             {effectiveRatePercent}% eff. rate
