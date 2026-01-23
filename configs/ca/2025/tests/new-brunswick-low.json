@@ -1,0 +1,14 @@
+{
+  "name": "New Brunswick - Low Income ($40,000)",
+  "inputs": {
+    "gross_annual": 40000,
+    "filing_status": "single"
+  },
+  "variant": "new-brunswick",
+  "expected": {
+    "net": 32600,
+    "effective_rate": 0.185
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.01
+}

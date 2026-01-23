@@ -1,0 +1,14 @@
+{
+  "name": "Manitoba - High Income ($150,000)",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "variant": "manitoba",
+  "expected": {
+    "net": 103000,
+    "effective_rate": 0.313
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.01
+}

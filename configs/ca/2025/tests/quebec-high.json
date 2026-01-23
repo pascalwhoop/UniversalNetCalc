@@ -1,0 +1,14 @@
+{
+  "name": "Quebec - High Income ($150,000)",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "variant": "quebec",
+  "expected": {
+    "net": 101000,
+    "effective_rate": 0.327
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.01
+}

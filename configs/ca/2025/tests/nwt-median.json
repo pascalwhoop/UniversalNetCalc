@@ -1,0 +1,14 @@
+{
+  "name": "NWT - Median Income ($70,000)",
+  "inputs": {
+    "gross_annual": 70000,
+    "filing_status": "single"
+  },
+  "variant": "nwt",
+  "expected": {
+    "net": 55500,
+    "effective_rate": 0.207
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.01
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Saskatchewan - Median Income ($70,000)",
+  "inputs": {
+    "gross_annual": 70000,
+    "filing_status": "single"
+  },
+  "variant": "saskatchewan",
+  "expected": {
+    "net": 54000,
+    "effective_rate": 0.229
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.01
+}

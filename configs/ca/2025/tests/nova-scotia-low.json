@@ -1,0 +1,14 @@
+{
+  "name": "Nova Scotia - Low Income ($40,000)",
+  "inputs": {
+    "gross_annual": 40000,
+    "filing_status": "single"
+  },
+  "variant": "nova-scotia",
+  "expected": {
+    "net": 32300,
+    "effective_rate": 0.193
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.01
+}

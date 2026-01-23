@@ -1,0 +1,14 @@
+{
+  "name": "Alberta - Low Income ($40,000)",
+  "inputs": {
+    "gross_annual": 40000,
+    "filing_status": "single"
+  },
+  "variant": "alberta",
+  "expected": {
+    "net": 33000,
+    "effective_rate": 0.175
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.01
+}

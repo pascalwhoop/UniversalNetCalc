@@ -1,0 +1,119 @@
+meta:
+  variant: "pei"
+  label: "Prince Edward Island"
+  description: "Prince Edward Island provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/pe.htm"
+      description: "PEI tax rates for 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds Prince Edward Island provincial income tax to the federal base configuration.
+
+    PEI features:
+    - 5 provincial tax brackets (9.5% to 19%)
+    - Basic Personal Amount of $14,650
+    - No provincial surtaxes or health premiums
+    - Tax brackets not indexed for inflation in 2025
+
+parameters:
+  # PEI provincial tax brackets - 2025
+  pei_tax_brackets:
+    - threshold: 0
+      rate: 0.0950
+    - threshold: 33328
+      rate: 0.1347
+    - threshold: 64656
+      rate: 0.1660
+    - threshold: 105000
+      rate: 0.1762
+    - threshold: 140000
+      rate: 0.1900
+
+  # PEI Basic Personal Amount - 2025
+  pei_bpa: 14650
+  pei_lowest_rate: 0.0950
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # PEI provincial income tax before credits
+  - id: pei_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$pei_tax_brackets"
+    category: income_tax
+    label: "PEI Income Tax"
+    description: "PEI provincial income tax before credits"
+
+  # PEI basic personal credit
+  - id: pei_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$pei_bpa"
+        - "$pei_lowest_rate"
+    refundable: false
+    category: credit
+    label: "PEI Basic Personal Credit"
+    description: "PEI non-refundable tax credit for basic personal amount"
+
+  # PEI tax after credits
+  - id: pei_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$pei_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$pei_bpa"
+              - "$pei_lowest_rate"
+    category: income_tax
+    label: "PEI Income Tax (After Credits)"
+    description: "PEI provincial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_pei
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$pei_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_pei"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$pei_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$pei_basic_personal_credit"

@@ -1,0 +1,14 @@
+{
+  "name": "New Brunswick - Median Income ($70,000)",
+  "inputs": {
+    "gross_annual": 70000,
+    "filing_status": "single"
+  },
+  "variant": "new-brunswick",
+  "expected": {
+    "net": 53800,
+    "effective_rate": 0.231
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.01
+}

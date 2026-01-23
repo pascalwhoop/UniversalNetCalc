@@ -1,0 +1,14 @@
+{
+  "name": "Newfoundland - High Income ($150,000)",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "variant": "newfoundland",
+  "expected": {
+    "net": 103500,
+    "effective_rate": 0.310
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.01
+}

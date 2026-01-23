@@ -1,0 +1,125 @@
+meta:
+  variant: "nunavut"
+  label: "Nunavut"
+  description: "Nunavut territorial tax rates (lowest in Canada)"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/nu.htm"
+      description: "Nunavut tax rates for 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds Nunavut territorial income tax to the federal base configuration.
+
+    Nunavut features:
+    - 4 territorial tax brackets (4% to 11.5%)
+    - Basic Personal Amount of $19,274 (highest in Canada)
+    - No territorial surtaxes or health premiums
+    - Lowest tax rates in Canada across all income levels
+
+notices:
+  - id: "nunavut_lowest_rates"
+    title: "Lowest Tax Rates in Canada"
+    body: |
+      Nunavut has the lowest combined federal-territorial tax rates in Canada,
+      with a top marginal rate of 44.5% (compared to 54% in some provinces).
+    severity: "info"
+
+parameters:
+  # Nunavut territorial tax brackets - 2025
+  nunavut_tax_brackets:
+    - threshold: 0
+      rate: 0.0400
+    - threshold: 54707
+      rate: 0.0700
+    - threshold: 109413
+      rate: 0.0900
+    - threshold: 177881
+      rate: 0.1150
+
+  # Nunavut Basic Personal Amount - 2025
+  nunavut_bpa: 19274
+  nunavut_lowest_rate: 0.0400
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # Nunavut territorial income tax before credits
+  - id: nunavut_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$nunavut_tax_brackets"
+    category: income_tax
+    label: "Nunavut Income Tax"
+    description: "Nunavut territorial income tax before credits"
+
+  # Nunavut basic personal credit
+  - id: nunavut_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$nunavut_bpa"
+        - "$nunavut_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Nunavut Basic Personal Credit"
+    description: "Nunavut non-refundable tax credit for basic personal amount"
+
+  # Nunavut tax after credits
+  - id: nunavut_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$nunavut_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$nunavut_bpa"
+              - "$nunavut_lowest_rate"
+    category: income_tax
+    label: "Nunavut Income Tax (After Credits)"
+    description: "Nunavut territorial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_nunavut
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$nunavut_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_nunavut"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$nunavut_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$nunavut_basic_personal_credit"

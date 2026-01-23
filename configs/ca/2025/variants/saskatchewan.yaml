@@ -1,0 +1,115 @@
+meta:
+  variant: "saskatchewan"
+  label: "Saskatchewan"
+  description: "Saskatchewan provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/sk.htm"
+      description: "Saskatchewan tax rates for 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds Saskatchewan provincial income tax to the federal base configuration.
+
+    Saskatchewan features:
+    - 3 provincial tax brackets (10.5% to 14.5%)
+    - Basic Personal Amount of $19,491 (increased from 2024)
+    - No provincial surtaxes or health premiums
+    - December 2024 affordability measures increased BPA and tax credits
+
+parameters:
+  # Saskatchewan provincial tax brackets - 2025
+  saskatchewan_tax_brackets:
+    - threshold: 0
+      rate: 0.1050
+    - threshold: 53463
+      rate: 0.1250
+    - threshold: 152750
+      rate: 0.1450
+
+  # Saskatchewan Basic Personal Amount - 2025
+  saskatchewan_bpa: 19491
+  saskatchewan_lowest_rate: 0.1050
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # Saskatchewan provincial income tax before credits
+  - id: saskatchewan_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$saskatchewan_tax_brackets"
+    category: income_tax
+    label: "Saskatchewan Income Tax"
+    description: "Saskatchewan provincial income tax before credits"
+
+  # Saskatchewan basic personal credit
+  - id: saskatchewan_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$saskatchewan_bpa"
+        - "$saskatchewan_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Saskatchewan Basic Personal Credit"
+    description: "Saskatchewan non-refundable tax credit for basic personal amount"
+
+  # Saskatchewan tax after credits
+  - id: saskatchewan_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$saskatchewan_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$saskatchewan_bpa"
+              - "$saskatchewan_lowest_rate"
+    category: income_tax
+    label: "Saskatchewan Income Tax (After Credits)"
+    description: "Saskatchewan provincial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_saskatchewan
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$saskatchewan_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_saskatchewan"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$saskatchewan_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$saskatchewan_basic_personal_credit"

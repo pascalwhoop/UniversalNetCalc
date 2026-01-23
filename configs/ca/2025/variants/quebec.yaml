@@ -1,0 +1,163 @@
+meta:
+  variant: "quebec"
+  label: "Quebec"
+  description: "Quebec provincial tax rates with federal abatement"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/qc.htm"
+      description: "Quebec tax rates for 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds Quebec provincial income tax to the federal base configuration.
+
+    Quebec features:
+    - 4 provincial tax brackets (14% to 25.75%)
+    - Basic Personal Amount of $18,571
+    - Federal abatement of 16.5% on federal tax (Quebec collects its own income tax)
+    - Highest provincial tax rates in Canada
+    - No provincial surtaxes or health premiums
+
+notices:
+  - id: "quebec_abatement"
+    title: "Federal Tax Abatement"
+    body: |
+      Quebec residents receive a 16.5% reduction on federal income tax because Quebec
+      collects its own provincial income tax. This abatement is applied after federal
+      tax credits are calculated.
+    severity: "info"
+
+parameters:
+  # Quebec provincial tax brackets - 2025
+  quebec_tax_brackets:
+    - threshold: 0
+      rate: 0.1400
+    - threshold: 53255
+      rate: 0.1900
+    - threshold: 106495
+      rate: 0.2400
+    - threshold: 129590
+      rate: 0.2575
+
+  # Quebec Basic Personal Amount - 2025
+  quebec_bpa: 18571
+  quebec_lowest_rate: 0.1400
+
+  # Federal abatement - 16.5%
+  federal_abatement_rate: 0.165
+
+calculations:
+  # Delete base net_annual and federal_income_tax so we can redefine them
+  - id: net_annual
+    $delete: true
+
+  - id: federal_income_tax
+    $delete: true
+
+  # Recalculate federal tax with Quebec abatement
+  # Federal tax after credits, then apply 16.5% abatement
+  - id: federal_income_tax_before_abatement
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$federal_income_tax_before_credits"
+          - "$total_federal_credits"
+
+  - id: federal_abatement
+    type: mul
+    values:
+      - "$federal_income_tax_before_abatement"
+      - "$federal_abatement_rate"
+    category: credit
+    label: "Federal Abatement (Quebec)"
+    description: "16.5% reduction in federal tax for Quebec residents"
+
+  - id: federal_income_tax
+    type: sub
+    values:
+      - "$federal_income_tax_before_abatement"
+      - "$federal_abatement"
+    category: income_tax
+    label: "Federal Income Tax (After Abatement)"
+    description: "Federal income tax after Quebec abatement"
+
+  # Quebec provincial income tax before credits
+  - id: quebec_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$quebec_tax_brackets"
+    category: income_tax
+    label: "Quebec Income Tax"
+    description: "Quebec provincial income tax before credits"
+
+  # Quebec basic personal credit
+  - id: quebec_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$quebec_bpa"
+        - "$quebec_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Quebec Basic Personal Credit"
+    description: "Quebec non-refundable tax credit for basic personal amount"
+
+  # Quebec tax after credits
+  - id: quebec_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$quebec_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$quebec_bpa"
+              - "$quebec_lowest_rate"
+    category: income_tax
+    label: "Quebec Income Tax (After Credits)"
+    description: "Quebec provincial tax after basic personal credit"
+
+  # Total deductions (federal with abatement + Quebec + CPP/EI)
+  - id: total_deductions_quebec
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$quebec_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_quebec"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$quebec_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$federal_abatement"
+      - "$quebec_basic_personal_credit"

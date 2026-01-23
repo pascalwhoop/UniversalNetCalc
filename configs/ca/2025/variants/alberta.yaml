@@ -1,0 +1,121 @@
+meta:
+  variant: "alberta"
+  label: "Alberta"
+  description: "Alberta provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/ab.htm"
+      description: "Alberta tax rates for 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds Alberta provincial income tax to the federal base configuration.
+
+    Alberta features:
+    - 6 provincial tax brackets (8% to 15%)
+    - Basic Personal Amount of $22,323 (highest in Canada for 2025)
+    - No provincial surtaxes or health premiums
+    - Indexation capped at 2% or CPI, whichever is lower
+
+parameters:
+  # Alberta provincial tax brackets - 2025
+  alberta_tax_brackets:
+    - threshold: 0
+      rate: 0.08
+    - threshold: 60000
+      rate: 0.10
+    - threshold: 151234
+      rate: 0.12
+    - threshold: 181481
+      rate: 0.13
+    - threshold: 241974
+      rate: 0.14
+    - threshold: 362961
+      rate: 0.15
+
+  # Alberta Basic Personal Amount - 2025
+  alberta_bpa: 22323
+  alberta_lowest_rate: 0.08
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end after Alberta calculations
+  - id: net_annual
+    $delete: true
+
+  # Alberta provincial income tax before credits
+  - id: alberta_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$alberta_tax_brackets"
+    category: income_tax
+    label: "Alberta Income Tax"
+    description: "Alberta provincial income tax before credits"
+
+  # Alberta basic personal credit
+  - id: alberta_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$alberta_bpa"
+        - "$alberta_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Alberta Basic Personal Credit"
+    description: "Alberta non-refundable tax credit for basic personal amount"
+
+  # Alberta tax after credits
+  - id: alberta_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$alberta_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$alberta_bpa"
+              - "$alberta_lowest_rate"
+    category: income_tax
+    label: "Alberta Income Tax (After Credits)"
+    description: "Alberta provincial tax after basic personal credit"
+
+  # Total deductions (federal + Alberta + CPP/EI)
+  - id: total_deductions_alberta
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$alberta_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual to include Alberta tax
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_alberta"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$alberta_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$alberta_basic_personal_credit"

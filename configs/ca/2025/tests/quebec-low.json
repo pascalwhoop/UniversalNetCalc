@@ -1,0 +1,14 @@
+{
+  "name": "Quebec - Low Income ($40,000)",
+  "inputs": {
+    "gross_annual": 40000,
+    "filing_status": "single"
+  },
+  "variant": "quebec",
+  "expected": {
+    "net": 32200,
+    "effective_rate": 0.195
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.01
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Alberta - High Income ($150,000)",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "variant": "alberta",
+  "expected": {
+    "net": 107000,
+    "effective_rate": 0.287
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.01
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Saskatchewan - High Income ($150,000)",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "variant": "saskatchewan",
+  "expected": {
+    "net": 106000,
+    "effective_rate": 0.293
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.01
+}

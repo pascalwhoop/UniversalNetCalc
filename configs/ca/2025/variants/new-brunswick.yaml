@@ -1,0 +1,116 @@
+meta:
+  variant: "new-brunswick"
+  label: "New Brunswick"
+  description: "New Brunswick provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/nb.htm"
+      description: "New Brunswick tax rates for 2025"
+      retrieved_at: "2026-01-23"
+  updated_at: "2026-01-23"
+  notes: |
+    This variant adds New Brunswick provincial income tax to the federal base configuration.
+
+    New Brunswick features:
+    - 4 provincial tax brackets (9.4% to 19.5%)
+    - Basic Personal Amount of $13,396
+    - No provincial surtaxes or health premiums
+
+parameters:
+  # New Brunswick provincial tax brackets - 2025
+  new_brunswick_tax_brackets:
+    - threshold: 0
+      rate: 0.0940
+    - threshold: 51306
+      rate: 0.1400
+    - threshold: 102614
+      rate: 0.1600
+    - threshold: 190060
+      rate: 0.1950
+
+  # New Brunswick Basic Personal Amount - 2025
+  new_brunswick_bpa: 13396
+  new_brunswick_lowest_rate: 0.0940
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # New Brunswick provincial income tax before credits
+  - id: new_brunswick_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$new_brunswick_tax_brackets"
+    category: income_tax
+    label: "New Brunswick Income Tax"
+    description: "New Brunswick provincial income tax before credits"
+
+  # New Brunswick basic personal credit
+  - id: new_brunswick_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$new_brunswick_bpa"
+        - "$new_brunswick_lowest_rate"
+    refundable: false
+    category: credit
+    label: "New Brunswick Basic Personal Credit"
+    description: "New Brunswick non-refundable tax credit for basic personal amount"
+
+  # New Brunswick tax after credits
+  - id: new_brunswick_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$new_brunswick_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$new_brunswick_bpa"
+              - "$new_brunswick_lowest_rate"
+    category: income_tax
+    label: "New Brunswick Income Tax (After Credits)"
+    description: "New Brunswick provincial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_new_brunswick
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$new_brunswick_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_new_brunswick"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$new_brunswick_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$new_brunswick_basic_personal_credit"
