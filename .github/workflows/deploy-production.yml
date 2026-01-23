@@ -1,0 +1,78 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Deployment reason'
+        required: true
+        type: string
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    environment:
+      name: production
+      url: https://universal-salary-calculator.workers.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run safety checks
+        run: npm run test:run
+        timeout-minutes: 5
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to Cloudflare production
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WRANGLER_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `Release ${tag}`,
+              generate_release_notes: true,
+              draft: false,
+              prerelease: tag.includes('rc') || tag.includes('beta') || tag.includes('alpha')
+            });
+
+            console.log(`Created release: ${release.data.html_url}`);
+
+      - name: Notify deployment success
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reason = '${{ github.event.inputs.reason || 'Version tag pushed' }}';
+            const tag = context.ref.replace('refs/tags/', '');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `✅ Production deployment successful: ${tag || 'main'}`,
+              body: `## Production Deployment Notification\n\n**Deployed at:** ${new Date().toISOString()}\n**Reason:** ${reason}\n**Commit:** ${context.sha}\n\nThe application has been successfully deployed to production.`,
+              labels: ['deployment'],
+              assignees: []
+            });

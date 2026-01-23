@@ -58,3 +58,5 @@ cloudflare-env.d.ts
 
 # Generated config modules
 /.generated
+
+**/.temp-execution*

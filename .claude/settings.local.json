@@ -31,11 +31,15 @@
       "Bash(python merge.py:*)",
       "Bash(node merge.mjs:*)",
       "WebFetch(domain:registry.npmjs.org)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:sparrow.cloudflare.com)"
     ]
   },
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowLocalBinding": true
+    }
   }
 }
