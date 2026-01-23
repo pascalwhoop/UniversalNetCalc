@@ -1,0 +1,296 @@
+meta:
+  country: "nl"
+  year: 2025
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1"
+      description: "Official 2025 income tax rates (Box 1)"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/heffingskortingen/algemene_heffingskorting/tabel-algemene-heffingskorting-2025"
+      description: "General tax credit (Algemene heffingskorting) 2025"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/heffingskortingen/arbeidskorting/tabel-arbeidskorting-2025"
+      description: "Labour tax credit (Arbeidskorting) 2025"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    This configuration covers the standard Dutch tax system for 2025 for individuals
+    under AOW (state pension) age. The rates include both income tax and social
+    security premiums (AOW, ANW, WLZ).
+
+    Key changes from 2024:
+    - Tax brackets adjusted for inflation
+    - First bracket rate decreased from 36.97% to 35.82%
+    - Second bracket introduced at 37.48% (from €38,441 to €76,817)
+    - Top rate of 49.50% applies above €76,817
+    - Tax credits adjusted for inflation
+
+    Key assumptions:
+    - Taxpayer is under AOW age (retirement age) in 2025
+    - Standard employee in Box 1 (income from work and home)
+    - Does not include special situations like partial foreign tax liability
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions. If you receive
+      holiday allowance (vakantiegeld), include it in your gross annual salary.
+      The standard holiday allowance is 8% of your annual salary.
+    severity: "info"
+
+  - id: "box_1_only"
+    title: "Box 1 Income Only"
+    body: |
+      This calculator handles Box 1 income (work and home) only. It does not
+      calculate tax on substantial interest (Box 2) or savings/investments (Box 3).
+    severity: "info"
+
+  - id: "aow_age"
+    title: "Under AOW Age"
+    body: |
+      This configuration is for individuals under AOW age (retirement age) in 2025.
+      If you reached AOW age in 2025, different rates apply.
+    severity: "warning"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (including holiday allowance)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual without fiscal partner"
+      partner:
+        label: "With Fiscal Partner"
+        description: "Married or registered partnership (used for credit distribution)"
+
+parameters:
+  # Income tax brackets for Box 1 (under AOW age) - 2025 rates
+  # These include income tax + social security premiums
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0.3582
+    - threshold: 38441
+      rate: 0.3748
+    - threshold: 76817
+      rate: 0.4950
+
+  # General tax credit (Algemene heffingskorting) - 2025
+  general_credit_max: 3068
+  general_credit_phaseout_start: 28406
+  general_credit_phaseout_end: 76817
+  general_credit_phaseout_rate: 0.06337
+
+  # Labour tax credit (Arbeidskorting) - 2025 complex bracket structure
+  labour_credit_brackets:
+    - threshold: 0
+      max: 12169
+      rate: 0.08053
+      base: 0
+    - threshold: 12169
+      max: 26288
+      rate: 0.30030
+      base: 980
+    - threshold: 26288
+      max: 43071
+      rate: 0.02258
+      base: 5220
+    - threshold: 43071
+      max: 129078
+      rate: -0.06510
+      base: 5599
+    - threshold: 129078
+      max: 999999999
+      rate: 0
+      base: 0
+
+calculations:
+  # Taxable income (for standard case, same as gross)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # Income tax (bracket tax on full income)
+  - id: income_tax_and_social_security
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Income Tax & Social Security"
+    description: "Combined income tax and social security premiums (AOW, ANW, WLZ)"
+
+  # General tax credit calculation with phaseout
+  - id: general_credit_reduction
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "$taxable_income"
+                  - "$general_credit_phaseout_start"
+          - "$general_credit_phaseout_rate"
+
+  - id: general_tax_credit_amount
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$general_credit_max"
+          - "$general_credit_reduction"
+
+  - id: general_tax_credit
+    type: credit
+    amount: "$general_tax_credit_amount"
+    refundable: false
+    category: credit
+    label: "General Tax Credit"
+    description: "Algemene heffingskorting"
+
+  # Labour tax credit calculation (complex bracket structure)
+  - id: labour_credit_raw
+    type: switch
+    on: "@gross_annual"
+    cases:
+      _:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: 12169
+        then:
+          type: mul
+          values:
+            - "@gross_annual"
+            - 0.08053
+        else:
+          type: conditional
+          condition:
+            type: lte
+            left: "@gross_annual"
+            right: 26288
+          then:
+            type: sum
+            values:
+              - 980
+              - type: mul
+                values:
+                  - type: sub
+                    values:
+                      - "@gross_annual"
+                      - 12169
+                  - 0.30030
+          else:
+            type: conditional
+            condition:
+              type: lte
+              left: "@gross_annual"
+              right: 43071
+            then:
+              type: sum
+              values:
+                - 5220
+                - type: mul
+                  values:
+                    - type: sub
+                      values:
+                        - "@gross_annual"
+                        - 26288
+                    - 0.02258
+            else:
+              type: conditional
+              condition:
+                type: lte
+                left: "@gross_annual"
+                right: 129078
+              then:
+                type: sub
+                values:
+                  - 5599
+                  - type: mul
+                    values:
+                      - type: sub
+                        values:
+                          - "@gross_annual"
+                          - 43071
+                      - 0.06510
+              else: 0
+
+  - id: labour_tax_credit
+    type: credit
+    amount:
+      type: max
+      values:
+        - 0
+        - "$labour_credit_raw"
+    refundable: false
+    category: credit
+    label: "Labour Tax Credit"
+    description: "Arbeidskorting"
+
+  # Total tax before credits
+  - id: total_tax_before_credits
+    type: sum
+    values:
+      - "$income_tax_and_social_security"
+
+  # Total credits
+  - id: total_credits
+    type: sum
+    values:
+      - "$general_tax_credit_amount"
+      - type: max
+        values:
+          - 0
+          - "$labour_credit_raw"
+
+  # Tax after credits (cannot be negative)
+  - id: total_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$total_tax_before_credits"
+          - "$total_credits"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_tax"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$income_tax_and_social_security"
+    credits:
+      - "$general_tax_credit"
+      - "$labour_tax_credit"

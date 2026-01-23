@@ -1,0 +1,30 @@
+{
+  "name": "Illinois - Married filing jointly low income",
+  "description": "Married couple earning $55,000 annually in Illinois - flat 4.95% state tax",
+  "inputs": {
+    "gross_annual": 55000,
+    "filing_status": "married_joint",
+    "state": "illinois"
+  },
+  "expected": {
+    "net": 45357.75,
+    "effective_rate": 0.1753,
+    "breakdown": {
+      "federal_income_tax": 2420.00,
+      "state_income_tax": 2722.50,
+      "social_security_tax": 3410.00,
+      "medicare_tax": 797.50,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal tax tables and IL flat tax",
+      "url": "https://www.paycom.com/resources/blog/state-income-tax-rates/",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $55,000 - $31,500 = $23,500. Federal tax: 10% * $23,500 = $2,350 (within first bracket). IL state: $55,000 * 4.95% = $2,722.50. FICA: $3,410 + $797.50 = $4,207.50. Total: $9,642.25"
+    }
+  ]
+}

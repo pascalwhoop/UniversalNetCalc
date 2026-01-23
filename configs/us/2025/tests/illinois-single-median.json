@@ -1,0 +1,30 @@
+{
+  "name": "Illinois - Single filer median income",
+  "description": "Single person earning $65,000 annually in Illinois - flat 4.95% state tax",
+  "inputs": {
+    "gross_annual": 65000,
+    "filing_status": "single",
+    "state": "illinois"
+  },
+  "expected": {
+    "net": 50711.00,
+    "effective_rate": 0.2199,
+    "breakdown": {
+      "federal_income_tax": 5749.00,
+      "state_income_tax": 3217.50,
+      "social_security_tax": 4030.00,
+      "medicare_tax": 942.50,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal tax tables and IL flat tax",
+      "url": "https://www.paycom.com/resources/blog/state-income-tax-rates/",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $65,000 - $15,750 = $49,250. Federal tax: $1,192.50 + $4,386 + $733 = ~$6,171.50. IL state: $65,000 * 4.95% = $3,217.50. FICA: $4,030 + $942.50 = $4,972.50. Total: $14,523.75"
+    }
+  ]
+}

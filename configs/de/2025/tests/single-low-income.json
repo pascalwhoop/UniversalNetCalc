@@ -1,0 +1,33 @@
+{
+  "name": "Single filer - Low income",
+  "description": "Single person earning €30,000 annually - below median income",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single",
+    "has_children": false,
+    "region": "saxony",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 21043,
+    "effective_rate": 0.298,
+    "breakdown": {
+      "income_tax": 2282,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 2790,
+      "health_contribution": 2625,
+      "unemployment_contribution": 390,
+      "care_contribution": 870
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Verified against How-to-Germany tax calculator for 2025",
+      "url": "https://www.how-to-germany.com/income-tax-calculator/",
+      "date": "2026-01-22",
+      "notes": "Tax Class I, Saxony, no church tax, statutory insurance, 2.9% health surcharge"
+    }
+  ]
+}

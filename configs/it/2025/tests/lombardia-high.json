@@ -1,13 +1,13 @@
 {
   "name": "High income in Lombardia (Milan)",
-  "description": "Employee earning €60,000 in Lombardia region (includes Milan)",
+  "description": "Employee earning €60,000 in Lombardia region (includes Milan). Employment credit phases out but still provides some benefit.",
   "inputs": {
     "gross_annual": 60000,
     "region_level_1": "lombardia"
   },
   "expected": {
-    "net": 33688,
-    "effective_rate": 0.4385
+    "net": 34198,
+    "effective_rate": 0.4300
   },
   "tolerance": 100,
   "sources": [

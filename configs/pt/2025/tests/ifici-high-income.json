@@ -1,0 +1,26 @@
+{
+  "name": "IFICI regime with high income (€60,000)",
+  "description": "Qualified professional under IFICI regime demonstrating significant tax savings at higher income levels",
+  "variant": "ifici",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 41400.00,
+    "effective_rate": 0.31000,
+    "breakdown": {
+      "irs_total": 12000.00,
+      "social_security_employee": 6600.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "IFICI regime provides 20% flat tax rate - significant savings vs standard progressive rates",
+      "url": "https://taxsummaries.pwc.com/portugal/individual/other-tax-credits-and-incentives",
+      "retrieved_at": "2026-01-22",
+      "notes": "IFICI flat rate: IRS=60000*0.20=12000; SS: 6600; Net: 41400. Standard regime net: €34,734.43. IFICI benefit: €6,665.57 (19% more take-home pay). The benefit increases significantly at higher incomes due to avoiding progressive rates up to 48%."
+    }
+  ]
+}

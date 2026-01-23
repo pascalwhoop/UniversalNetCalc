@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - Very high income with Additional Medicare Tax",
+  "description": "Single person earning $300,000 annually - subject to additional Medicare tax",
+  "inputs": {
+    "gross_annual": 300000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 214797.0,
+    "effective_rate": 0.284,
+    "breakdown": {
+      "federal_income_tax": 69034.75,
+      "state_income_tax": 0,
+      "social_security_tax": 10918.2,
+      "medicare_tax": 4350.0,
+      "additional_medicare_tax": 900.0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $300,000 - $15,750 = $284,250. Tax calculated through brackets up to 35% bracket. SS: capped at $176,100 * 6.2% = $10,918.20. Medicare: 1.45% of $300,000 = $4,350. Additional Medicare: 0.9% of ($300,000 - $200,000) = 0.9% of $100,000 = $900"
+    }
+  ]
+}

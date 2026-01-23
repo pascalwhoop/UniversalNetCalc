@@ -1,0 +1,25 @@
+{
+  "name": "Median income single filer",
+  "description": "Single person earning £50,000 - typical middle-income scenario at upper basic rate",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 39520,
+    "effective_rate": 0.2096,
+    "breakdown": {
+      "income_tax": 7486,
+      "national_insurance": 2994
+    }
+  },
+  "tolerance": 50,
+  "sources": [
+    {
+      "description": "Verified using online UK tax calculator for 2025/26",
+      "url": "https://www.nutsaboutmoney.com/take-home-pay-calculator",
+      "date": "2026-01-22",
+      "notes": "Personal allowance: £12,570, Taxable: £37,430, Income tax (20%): £7,486, NI main band (8%): £2,994, Total deductions: £10,480, Net: £39,520"
+    }
+  ]
+}

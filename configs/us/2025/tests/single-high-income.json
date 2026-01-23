@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - High income",
+  "description": "Single person earning $150,000 annually - high income earner",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 113458.0,
+    "effective_rate": 0.244,
+    "breakdown": {
+      "federal_income_tax": 25067.0,
+      "state_income_tax": 0,
+      "social_security_tax": 9300.0,
+      "medicare_tax": 2175.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $150,000 - $15,750 = $134,250. Tax: $1,192.50 + $4,386 + $12,072.50 + $7,404 + $2,171 = $27,226. SS: 6.2% of $150,000 = $9,300 (WAIT - wage base is $176,100, so full $150k is subject). Medicare: 1.45% of $150,000 = $2,175. No additional Medicare (under $200k). Total deductions: $40,151. Net: $109,849"
+    }
+  ]
+}

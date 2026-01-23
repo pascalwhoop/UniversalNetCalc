@@ -1,0 +1,25 @@
+{
+  "name": "Single filer with high income (€60,000)",
+  "description": "High income single taxpayer in upper tax brackets, verified against official Portuguese IRS brackets for 2025",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 34734.43,
+    "effective_rate": 0.42109,
+    "breakdown": {
+      "irs_total": 18665.58,
+      "social_security_employee": 6600.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2025 IRS brackets from Portuguese Tax Code Article 68",
+      "url": "https://www.montepio.org/ei/mais-recentes/escaloes-de-irs-sabe-qual-e-o-seu/",
+      "retrieved_at": "2026-01-22",
+      "notes": "IRS calculation: (0-8059): 1007.38; (8059-12160): 656.16; (12160-17233): 1090.70; (17233-22306): 1237.81; (22306-28400): 1913.52; (28400-41629): 4617.51; (41629-44987): 1447.30; (44987-60000): 6695.19; Total IRS=18665.58; Social Security: 60000*0.11=6600; Net: 34734.43"
+    }
+  ]
+}

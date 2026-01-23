@@ -1,0 +1,23 @@
+{
+  "name": "Low income - below tax-free threshold",
+  "description": "Income below S$20,000 is completely tax-free in Singapore",
+  "inputs": {
+    "gross_annual": 15000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 15000,
+    "effective_rate": 0.0,
+    "breakdown": {
+      "income_tax": 0
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "IRAS official tax rates - first S$20,000 is tax-free",
+      "url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

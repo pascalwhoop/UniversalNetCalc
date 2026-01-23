@@ -1,0 +1,23 @@
+{
+  "name": "Impatriate regime at high income in Lombardia",
+  "description": "Expat with impatriate regime earning €100,000 in Lombardia (Milan), standard 50% exemption",
+  "variant": "impatriate",
+  "inputs": {
+    "gross_annual": 100000,
+    "region_level_1": "lombardia",
+    "has_minor_children": false
+  },
+  "expected": {
+    "net": 75570,
+    "effective_rate": 0.2443
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Impatriate regime 2026: 50% of income exempt. Benefits from 2026 reduced IRPEF second bracket (33% vs 35%).",
+      "url": "https://offconsulting.it/italy-impatriate-tax-regime-2025-key-clarifications-you-should-know/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

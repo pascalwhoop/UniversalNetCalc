@@ -1,0 +1,25 @@
+{
+  "name": "Additional rate taxpayer",
+  "description": "Single person earning £150,000 - additional rate (45%) tax band",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 91286,
+    "effective_rate": 0.3914,
+    "breakdown": {
+      "income_tax": 53703,
+      "national_insurance": 5011
+    }
+  },
+  "tolerance": 650,
+  "sources": [
+    {
+      "description": "Verified using online UK tax calculator for 2025/26",
+      "url": "https://www.nutsaboutmoney.com/take-home-pay-calculator",
+      "date": "2026-01-22",
+      "notes": "Personal allowance fully eliminated (income > £125,140). Taxable: £150,000. Income tax: £7,486 (basic @ 20%) + £27,054 (higher @ 40%) + £19,163 (additional @ 45%) = £53,703. NI: £2,994 (8%) + £2,017 (2%) = £5,011. Total deductions: £58,714. Net: £91,286"
+    }
+  ]
+}

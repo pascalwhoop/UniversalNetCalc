@@ -1,0 +1,23 @@
+{
+  "name": "Top bracket - S$350,000",
+  "description": "Income in the 22% top bracket (S$320,001 - S$500,000)",
+  "inputs": {
+    "gross_annual": 350000,
+    "filing_status": "married"
+  },
+  "expected": {
+    "net": 298850,
+    "effective_rate": 0.14614285714,
+    "breakdown": {
+      "income_tax": 51150
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation: S$44,550 (up to S$320k) + S$6,600 (S$30k at 22%) = S$51,150",
+      "url": "https://money-snap.com/sg/income-tax-calculator/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

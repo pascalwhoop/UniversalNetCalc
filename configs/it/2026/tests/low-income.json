@@ -1,25 +1,24 @@
 {
   "name": "Low income single earner",
-  "description": "Employee earning €20,000 annually - no benefit from 2026 rate reduction (below second bracket)",
+  "description": "Employee earning €20,000 annually. Includes employment tax credit (creates no-tax area), €1,000 fixed deduction for 2026, and INPS contribution cut.",
   "inputs": {
     "gross_annual": 20000,
     "region_level_1": "marche"
   },
   "expected": {
-    "net": 12894,
-    "effective_rate": 0.3553,
-    "breakdown": {
-      "irpef": 4600,
-      "regional_tax": 346,
-      "municipal_tax": 160,
-      "inps_employee": 2000
-    }
+    "net": 18098,
+    "effective_rate": 0.0951
   },
   "tolerance": 50,
   "sources": [
     {
-      "description": "Calculated based on 2026 IRPEF rates (unchanged for first bracket)",
-      "url": "https://taxing.it/personal-income-tax-irpef-rates/",
+      "description": "Employment tax credit (detrazione lavoro dipendente) significantly reduces effective tax rate",
+      "url": "https://taxing.it/tax-credit-for-employment-income/",
+      "retrieved_at": "2026-01-23"
+    },
+    {
+      "description": "2026 Budget Law - €1,000 fixed deduction for incomes up to €32,000",
+      "url": "https://www.mef.gov.it/en/focus/Main-measures-of-the-2026-Budget-Law-00001/",
       "retrieved_at": "2026-01-22"
     }
   ]

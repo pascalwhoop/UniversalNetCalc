@@ -1,0 +1,341 @@
+meta:
+  country: "fr"
+  year: 2025
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.toutsurmesfinances.com/impots/bareme-de-l-impot-sur-le-revenu.html"
+      description: "Official 2025 French income tax brackets (on 2024 income)"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/taux-cotisations-secteur-prive.html"
+      description: "French social security contribution rates for 2026"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.entreprises.cci-paris-idf.fr/fiches-pratiques/les-charges-sociales-au-1er-janvier-2026"
+      description: "CSG and CRDS rates for salary employees"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705"
+      description: "Family quotient (quotient familial) system for married couples and children"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    France uses a complex tax system with:
+    - Progressive income tax with quotient familial (family splitting)
+    - High social charges (CSG and CRDS) on earned income
+    - Employee social security contributions (pension, health, unemployment)
+    - Family-based tax calculation where income is divided by "parts" before applying brackets
+
+notices:
+  - id: "gross_salary_info"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary (salaire brut annuel) before any deductions.
+      This should include all regular compensation and bonuses.
+    severity: "info"
+
+  - id: "quotient_familial_info"
+    title: "Quotient Familial (Family Splitting)"
+    body: |
+      France uses a family-based tax system where income is divided by "parts fiscales":
+      - Single: 1 part
+      - Married/PACS: 2 parts
+      - First two children: +0.5 part each
+      - Third+ children: +1 part each
+
+      This system significantly reduces taxes for families with children.
+    severity: "info"
+
+  - id: "social_charges_notice"
+    title: "Social Charges (CSG/CRDS)"
+    body: |
+      French employees pay significant social charges:
+      - CSG (Contribution Sociale Généralisée): 9.2% (6.8% deductible + 2.4% non-deductible)
+      - CRDS (Contribution au Remboursement de la Dette Sociale): 0.5%
+
+      These are calculated on 98.25% of gross salary (1.75% abatement).
+    severity: "info"
+
+  - id: "net_vs_net_imposable"
+    title: "Net Salary vs Taxable Income"
+    body: |
+      This calculator shows net salary after all deductions.
+      Note that French tax notices distinguish between:
+      - Net à payer (take-home pay after all deductions)
+      - Revenu net imposable (taxable income, which is higher)
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before deductions (salaire brut)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status (Situation familiale)"
+    options:
+      single:
+        label: "Single (Célibataire)"
+        description: "Unmarried, divorced, or widowed"
+        base_parts: 1
+      married:
+        label: "Married/PACS (Marié ou Pacsé)"
+        description: "Married or in civil partnership"
+        base_parts: 2
+
+  children:
+    type: number
+    required: false
+    default: 0
+    min: 0
+    max: 10
+    label: "Number of Dependent Children"
+    description: "Children under 18 or students under 25 living with you"
+
+parameters:
+  # 2025 Income tax brackets (applied per part fiscale)
+  # Source: Loi de finances 2025
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0
+    - threshold: 11497
+      rate: 0.11
+    - threshold: 29315
+      rate: 0.30
+    - threshold: 83823
+      rate: 0.41
+    - threshold: 180294
+      rate: 0.45
+
+  # Social security contributions (employee portion only)
+  # Pension insurance (retraite de base)
+  pension_rate_uncapped: 0.004  # 0.4% on total salary
+  pension_rate_capped: 0.069    # 6.9% up to ceiling
+
+  # Social security ceiling (Plafond annuel de la Sécurité Sociale)
+  social_security_ceiling: 48048  # €4,004/month * 12 = €48,048/year for 2026
+
+  # CSG (Contribution Sociale Généralisée)
+  csg_rate_deductible: 0.068    # 6.8% deductible from taxable income
+  csg_rate_nondeductible: 0.024 # 2.4% non-deductible
+
+  # CRDS (Contribution au Remboursement de la Dette Sociale)
+  crds_rate: 0.005              # 0.5%
+
+  # CSG/CRDS base calculation (98.25% of gross)
+  csg_crds_rate: 0.9825         # 1.75% abatement
+
+  # Standard 10% professional expenses deduction for taxable income
+  professional_expenses_rate: 0.10
+  professional_expenses_min: 490    # Minimum deduction
+  professional_expenses_max: 14171  # Maximum deduction for 2025
+
+calculations:
+  # ====================
+  # SOCIAL CONTRIBUTIONS
+  # ====================
+
+  # CSG/CRDS Base (98.25% of gross salary)
+  - id: csg_crds_base
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$csg_crds_rate"
+
+  # CSG Deductible (6.8% of base)
+  - id: csg_deductible
+    type: percent_of
+    base: "$csg_crds_base"
+    rate: "$csg_rate_deductible"
+    category: contribution
+    label: "CSG Deductible"
+    description: "6.8% deductible social contribution on 98.25% of gross"
+
+  # CSG Non-Deductible (2.4% of base)
+  - id: csg_nondeductible
+    type: percent_of
+    base: "$csg_crds_base"
+    rate: "$csg_rate_nondeductible"
+    category: contribution
+    label: "CSG Non-Deductible"
+    description: "2.4% non-deductible social contribution on 98.25% of gross"
+
+  # CRDS (0.5% of base)
+  - id: crds
+    type: percent_of
+    base: "$csg_crds_base"
+    rate: "$crds_rate"
+    category: contribution
+    label: "CRDS"
+    description: "0.5% debt reduction contribution on 98.25% of gross"
+
+  # Pension contribution - uncapped portion (0.4% on total)
+  - id: pension_uncapped
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$pension_rate_uncapped"
+
+  # Pension contribution - capped portion (6.9% up to ceiling)
+  - id: pension_capped_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$social_security_ceiling"
+
+  - id: pension_capped
+    type: percent_of
+    base: "$pension_capped_base"
+    rate: "$pension_rate_capped"
+
+  # Total pension contribution
+  - id: pension_contribution
+    type: sum
+    values:
+      - "$pension_uncapped"
+      - "$pension_capped"
+    category: contribution
+    label: "Pension Insurance (Assurance Vieillesse)"
+    description: "0.4% on total + 6.9% up to €48,048"
+
+  # Total social contributions (for net salary calculation)
+  - id: total_contributions
+    type: sum
+    values:
+      - "$csg_deductible"
+      - "$csg_nondeductible"
+      - "$crds"
+      - "$pension_contribution"
+
+  # ====================
+  # TAXABLE INCOME
+  # ====================
+
+  # Net salary before income tax (gross - all social contributions)
+  - id: net_before_tax
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_contributions"
+
+  # Professional expenses deduction (10% of gross, with min/max)
+  - id: professional_expenses_uncapped
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$professional_expenses_rate"
+
+  - id: professional_expenses
+    type: max
+    values:
+      - type: min
+        values:
+          - "$professional_expenses_uncapped"
+          - "$professional_expenses_max"
+      - "$professional_expenses_min"
+
+  # Taxable income = Gross - Deductible CSG - Professional expenses
+  - id: taxable_income_before_qf
+    type: sub
+    values:
+      - "@gross_annual"
+      - type: sum
+        values:
+          - "$csg_deductible"
+          - "$professional_expenses"
+
+  # ====================
+  # QUOTIENT FAMILIAL
+  # ====================
+
+  # Calculate number of fiscal parts based on status and children
+  - id: base_parts
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: 1
+      married: 2
+
+  # Additional parts for children
+  # First 2 children: 0.5 part each
+  # 3rd+ children: 1 part each
+  - id: children_parts
+    type: conditional
+    condition:
+      type: gt
+      left: "@children"
+      right: 2
+    then:
+      type: sum
+      values:
+        - 1.0  # First two children = 1 part total
+        - type: sub
+          values:
+            - "@children"
+            - 2
+    else:
+      type: mul
+      values:
+        - "@children"
+        - 0.5
+
+  # Total fiscal parts
+  - id: total_parts
+    type: sum
+    values:
+      - "$base_parts"
+      - "$children_parts"
+
+  # ====================
+  # INCOME TAX
+  # ====================
+
+  # Use family quotient function to calculate income tax
+  # This divides income by parts, applies brackets, then multiplies back
+  # Note: brackets are read from parameters.income_tax_brackets by the function
+  - id: income_tax
+    type: function
+    name: "family_quotient_tax"
+    inputs:
+      gross: "$taxable_income_before_qf"
+      family_units: "$total_parts"
+    category: income_tax
+    label: "Income Tax (Impôt sur le Revenu)"
+    description: "Progressive tax with family quotient system"
+
+  # ====================
+  # TOTALS
+  # ====================
+
+  # Total deductions (contributions + income tax)
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_contributions"
+      - "$income_tax"
+
+  # Net annual salary (take-home pay)
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$csg_deductible"
+      - "$csg_nondeductible"
+      - "$crds"
+      - "$pension_contribution"

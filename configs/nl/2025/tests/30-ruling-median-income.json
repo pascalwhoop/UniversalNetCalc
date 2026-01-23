@@ -1,0 +1,23 @@
+{
+  "name": "30% ruling at median expat income",
+  "description": "Single expat with 30% ruling earning €60,000 gross in the Netherlands",
+  "variant": "30-ruling",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 51600,
+    "effective_rate": 0.14000
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using official 2025 Dutch tax rates with 30% ruling applied",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
+      "retrieved_at": "2026-01-22",
+      "notes": "30% ruling: €18,000 tax-free, taxable income €42,000. Tax calculated on 70% of gross income."
+    }
+  ]
+}

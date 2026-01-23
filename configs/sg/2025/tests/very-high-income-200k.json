@@ -1,0 +1,23 @@
+{
+  "name": "Very high income - S$200,000",
+  "description": "Income at the S$200,000 bracket boundary",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 178850,
+    "effective_rate": 0.10575,
+    "breakdown": {
+      "income_tax": 21150
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "From official IRAS table: Gross tax payable at S$200,000 is S$21,150",
+      "url": "https://money-snap.com/sg/income-tax-calculator/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

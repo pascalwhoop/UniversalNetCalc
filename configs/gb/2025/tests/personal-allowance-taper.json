@@ -1,0 +1,25 @@
+{
+  "name": "Personal allowance taper zone",
+  "description": "Single person earning £110,000 - personal allowance reduced in taper zone",
+  "inputs": {
+    "gross_annual": 110000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 72357,
+    "effective_rate": 0.3422,
+    "breakdown": {
+      "income_tax": 33432,
+      "national_insurance": 4211
+    }
+  },
+  "tolerance": 100,
+  "sources": [
+    {
+      "description": "Verified using online UK tax calculator for 2025/26",
+      "url": "https://www.nutsaboutmoney.com/take-home-pay-calculator",
+      "date": "2026-01-22",
+      "notes": "Income over £100k triggers taper: PA reduction = (£110k - £100k) × 50% = £5,000. Personal allowance: £12,570 - £5,000 = £7,570. Taxable: £102,430. Income tax: £7,486 (basic) + £25,946 (higher) = £33,432. NI: £2,994 (8%) + £1,217 (2%) = £4,211. Total: £37,643. Net: £72,357"
+    }
+  ]
+}

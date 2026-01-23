@@ -1,0 +1,23 @@
+{
+  "name": "Impatriate regime at median income in Lazio",
+  "description": "Expat with impatriate regime earning €60,000 in Lazio (Rome), standard 50% exemption. Employment credit phases out above €50k gross.",
+  "variant": "impatriate",
+  "inputs": {
+    "gross_annual": 60000,
+    "region_level_1": "lazio",
+    "has_minor_children": false
+  },
+  "expected": {
+    "net": 46347,
+    "effective_rate": 0.2276
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Impatriate regime 2025: 50% of income exempt from taxation (only 50% taxable)",
+      "url": "https://offconsulting.it/italy-impatriate-tax-regime-2025-key-clarifications-you-should-know/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

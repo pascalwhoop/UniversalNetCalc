@@ -1,0 +1,23 @@
+{
+  "name": "Bracket boundary - S$80,000",
+  "description": "Income at the S$80,000 bracket boundary",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "married"
+  },
+  "expected": {
+    "net": 76650,
+    "effective_rate": 0.041875,
+    "breakdown": {
+      "income_tax": 3350
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "From official IRAS table: Gross tax payable at S$80,000 is S$3,350",
+      "url": "https://money-snap.com/sg/income-tax-calculator/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

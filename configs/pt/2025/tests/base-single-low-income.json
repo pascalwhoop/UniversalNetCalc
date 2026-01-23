@@ -1,0 +1,25 @@
+{
+  "name": "Single filer with low income (€20,000)",
+  "description": "Low income single taxpayer, verified against official Portuguese IRS brackets for 2025",
+  "inputs": {
+    "gross_annual": 20000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 14370.62,
+    "effective_rate": 0.28147,
+    "breakdown": {
+      "irs_total": 3429.38,
+      "social_security_employee": 2200.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2025 IRS brackets from Portuguese Tax Code Article 68",
+      "url": "https://www.montepio.org/ei/mais-recentes/escaloes-de-irs-sabe-qual-e-o-seu/",
+      "retrieved_at": "2026-01-22",
+      "notes": "IRS calculation: (0-8059): 8059*0.125=1007.38; (8059-12160): 4101*0.160=656.16; (12160-17233): 5073*0.215=1090.70; (17233-20000): 2767*0.244=675.15; Total IRS=3429.38; Social Security: 20000*0.11=2200; Total deductions: 5629.38; Net: 14370.62"
+    }
+  ]
+}

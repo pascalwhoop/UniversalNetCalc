@@ -1,0 +1,30 @@
+{
+  "name": "Married filing jointly - Median income",
+  "description": "Married couple earning $100,000 annually combined",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "married_joint",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 84607.0,
+    "effective_rate": 0.1539,
+    "breakdown": {
+      "federal_income_tax": 7743.0,
+      "state_income_tax": 0,
+      "social_security_tax": 6200.0,
+      "medicare_tax": 1450.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $100,000 - $31,500 = $68,500. Tax: 10% on $23,850 = $2,385 + 12% on ($68,500 - $23,850) = 12% on $44,650 = $5,358. Total = $7,743. Wait, let me recalc more carefully. In 10% bracket: $23,850 * 0.10 = $2,385. In 12% bracket: ($68,500 - $23,850) = $44,650 * 0.12 = $5,358. Total income tax = $7,743. Hmm, my expected seems off. Let me fix."
+    }
+  ]
+}

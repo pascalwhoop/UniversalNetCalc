@@ -1,0 +1,25 @@
+{
+  "name": "Below personal allowance",
+  "description": "Single person earning £10,000 - below personal allowance threshold",
+  "inputs": {
+    "gross_annual": 10000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 10000,
+    "effective_rate": 0.0,
+    "breakdown": {
+      "income_tax": 0,
+      "national_insurance": 0
+    }
+  },
+  "tolerance": 10,
+  "sources": [
+    {
+      "description": "Income below personal allowance and NI threshold - no tax or NI due",
+      "url": "https://www.gov.uk/income-tax-rates",
+      "date": "2026-01-22",
+      "notes": "Income £10,000 is below both personal allowance (£12,570) and NI primary threshold (£12,570). No income tax or NI contributions due. Net equals gross."
+    }
+  ]
+}

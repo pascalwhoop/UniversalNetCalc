@@ -1,0 +1,25 @@
+{
+  "name": "Married couple filing jointly (€50,000)",
+  "description": "Married couple filing jointly with quociente conjugal (spousal quotient), verified against Portuguese IRS calculation method",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "married_joint"
+  },
+  "expected": {
+    "net": 34824.08,
+    "effective_rate": 0.30352,
+    "breakdown": {
+      "irs_total": 9675.92,
+      "social_security_employee": 5500.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2025 IRS brackets with quociente conjugal (quotient of 2)",
+      "url": "https://www.montepio.org/ei/mais-recentes/escaloes-de-irs-sabe-qual-e-o-seu/",
+      "retrieved_at": "2026-01-22",
+      "notes": "Married joint filing divides income by quotient of 2: 50000/2=25000 per quotient. IRS calculated on 25000, then multiplied by 2. IRS per quotient: 4837.96; Total IRS: 9675.92; Social Security: 50000*0.11=5500; Net: 34824.08. This demonstrates tax benefit of joint filing vs single."
+    }
+  ]
+}

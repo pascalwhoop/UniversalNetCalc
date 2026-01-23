@@ -1,0 +1,29 @@
+{
+  "name": "Married couple - Three children",
+  "description": "Married couple earning €100,000 with 3 children, 4 fiscal parts (third child = 1 full part)",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "married",
+    "children": 3
+  },
+  "expected": {
+    "net": 68000,
+    "effective_rate": 0.32,
+    "breakdown": {
+      "income_tax": 16256,
+      "csg_deductible": 6681,
+      "csg_nondeductible": 2361,
+      "crds": 491,
+      "pension_contribution": 3715
+    }
+  },
+  "tolerance": 1200,
+  "tolerance_percent": 0.10,
+  "sources": [
+    {
+      "description": "Calculated with quotient familial (4 parts: 2 + 0.5 + 0.5 + 1) - third child worth full part",
+      "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
+      "date": "2026-01-22"
+    }
+  ]
+}

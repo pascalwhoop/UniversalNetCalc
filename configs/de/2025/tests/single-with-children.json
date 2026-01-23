@@ -1,0 +1,32 @@
+{
+  "name": "Single parent with children",
+  "description": "Single person with children earning €50,000 - reduced care insurance rate",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single",
+    "has_children": true,
+    "region": "saxony",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 32298,
+    "effective_rate": 0.354,
+    "breakdown": {
+      "income_tax": 6877,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 4650,
+      "health_contribution": 4375,
+      "unemployment_contribution": 650,
+      "care_contribution": 1150
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Estimated based on 2025 rates with reduced care insurance for parents",
+      "url": "https://www.how-to-germany.com/income-tax-calculator/",
+      "date": "2026-01-22"
+    }
+  ]
+}

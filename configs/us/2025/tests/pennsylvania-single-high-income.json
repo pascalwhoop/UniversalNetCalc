@@ -1,0 +1,30 @@
+{
+  "name": "Pennsylvania - Single filer high income",
+  "description": "Single person earning $120,000 annually in Pennsylvania - flat 3.07% state tax",
+  "inputs": {
+    "gross_annual": 120000,
+    "filing_status": "single",
+    "state": "pennsylvania"
+  },
+  "expected": {
+    "net": 88473.60,
+    "effective_rate": 0.2627,
+    "breakdown": {
+      "federal_income_tax": 18067.00,
+      "state_income_tax": 3684.00,
+      "social_security_tax": 7440.00,
+      "medicare_tax": 1740.00,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal tax tables and PA flat tax",
+      "url": "https://www.paycom.com/resources/blog/state-income-tax-rates/",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $120,000 - $15,750 = $104,250. Federal tax brackets: $1,192.50 + $4,386 + $12,072.50 + $226 = ~$18,067. PA state: $120,000 * 3.07% = $3,684. FICA: $7,440 + $1,740 = $9,180. Total: $31,526.40"
+    }
+  ]
+}

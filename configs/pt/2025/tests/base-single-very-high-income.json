@@ -1,0 +1,25 @@
+{
+  "name": "Single filer with very high income (€100,000)",
+  "description": "Very high income single taxpayer in top tax bracket (48%), verified against official Portuguese IRS brackets for 2025",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 51940.09,
+    "effective_rate": 0.48060,
+    "breakdown": {
+      "irs_total": 37059.91,
+      "social_security_employee": 11000.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2025 IRS brackets from Portuguese Tax Code Article 68",
+      "url": "https://www.montepio.org/ei/mais-recentes/escaloes-de-irs-sabe-qual-e-o-seu/",
+      "retrieved_at": "2026-01-22",
+      "notes": "IRS calculation includes all brackets up to 48% top rate; Total IRS=37059.91; Social Security: 100000*0.11=11000; Total deductions: 48059.91; Net: 51940.09"
+    }
+  ]
+}

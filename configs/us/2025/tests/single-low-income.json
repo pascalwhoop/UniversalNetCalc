@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - Low income",
+  "description": "Single person earning $30,000 annually - below median income",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 26233.5,
+    "effective_rate": 0.1255,
+    "breakdown": {
+      "federal_income_tax": 1471.5,
+      "state_income_tax": 0,
+      "social_security_tax": 1860.0,
+      "medicare_tax": 435.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $30,000 - $15,750 = $14,250. Tax: $1,192.50 (10% on $11,925) + $470 (12% on remaining $2,325) = $1,662.50. SS: 6.2% of $30,000 = $1,860. Medicare: 1.45% of $30,000 = $435. Total deductions: $4,522.50. Net: $25,477.50"
+    }
+  ]
+}

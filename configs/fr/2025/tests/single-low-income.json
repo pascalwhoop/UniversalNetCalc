@@ -1,0 +1,29 @@
+{
+  "name": "Single filer - Low income",
+  "description": "Single person earning €25,000 annually, below second tax bracket",
+  "inputs": {
+    "gross_annual": 25000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 16728,
+    "effective_rate": 0.331,
+    "breakdown": {
+      "income_tax": 4064,
+      "csg_deductible": 1670,
+      "csg_nondeductible": 591,
+      "crds": 123,
+      "pension_contribution": 1825
+    }
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.10,
+  "sources": [
+    {
+      "description": "Calculated based on official French tax brackets and social contribution rates",
+      "url": "https://www.toutsurmesfinances.com/impots/bareme-de-l-impot-sur-le-revenu.html",
+      "date": "2026-01-22"
+    }
+  ]
+}

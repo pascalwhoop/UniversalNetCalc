@@ -1,0 +1,29 @@
+{
+  "name": "Single filer at high income in Neuchâtel (high-tax canton)",
+  "description": "Single person earning CHF 200,000 in Neuchâtel, one of the highest-tax cantons",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single",
+    "region_level_1": "neuchatel"
+  },
+  "expected": {
+    "net": 136959,
+    "effective_rate": 0.315,
+    "breakdown": {
+      "federal_income_tax": 10811,
+      "cantonal_municipal_tax": 40000,
+      "avs_ai_apg_contribution": 10600,
+      "unemployment_contribution": 1630
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Neuchâtel has among Switzerland's highest tax rates",
+      "url": "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland",
+      "retrieved_at": "2026-01-22",
+      "notes": "High income in Neuchâtel: federal ~8%, cantonal/municipal ~20% of gross, social 6.12% (unemployment capped)"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Single filer - High income",
+  "description": "Single person earning €100,000 annually, high earner in top brackets",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 56500,
+    "effective_rate": 0.435,
+    "breakdown": {
+      "income_tax": 29750,
+      "csg_deductible": 6681,
+      "csg_nondeductible": 2361,
+      "crds": 491,
+      "pension_contribution": 3715
+    }
+  },
+  "tolerance": 1000,
+  "tolerance_percent": 0.10,
+  "sources": [
+    {
+      "description": "Calculated based on official French tax brackets and social contribution rates",
+      "url": "https://www.toutsurmesfinances.com/impots/bareme-de-l-impot-sur-le-revenu.html",
+      "date": "2026-01-22"
+    }
+  ]
+}

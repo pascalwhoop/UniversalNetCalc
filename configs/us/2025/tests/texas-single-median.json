@@ -1,0 +1,30 @@
+{
+  "name": "Texas - Single filer median income",
+  "description": "Single person earning $70,000 annually in Texas - no state income tax",
+  "inputs": {
+    "gross_annual": 70000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 57796.00,
+    "effective_rate": 0.1743,
+    "breakdown": {
+      "federal_income_tax": 6849.00,
+      "state_income_tax": 0,
+      "social_security_tax": 4340.00,
+      "medicare_tax": 1015.00,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal tax tables, no state tax",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $70,000 - $15,750 = $54,250. Federal tax: $1,192.50 (10% on $11,925) + $4,386 (12% on $36,550) + $1,493 (22% on $5,775) = ~$7,071.50. No state tax. FICA: $4,340 + $1,015 = $5,355. Total: $12,295.50"
+    }
+  ]
+}

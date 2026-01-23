@@ -1,0 +1,30 @@
+{
+  "name": "California - Single filer median income",
+  "description": "Single person earning $80,000 annually in California - progressive state tax",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single",
+    "state": "california"
+  },
+  "expected": {
+    "net": 61364.00,
+    "effective_rate": 0.2330,
+    "breakdown": {
+      "federal_income_tax": 9049.00,
+      "state_income_tax": 3427.00,
+      "social_security_tax": 4960.00,
+      "medicare_tax": 1160.00,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal and CA state tax tables",
+      "url": "https://www.ftb.ca.gov/forms/2024/2024-540-tax-rate-schedules.pdf",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable income $80,000 - $15,750 = $64,250. Federal tax: $1,192.50 + $4,386 + $3,294.50 = $9,271.50 (approx). CA: Taxable income $80,000 - $5,540 = $74,460. CA tax brackets: $107.56 (1% on $10,756) + $294.88 (2% on $14,744) + $593.84 (4% on $14,746) + $937.32 (6% on $15,622) + $1,179.36 (8% on $14,742) + $1,601.68 (9.3% on $4,050) = ~$4,715. FICA: $4,960 + $1,160 = $6,120. Total: ~$20,107"
+    }
+  ]
+}

@@ -1,0 +1,551 @@
+meta:
+  country: "ch"
+  year: 2025
+  currency: "CHF"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.estv.admin.ch/estv/en/home/federal-direct-tax.html"
+      description: "Swiss Federal Tax Administration - Direct Federal Tax"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.ahv-iv.ch/p/2.01.f"
+      description: "AVS/AI/APG social security contribution rates 2025"
+      retrieved_at: "2026-01-22"
+    - url: "https://taxsummaries.pwc.com/switzerland/individual/taxes-on-personal-income"
+      description: "PWC Tax Summaries - Switzerland 2025"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland"
+      description: "Canton and municipal tax rates comparison"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    Switzerland has a complex three-level tax system: federal, cantonal, and municipal.
+    Federal tax rates are progressive up to 11.5% maximum.
+    Cantonal and municipal taxes vary significantly by location, using multiplier systems.
+    This configuration provides federal taxes and example cantonal rates for major cantons.
+
+    Key updates for 2025:
+    - Federal tax rates remain unchanged from 2024
+    - Social security contribution rates (AVS/AI/APG) remain at 5.3%
+    - Unemployment insurance cap remains at CHF 148,200
+    - Standard deductions adjusted for 2025
+
+notices:
+  - id: "multi_level_taxation"
+    title: "Three-Level Tax System"
+    body: |
+      Switzerland taxes income at three levels: federal, cantonal (state), and municipal (city).
+      Total tax burden varies significantly by location. This calculator includes federal tax
+      and representative canton/municipal rates. Your actual tax may differ based on your
+      specific municipality within the canton.
+    severity: "info"
+
+  - id: "social_security"
+    title: "Social Security Contributions"
+    body: |
+      Swiss employees contribute to AVS/AI/APG (old-age, disability, loss of income) at 5.3%
+      and unemployment insurance (ALV) at 1.1% up to CHF 148,200 annual income.
+    severity: "info"
+
+  - id: "married_filing"
+    title: "Married Filing Status"
+    body: |
+      Switzerland taxes married couples jointly. The combined income is taxed together,
+      which may result in higher or lower effective rates depending on income distribution.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (in CHF)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual"
+      married:
+        label: "Married"
+        description: "Married or in registered partnership (joint taxation)"
+
+  region_level_1:
+    type: enum
+    required: false
+    label: "Canton"
+    description: "Select your canton of residence (optional - affects cantonal/municipal tax estimates)"
+    options:
+      zurich:
+        label: "Zürich"
+      bern:
+        label: "Bern"
+      geneva:
+        label: "Geneva"
+      basel_stadt:
+        label: "Basel-Stadt"
+      vaud:
+        label: "Vaud"
+      zug:
+        label: "Zug (lowest tax)"
+      schwyz:
+        label: "Schwyz"
+      neuchatel:
+        label: "Neuchâtel"
+
+parameters:
+  # Social security caps and rates
+  unemployment_cap: 148200  # CHF 148,200 annual cap for unemployment insurance
+
+  # Social security contribution rates (employee portion only)
+  avs_ai_apg_rate: 0.053    # 5.3% for AVS (old-age), AI (disability), APG (loss of income)
+  unemployment_rate: 0.011   # 1.1% for ALV (unemployment insurance) up to cap
+
+  # Standard deductions for federal tax calculation (2025)
+  business_expense_deduction_single: 3200    # Max CHF 3,200 for commuting/professional expenses (federal cap)
+  business_expense_deduction_married: 3200   # Same cap for married
+  insurance_premium_deduction_single: 1800   # CHF 1,800 for insurance premiums (federal)
+  insurance_premium_deduction_married: 3600  # CHF 3,600 for married couples (federal)
+  married_couple_deduction: 2600             # CHF 2,600 federal married deduction
+
+  # Federal income tax brackets for single filers (2025 - unchanged from 2024)
+  # Source: https://taxsummaries.pwc.com/switzerland/individual/taxes-on-personal-income
+  # Simplified as progressive brackets (without base_amount) to work with current evaluator
+  federal_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 15000
+      rate: 0.0077
+    - threshold: 32800
+      rate: 0.0088
+    - threshold: 42900
+      rate: 0.0264
+    - threshold: 57200
+      rate: 0.0297
+    - threshold: 75200
+      rate: 0.0594
+    - threshold: 81000
+      rate: 0.0660
+    - threshold: 107400
+      rate: 0.0880
+    - threshold: 139600
+      rate: 0.1100
+    - threshold: 182600
+      rate: 0.1320
+    - threshold: 783300
+      rate: 0.115
+
+  # Federal income tax brackets for married filers (joint taxation) - 2025
+  # Based on 2024 structure - rates remain stable
+  # Married rates are more favorable with higher thresholds
+  federal_tax_brackets_married:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 30000
+      rate: 0.0100
+    - threshold: 50000
+      rate: 0.0200
+    - threshold: 58000
+      rate: 0.0300
+    - threshold: 75000
+      rate: 0.0400
+    - threshold: 90000
+      rate: 0.0500
+    - threshold: 103000
+      rate: 0.0600
+    - threshold: 114000
+      rate: 0.0660
+    - threshold: 124000
+      rate: 0.0880
+    - threshold: 163000
+      rate: 0.1100
+    - threshold: 203000
+      rate: 0.1320
+    - threshold: 895000
+      rate: 0.1150
+
+  # Cantonal/municipal effective tax rates (combined estimates as % of gross income)
+  # These are simplified representative rates for comparison
+  # Actual rates are complex and vary by municipality within cantons
+  cantonal_municipal_rates:
+    zurich:
+      single_low: 0.08      # For income < CHF 50,000
+      single_mid: 0.12      # For income CHF 50,000 - 150,000
+      single_high: 0.15     # For income > CHF 150,000
+      married_low: 0.06
+      married_mid: 0.10
+      married_high: 0.13
+    bern:
+      single_low: 0.09
+      single_mid: 0.14
+      single_high: 0.17
+      married_low: 0.07
+      married_mid: 0.12
+      married_high: 0.15
+    geneva:
+      single_low: 0.10
+      single_mid: 0.15
+      single_high: 0.18
+      married_low: 0.08
+      married_mid: 0.13
+      married_high: 0.16
+    basel_stadt:
+      single_low: 0.09
+      single_mid: 0.13
+      single_high: 0.16
+      married_low: 0.07
+      married_mid: 0.11
+      married_high: 0.14
+    vaud:
+      single_low: 0.10
+      single_mid: 0.14
+      single_high: 0.17
+      married_low: 0.08
+      married_mid: 0.12
+      married_high: 0.15
+    zug:
+      single_low: 0.04      # Zug has very low taxes
+      single_mid: 0.07
+      single_high: 0.09
+      married_low: 0.03
+      married_mid: 0.05
+      married_high: 0.07
+    schwyz:
+      single_low: 0.05
+      single_mid: 0.08
+      single_high: 0.10
+      married_low: 0.04
+      married_mid: 0.06
+      married_high: 0.08
+    neuchatel:
+      single_low: 0.12      # Neuchâtel has high taxes
+      single_mid: 0.17
+      single_high: 0.20
+      married_low: 0.10
+      married_mid: 0.15
+      married_high: 0.18
+
+calculations:
+  # Social security contributions
+  - id: avs_ai_apg_contribution
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$avs_ai_apg_rate"
+    category: contribution
+    label: "AVS/AI/APG Contributions"
+    description: "Old-age, disability, and loss of income insurance (5.3%)"
+
+  - id: unemployment_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$unemployment_cap"
+
+  - id: unemployment_contribution
+    type: percent_of
+    base: "$unemployment_base"
+    rate: "$unemployment_rate"
+    category: contribution
+    label: "Unemployment Insurance (ALV)"
+    description: "Unemployment insurance contribution (1.1% up to CHF 148,200)"
+
+  - id: total_social_contributions
+    type: sum
+    values:
+      - "$avs_ai_apg_contribution"
+      - "$unemployment_contribution"
+
+  # Standard deductions for federal tax calculation
+  - id: business_expense_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$business_expense_deduction_single"
+      married: "$business_expense_deduction_married"
+      _: "$business_expense_deduction_single"
+
+  - id: insurance_premium_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$insurance_premium_deduction_single"
+      married: "$insurance_premium_deduction_married"
+      _: "$insurance_premium_deduction_single"
+
+  - id: married_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      married: "$married_couple_deduction"
+      _: 0
+
+  - id: total_standard_deductions
+    type: sum
+    values:
+      - "$business_expense_deduction"
+      - "$insurance_premium_deduction"
+      - "$married_deduction"
+
+  # Taxable income = gross - social contributions - standard deductions
+  - id: income_after_social
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_social_contributions"
+
+  - id: taxable_income_federal
+    type: sub
+    values:
+      - "$income_after_social"
+      - "$total_standard_deductions"
+
+  # Federal income tax (applied to taxable income, not gross)
+  - id: federal_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$federal_tax_brackets_single"
+      married: "$federal_tax_brackets_married"
+
+  - id: federal_income_tax
+    type: bracket_tax
+    base: "$taxable_income_federal"
+    brackets: "$federal_tax_brackets"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Swiss direct federal tax (progressive up to 11.5%)"
+
+  # Cantonal/municipal tax estimation
+  # This uses simplified rates based on income level and canton
+  # Cantonal/municipal tax calculation (estimated)
+  - id: cantonal_municipal_rate
+    type: switch
+    on: "@region_level_1"
+    cases:
+      zurich:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.08
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.15
+              else: 0.12
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.06
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.13
+              else: 0.10
+          _: 0.12
+      bern:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.09
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.17
+              else: 0.14
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.07
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.15
+              else: 0.12
+          _: 0.14
+      geneva:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.10
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.18
+              else: 0.15
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.08
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.16
+              else: 0.13
+          _: 0.15
+      zug:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.04
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.09
+              else: 0.07
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.03
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.07
+              else: 0.05
+          _: 0.07
+      neuchatel:
+        type: switch
+        on: "@filing_status"
+        cases:
+          single:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.12
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.20
+              else: 0.17
+          married:
+            type: conditional
+            condition:
+              type: lt
+              left: "@gross_annual"
+              right: 50000
+            then: 0.10
+            else:
+              type: conditional
+              condition:
+                type: gt
+                left: "@gross_annual"
+                right: 150000
+              then: 0.18
+              else: 0.15
+          _: 0.17
+      _: 0.12  # Default for any other canton or if none selected
+
+  - id: cantonal_municipal_tax
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$cantonal_municipal_rate"
+    category: income_tax
+    label: "Cantonal & Municipal Tax"
+    description: "Combined cantonal and municipal income tax (varies by location)"
+
+  # Total taxes and deductions
+  - id: total_income_tax
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$cantonal_municipal_tax"
+
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_income_tax"
+      - "$total_social_contributions"
+
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values: ["@gross_annual", "$net_annual"]
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$cantonal_municipal_tax"
+    contributions:
+      - "$avs_ai_apg_contribution"
+      - "$unemployment_contribution"

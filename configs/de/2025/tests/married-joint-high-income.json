@@ -1,0 +1,32 @@
+{
+  "name": "Married filing jointly - High household income",
+  "description": "Married couple with combined income of €150,000",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "married_joint",
+    "has_children": false,
+    "region": "saxony",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 98366,
+    "effective_rate": 0.344,
+    "breakdown": {
+      "income_tax": 34199,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 8984,
+      "health_contribution": 5513,
+      "unemployment_contribution": 1256,
+      "care_contribution": 1918
+    }
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Estimated based on 2025 rates with income splitting and solidarity surcharge",
+      "url": "https://www.how-to-germany.com/income-tax-calculator/",
+      "date": "2026-01-22"
+    }
+  ]
+}

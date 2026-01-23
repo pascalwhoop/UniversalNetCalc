@@ -1,0 +1,208 @@
+meta:
+  variant: "impatriate"
+  label: "Impatriate Regime (Regime Impatriati)"
+  description: |
+    Special tax regime for workers relocating to Italy. Under this regime,
+    only 50% of employment income is taxable (or 40% if the worker has minor
+    children resident in Italy). This provides significant tax savings for
+    qualified foreign workers moving to Italy.
+  base: "../base.yaml"
+  sources:
+    - url: "https://offconsulting.it/italy-impatriate-tax-regime-2025-key-clarifications-you-should-know/"
+      description: "Italy Impatriate Tax Regime: Key 2025 Updates"
+      retrieved_at: "2026-01-22"
+    - url: "https://parakar.eu/knowledge/italy/impatriate-tax-beneficial-regime-in-italy"
+      description: "Impatriate Tax Beneficial Regime in Italy"
+      retrieved_at: "2026-01-22"
+    - url: "https://yourwaytoitaly.it/en/articles/impatriate-regime-tax-benefits-for-eu-and-non-eu-workers"
+      description: "Italy 2025 impatriate regime: tax benefits for professionals"
+      retrieved_at: "2026-01-22"
+    - url: "https://arlettipartners.com/impatriate-tax-regime-italy-new-rules/"
+      description: "Impatriate Tax Regime Italy: new rules"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    Eligibility requirements for 2026:
+    - No tax residency in Italy for at least 3 years before moving
+    - Commitment to becoming a tax resident in Italy for at least 4 consecutive years
+    - Start a new employment relationship in Italy (different employer than abroad, or not part of same group)
+    - Work mainly in Italy during the relevant tax period
+    - Have high-level qualifications or specialization (as defined by Legislative Decrees 108/2012 and 206/2007)
+
+    If working for the same employer/corporation after relocation, minimum time abroad
+    increases to 6-7 tax years depending on employment history.
+
+    The benefit lasts for 5 years with no further extensions. Only applies to income
+    up to €600,000 per year.
+
+    Standard benefit: 50% tax exemption (only 50% of income is taxable)
+    Enhanced benefit: 60% tax exemption (only 40% of income is taxable) for workers with
+    minor children resident in Italy or children born during the benefit period.
+
+    This configuration uses the standard 50% exemption. For the enhanced 60% benefit
+    with minor children, a separate variant would be needed.
+
+    Note: For 2026, the second IRPEF bracket rate is 33% (down from 35% in 2025),
+    benefiting middle-income earners.
+
+inputs:
+  has_minor_children:
+    type: boolean
+    required: false
+    default: false
+    label: "Minor Children Resident in Italy"
+    description: "Do you have minor children resident in Italy or expect to have children during the impatriate regime period?"
+
+notices:
+  - id: "impatriate_eligibility"
+    title: "Eligibility Check Required"
+    body: |
+      This variant assumes you qualify for the impatriate regime. To qualify:
+      - You must not have been a tax resident in Italy for at least 3 years before moving
+      - You must commit to becoming a tax resident in Italy for at least 4 consecutive years
+      - You must start a new employment relationship in Italy (different employer or not part of same group)
+      - You must have high-level qualifications or specialization
+      - You must work mainly in Italy during the tax period
+
+      Consult with a tax advisor to confirm eligibility and properly apply for the regime.
+    severity: "warning"
+
+  - id: "impatriate_calculation"
+    title: "Tax Exemption Calculation Method"
+    body: |
+      Enter your GROSS annual salary (before the exemption). The calculator will
+      automatically apply the impatriate regime tax exemption.
+
+      Standard benefit: Only 50% of your income is taxable (50% exemption)
+      With minor children: Only 40% of your income is taxable (60% exemption)
+
+      Example with standard benefit: If your gross salary is €60,000, only €30,000 (50%)
+      is taxable, and €30,000 (50%) is tax-exempt.
+    severity: "info"
+
+  - id: "impatriate_income_cap"
+    title: "Income Cap of €600,000"
+    body: |
+      The impatriate regime applies only to income up to €600,000 per year.
+      Income above this threshold is fully taxable under standard rules.
+    severity: "info"
+
+  - id: "impatriate_duration"
+    title: "5-Year Benefit Period"
+    body: |
+      The impatriate regime benefit lasts for 5 years with no extensions.
+      Plan accordingly for when the benefit period ends.
+    severity: "info"
+
+parameters:
+  # Income cap for impatriate regime
+  impatriate_income_cap: 600000
+
+  # Taxable percentage based on whether worker has minor children
+  # Standard: 50% taxable (50% exempt)
+  # With children: 40% taxable (60% exempt)
+  taxable_percentage_standard: 0.50
+  taxable_percentage_with_children: 0.40
+
+calculations:
+  # Override taxable income calculation for impatriate regime
+  # For standard case: only 50% of income (up to €600k) is taxable
+  # With minor children: only 40% of income (up to €600k) is taxable
+  # Income above €600k is fully taxable
+  - id: taxable_income
+    type: switch
+    on: "@has_minor_children"
+    cases:
+      # With minor children: 40% taxable (60% exempt)
+      true:
+        type: sum
+        values:
+          # Taxable portion of capped income (40%)
+          - type: mul
+            values:
+              - type: min
+                values:
+                  - "@gross_annual"
+                  - "$impatriate_income_cap"
+              - "$taxable_percentage_with_children"
+          # Income above cap (fully taxable)
+          - type: sub
+            values:
+              - "@gross_annual"
+              - type: min
+                values:
+                  - "@gross_annual"
+                  - "$impatriate_income_cap"
+      # Without children: 50% taxable (50% exempt)
+      false:
+        type: sum
+        values:
+          # Taxable portion of capped income (50%)
+          - type: mul
+            values:
+              - type: min
+                values:
+                  - "@gross_annual"
+                  - "$impatriate_income_cap"
+              - "$taxable_percentage_standard"
+          # Income above cap (fully taxable)
+          - type: sub
+            values:
+              - "@gross_annual"
+              - type: min
+                values:
+                  - "@gross_annual"
+                  - "$impatriate_income_cap"
+    default:
+      type: sum
+      values:
+        # Taxable portion of capped income (50%)
+        - type: mul
+          values:
+            - type: min
+              values:
+                - "@gross_annual"
+                - "$impatriate_income_cap"
+            - "$taxable_percentage_standard"
+        # Income above cap (fully taxable)
+        - type: sub
+          values:
+            - "@gross_annual"
+            - type: min
+              values:
+                - "@gross_annual"
+                - "$impatriate_income_cap"
+    description: "Taxable income under impatriate regime"
+
+  # Calculate the tax-exempt amount for display purposes
+  - id: impatriate_tax_exemption
+    type: switch
+    on: "@has_minor_children"
+    cases:
+      true:
+        type: mul
+        values:
+          - type: min
+            values:
+              - "@gross_annual"
+              - "$impatriate_income_cap"
+          - 0.60  # 60% exempt with children
+      false:
+        type: mul
+        values:
+          - type: min
+            values:
+              - "@gross_annual"
+              - "$impatriate_income_cap"
+          - 0.50  # 50% exempt without children
+    default:
+      type: mul
+      values:
+        - type: min
+          values:
+            - "@gross_annual"
+            - "$impatriate_income_cap"
+        - 0.50
+    category: deduction
+    label: "Impatriate Regime Tax Exemption"
+    description: "Portion of income exempt from taxation under impatriate regime"

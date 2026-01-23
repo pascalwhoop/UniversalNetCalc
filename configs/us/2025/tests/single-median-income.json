@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - Median income",
+  "description": "Single person earning $60,000 annually - typical middle-income scenario",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 50338.5,
+    "effective_rate": 0.161,
+    "breakdown": {
+      "federal_income_tax": 5071.5,
+      "state_income_tax": 0,
+      "social_security_tax": 3720.0,
+      "medicare_tax": 870.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $60,000 - $15,750 = $44,250. Tax: $1,192.50 (10% on $11,925) + $4,386 (12% on $36,550) + $1,199 (22% on remaining $5,775) = $6,777.50. SS: 6.2% of $60,000 = $3,720. Medicare: 1.45% of $60,000 = $870. Total deductions: $11,307.50. Net: $48,692.50"
+    }
+  ]
+}

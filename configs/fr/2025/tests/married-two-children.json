@@ -1,0 +1,29 @@
+{
+  "name": "Married couple - Two children",
+  "description": "Married couple earning €80,000 with 2 children, 3 fiscal parts total",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "married",
+    "children": 2
+  },
+  "expected": {
+    "net": 58000,
+    "effective_rate": 0.275,
+    "breakdown": {
+      "income_tax": 13443,
+      "csg_deductible": 5345,
+      "csg_nondeductible": 1888,
+      "crds": 393,
+      "pension_contribution": 3715
+    }
+  },
+  "tolerance": 1000,
+  "tolerance_percent": 0.10,
+  "sources": [
+    {
+      "description": "Calculated with quotient familial (3 parts: 2 + 0.5 + 0.5) - major tax reduction",
+      "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
+      "date": "2026-01-22"
+    }
+  ]
+}

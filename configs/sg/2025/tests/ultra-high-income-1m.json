@@ -1,0 +1,23 @@
+{
+  "name": "Ultra-high income - S$1,000,000",
+  "description": "Income at the highest bracket boundary (24%)",
+  "inputs": {
+    "gross_annual": 1000000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 800850,
+    "effective_rate": 0.19915,
+    "breakdown": {
+      "income_tax": 199150
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "From official IRAS table: Gross tax payable at S$1,000,000 is S$199,150",
+      "url": "https://money-snap.com/sg/income-tax-calculator/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

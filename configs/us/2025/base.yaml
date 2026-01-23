@@ -1,0 +1,661 @@
+meta:
+  country: "us"
+  year: 2025
+  currency: "USD"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.irs.gov/publications/p1040"
+      description: "IRS Publication 1040 - Official 2025 tax tables"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.kiplinger.com/taxes/tax-brackets/602222/income-tax-brackets"
+      description: "2025 Federal income tax brackets (10%, 12%, 22%, 24%, 32%, 35%, 37%)"
+      retrieved_at: "2026-01-22"
+    - url: "https://turbotax.intuit.com/tax-tips/tax-deductions-and-credits/tax-deductions-2020-what-will-sunset-or-change/L7gdLfrub"
+      description: "2025 Standard deduction amounts"
+      retrieved_at: "2026-01-22"
+    - url: "https://smartasset.com/taxes/all-about-the-fica-tax"
+      description: "2025 FICA tax rates and Social Security wage base limit ($176,100)"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    This configuration covers federal AND state taxation for the United States in 2025.
+
+    Key components:
+    - Progressive federal income tax with 7 brackets (10% to 37%)
+    - State income tax (varies by state: 0% to 13.3%)
+    - Standard deduction varies by filing status
+    - Social Security tax (6.2%) capped at $176,100 wage base
+    - Medicare tax (1.45%) with no wage cap
+    - Additional Medicare tax (0.9%) for high earners over threshold
+
+    Includes 10 major states: CA, NY, TX, FL, WA, IL, PA, OH, MA, NJ.
+    Local taxes are NOT included in this configuration.
+
+notices:
+  - id: "state_tax_included"
+    title: "Federal and State Taxes Included"
+    body: |
+      This calculator includes FEDERAL income tax, state income tax, and FICA (Social Security + Medicare).
+      It does NOT include local taxes, state disability insurance (CA, NY), or city taxes (NYC, etc.).
+      Your actual take-home pay may vary based on local taxes and other deductions.
+    severity: "info"
+
+  - id: "gross_salary_info"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions. This is your W-2 Box 1
+      wages (or equivalent for self-employed). Include all regular compensation but exclude
+      pre-tax deductions like 401(k) contributions or health insurance premiums.
+    severity: "info"
+
+  - id: "filing_status_info"
+    title: "Filing Status"
+    body: |
+      Your filing status affects both your standard deduction and tax brackets:
+      - Single: Unmarried individuals
+      - Married Filing Jointly: Married couples filing one return (usually most beneficial)
+      - Married Filing Separately: Married couples filing separate returns
+      - Head of Household: Unmarried with qualifying dependents
+    severity: "info"
+
+  - id: "additional_medicare_tax"
+    title: "Additional Medicare Tax"
+    body: |
+      High-income earners pay an additional 0.9% Medicare tax on wages exceeding:
+      - $200,000 (Single, Head of Household)
+      - $250,000 (Married Filing Jointly)
+      - $125,000 (Married Filing Separately)
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried, divorced, or legally separated"
+        standard_deduction: 15750
+        additional_medicare_threshold: 200000
+      married_joint:
+        label: "Married Filing Jointly"
+        description: "Married couple filing one combined return"
+        standard_deduction: 31500
+        additional_medicare_threshold: 250000
+      married_separate:
+        label: "Married Filing Separately"
+        description: "Married couple filing separate returns"
+        standard_deduction: 15750
+        additional_medicare_threshold: 125000
+      head_of_household:
+        label: "Head of Household"
+        description: "Unmarried with qualifying dependents"
+        standard_deduction: 23625
+        additional_medicare_threshold: 200000
+
+  state:
+    type: enum
+    required: true
+    default: "california"
+    label: "State of Residence"
+    description: "Select your state of residence for state income tax calculation"
+    options:
+      california:
+        label: "California (CA)"
+        description: "Progressive tax: 1% to 13.3%"
+      new_york:
+        label: "New York (NY)"
+        description: "Progressive tax: 4% to 10.9%"
+      texas:
+        label: "Texas (TX)"
+        description: "No state income tax"
+      florida:
+        label: "Florida (FL)"
+        description: "No state income tax"
+      washington:
+        label: "Washington (WA)"
+        description: "No state income tax"
+      illinois:
+        label: "Illinois (IL)"
+        description: "Flat tax: 4.95%"
+      pennsylvania:
+        label: "Pennsylvania (PA)"
+        description: "Flat tax: 3.07%"
+      ohio:
+        label: "Ohio (OH)"
+        description: "Progressive tax: 0% to 3.125%"
+      massachusetts:
+        label: "Massachusetts (MA)"
+        description: "Flat 5% + 4% surtax on income >$1M"
+      new_jersey:
+        label: "New Jersey (NJ)"
+        description: "Progressive tax: 1.4% to 10.75%"
+
+parameters:
+  # Standard deductions by filing status (2025)
+  standard_deduction_single: 15750
+  standard_deduction_married_joint: 31500
+  standard_deduction_married_separate: 15750
+  standard_deduction_head_of_household: 23625
+
+  # Federal income tax brackets for 2025 (Single)
+  income_tax_brackets_single:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 11925
+      rate: 0.12
+    - threshold: 48475
+      rate: 0.22
+    - threshold: 103350
+      rate: 0.24
+    - threshold: 197300
+      rate: 0.32
+    - threshold: 250525
+      rate: 0.35
+    - threshold: 626350
+      rate: 0.37
+
+  # Federal income tax brackets for 2025 (Married Filing Jointly)
+  income_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 23850
+      rate: 0.12
+    - threshold: 96950
+      rate: 0.22
+    - threshold: 206700
+      rate: 0.24
+    - threshold: 394600
+      rate: 0.32
+    - threshold: 501050
+      rate: 0.35
+    - threshold: 751600
+      rate: 0.37
+
+  # Federal income tax brackets for 2025 (Married Filing Separately)
+  income_tax_brackets_married_separate:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 11925
+      rate: 0.12
+    - threshold: 48475
+      rate: 0.22
+    - threshold: 103350
+      rate: 0.24
+    - threshold: 197300
+      rate: 0.32
+    - threshold: 250525
+      rate: 0.35
+    - threshold: 375800
+      rate: 0.37
+
+  # Federal income tax brackets for 2025 (Head of Household)
+  income_tax_brackets_head_of_household:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 17000
+      rate: 0.12
+    - threshold: 64850
+      rate: 0.22
+    - threshold: 103350
+      rate: 0.24
+    - threshold: 197300
+      rate: 0.32
+    - threshold: 250500
+      rate: 0.35
+    - threshold: 626350
+      rate: 0.37
+
+  # FICA (Social Security + Medicare) parameters
+  social_security_rate: 0.062
+  social_security_wage_base: 176100
+  medicare_rate: 0.0145
+  additional_medicare_rate: 0.009
+  additional_medicare_threshold_single: 200000
+  additional_medicare_threshold_married_joint: 250000
+  additional_medicare_threshold_married_separate: 125000
+  additional_medicare_threshold_head_of_household: 200000
+
+  # California state tax brackets (2024 rates, 2025 not yet published)
+  # Source: https://www.ftb.ca.gov/forms/2024/2024-540-tax-rate-schedules.pdf
+  ca_standard_deduction_single: 5540
+  ca_standard_deduction_married_joint: 11080
+  ca_standard_deduction_married_separate: 5540
+  ca_standard_deduction_head_of_household: 11080
+
+  ca_tax_brackets_single:
+    - threshold: 0
+      rate: 0.01
+    - threshold: 10756
+      rate: 0.02
+    - threshold: 25500
+      rate: 0.04
+    - threshold: 40246
+      rate: 0.06
+    - threshold: 55868
+      rate: 0.08
+    - threshold: 70610
+      rate: 0.093
+    - threshold: 360660
+      rate: 0.103
+    - threshold: 432792
+      rate: 0.113
+    - threshold: 721320
+      rate: 0.123
+    - threshold: 1000000
+      rate: 0.133
+
+  ca_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.01
+    - threshold: 21512
+      rate: 0.02
+    - threshold: 51000
+      rate: 0.04
+    - threshold: 80492
+      rate: 0.06
+    - threshold: 111736
+      rate: 0.08
+    - threshold: 141220
+      rate: 0.093
+    - threshold: 721320
+      rate: 0.103
+    - threshold: 865584
+      rate: 0.113
+    - threshold: 1442640
+      rate: 0.123
+    - threshold: 1000000
+      rate: 0.133
+
+  # New York state tax brackets (2025)
+  # Source: https://www.tax.ny.gov/pit/file/tax-tables/2025.htm
+  ny_standard_deduction_single: 8000
+  ny_standard_deduction_married_joint: 16050
+  ny_standard_deduction_married_separate: 8000
+  ny_standard_deduction_head_of_household: 11200
+
+  ny_tax_brackets_single:
+    - threshold: 0
+      rate: 0.04
+    - threshold: 8500
+      rate: 0.045
+    - threshold: 11700
+      rate: 0.0525
+    - threshold: 13900
+      rate: 0.055
+    - threshold: 80650
+      rate: 0.06
+    - threshold: 215400
+      rate: 0.0685
+    - threshold: 1077550
+      rate: 0.0965
+    - threshold: 5000000
+      rate: 0.103
+    - threshold: 25000000
+      rate: 0.109
+
+  ny_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.04
+    - threshold: 17150
+      rate: 0.045
+    - threshold: 23600
+      rate: 0.0525
+    - threshold: 27900
+      rate: 0.055
+    - threshold: 161550
+      rate: 0.06
+    - threshold: 323200
+      rate: 0.0685
+    - threshold: 2155350
+      rate: 0.0965
+    - threshold: 5000000
+      rate: 0.103
+    - threshold: 25000000
+      rate: 0.109
+
+  # Illinois flat tax rate (2025)
+  il_tax_rate: 0.0495
+
+  # Pennsylvania flat tax rate (2025)
+  pa_tax_rate: 0.0307
+
+  # Ohio tax brackets (2025)
+  # Source: https://www.visaverge.com/taxes/ohio-state-income-tax-rates-and-brackets-for-2025-explained/
+  oh_tax_brackets:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 26050
+      rate: 0.0275
+    - threshold: 100000
+      rate: 0.03125
+
+  # Massachusetts tax rates (2025)
+  # Source: https://www.mass.gov/info-details/massachusetts-tax-rates
+  ma_tax_rate: 0.05
+  ma_surtax_threshold: 1083150
+  ma_surtax_rate: 0.04
+
+  # New Jersey tax brackets (2025)
+  # Source: https://www.state.nj.us/treasury/taxation/
+  nj_tax_brackets_single:
+    - threshold: 0
+      rate: 0.014
+    - threshold: 20000
+      rate: 0.0175
+    - threshold: 35000
+      rate: 0.035
+    - threshold: 40000
+      rate: 0.05525
+    - threshold: 75000
+      rate: 0.0637
+    - threshold: 500000
+      rate: 0.0897
+    - threshold: 1000000
+      rate: 0.1075
+
+  nj_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.014
+    - threshold: 20000
+      rate: 0.0175
+    - threshold: 50000
+      rate: 0.0245
+    - threshold: 70000
+      rate: 0.035
+    - threshold: 80000
+      rate: 0.05525
+    - threshold: 150000
+      rate: 0.0637
+    - threshold: 500000
+      rate: 0.0897
+    - threshold: 1000000
+      rate: 0.1075
+
+calculations:
+  # Determine standard deduction based on filing status
+  - id: standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$standard_deduction_single"
+      married_joint: "$standard_deduction_married_joint"
+      married_separate: "$standard_deduction_married_separate"
+      head_of_household: "$standard_deduction_head_of_household"
+
+  # Calculate taxable income (gross minus standard deduction, cannot be negative)
+  - id: taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$standard_deduction"
+
+  # Select appropriate tax brackets based on filing status
+  - id: income_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$income_tax_brackets_single"
+      married_joint: "$income_tax_brackets_married_joint"
+      married_separate: "$income_tax_brackets_married_separate"
+      head_of_household: "$income_tax_brackets_head_of_household"
+
+  # Calculate federal income tax using bracket system
+  - id: federal_income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Progressive federal income tax based on taxable income"
+
+  # State tax calculations
+  # California state income tax
+  - id: ca_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ca_standard_deduction_single"
+      married_joint: "$ca_standard_deduction_married_joint"
+      married_separate: "$ca_standard_deduction_married_separate"
+      head_of_household: "$ca_standard_deduction_head_of_household"
+
+  - id: ca_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ca_standard_deduction"
+
+  - id: ca_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ca_tax_brackets_single"
+      married_joint: "$ca_tax_brackets_married_joint"
+      married_separate: "$ca_tax_brackets_single"
+      head_of_household: "$ca_tax_brackets_single"
+
+  - id: ca_income_tax
+    type: bracket_tax
+    base: "$ca_taxable_income"
+    brackets: "$ca_tax_brackets"
+
+  # New York state income tax
+  - id: ny_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ny_standard_deduction_single"
+      married_joint: "$ny_standard_deduction_married_joint"
+      married_separate: "$ny_standard_deduction_married_separate"
+      head_of_household: "$ny_standard_deduction_head_of_household"
+
+  - id: ny_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ny_standard_deduction"
+
+  - id: ny_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ny_tax_brackets_single"
+      married_joint: "$ny_tax_brackets_married_joint"
+      married_separate: "$ny_tax_brackets_single"
+      head_of_household: "$ny_tax_brackets_single"
+
+  - id: ny_income_tax
+    type: bracket_tax
+    base: "$ny_taxable_income"
+    brackets: "$ny_tax_brackets"
+
+  # Illinois flat tax
+  - id: il_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$il_tax_rate"
+
+  # Pennsylvania flat tax
+  - id: pa_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$pa_tax_rate"
+
+  # Ohio progressive tax
+  - id: oh_income_tax
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$oh_tax_brackets"
+
+  # Massachusetts tax with surtax
+  - id: ma_base_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ma_tax_rate"
+
+  - id: ma_surtax_base
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ma_surtax_threshold"
+
+  - id: ma_surtax
+    type: percent_of
+    base: "$ma_surtax_base"
+    rate: "$ma_surtax_rate"
+
+  - id: ma_income_tax
+    type: sum
+    values:
+      - "$ma_base_tax"
+      - "$ma_surtax"
+
+  # New Jersey progressive tax
+  - id: nj_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nj_tax_brackets_single"
+      married_joint: "$nj_tax_brackets_married_joint"
+      married_separate: "$nj_tax_brackets_single"
+      head_of_household: "$nj_tax_brackets_single"
+
+  - id: nj_income_tax
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$nj_tax_brackets"
+
+  # Select state tax based on state input
+  - id: state_income_tax
+    type: switch
+    on: "@state"
+    cases:
+      california: "$ca_income_tax"
+      new_york: "$ny_income_tax"
+      texas: 0
+      florida: 0
+      washington: 0
+      illinois: "$il_income_tax"
+      pennsylvania: "$pa_income_tax"
+      ohio: "$oh_income_tax"
+      massachusetts: "$ma_income_tax"
+      new_jersey: "$nj_income_tax"
+    category: income_tax
+    label: "State Income Tax"
+    description: "State income tax based on state of residence"
+
+  # Social Security tax (6.2% up to wage base of $176,100)
+  - id: social_security_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$social_security_wage_base"
+
+  - id: social_security_tax
+    type: percent_of
+    base: "$social_security_base"
+    rate: "$social_security_rate"
+    category: contribution
+    label: "Social Security Tax (OASDI)"
+    description: "6.2% on wages up to $176,100"
+
+  # Medicare tax (1.45% on all wages, no cap)
+  - id: medicare_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$medicare_rate"
+    category: contribution
+    label: "Medicare Tax"
+    description: "1.45% on all wages"
+
+  # Additional Medicare tax threshold based on filing status
+  - id: additional_medicare_threshold
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$additional_medicare_threshold_single"
+      married_joint: "$additional_medicare_threshold_married_joint"
+      married_separate: "$additional_medicare_threshold_married_separate"
+      head_of_household: "$additional_medicare_threshold_head_of_household"
+
+  # Additional Medicare tax (0.9% on wages above threshold)
+  - id: additional_medicare_base
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$additional_medicare_threshold"
+
+  - id: additional_medicare_tax
+    type: percent_of
+    base: "$additional_medicare_base"
+    rate: "$additional_medicare_rate"
+    category: contribution
+    label: "Additional Medicare Tax"
+    description: "0.9% on wages exceeding threshold"
+
+  # Total FICA (Social Security + Medicare + Additional Medicare)
+  - id: total_fica
+    type: sum
+    values:
+      - "$social_security_tax"
+      - "$medicare_tax"
+      - "$additional_medicare_tax"
+
+  # Total taxes and deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$state_income_tax"
+      - "$total_fica"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$state_income_tax"
+    contributions:
+      - "$social_security_tax"
+      - "$medicare_tax"
+      - "$additional_medicare_tax"

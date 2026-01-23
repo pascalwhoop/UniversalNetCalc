@@ -1,0 +1,30 @@
+{
+  "name": "Single filer at Social Security wage base boundary",
+  "description": "Single person earning exactly $176,100 - tests Social Security wage cap",
+  "inputs": {
+    "gross_annual": 176100,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 131309.35,
+    "effective_rate": 0.2545,
+    "breakdown": {
+      "federal_income_tax": 31319.0,
+      "state_income_tax": 0,
+      "social_security_tax": 10918.2,
+      "medicare_tax": 2553.45,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables - tests wage base cap exactly",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Testing that Social Security is capped at exactly $176,100. SS: $176,100 * 6.2% = $10,918.20. Medicare: $176,100 * 1.45% = $2,553.45. No additional Medicare (under $200k)"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at low income",
+  "description": "Standard case for single person earning €25,000 in the Netherlands",
+  "inputs": {
+    "gross_annual": 25000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 23946,
+    "effective_rate": 0.04216
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using official 2025 Dutch tax rates and credits from Belastingdienst",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "retrieved_at": "2026-01-22",
+      "notes": "Income tax rate: 35.82% on first €38,441. General credit: €3,068 (full). Labour credit: €980 + 30.030% of (income - €12,169)"
+    }
+  ]
+}

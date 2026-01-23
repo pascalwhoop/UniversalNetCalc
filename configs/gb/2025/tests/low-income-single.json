@@ -1,0 +1,25 @@
+{
+  "name": "Low income single filer",
+  "description": "Single person earning £25,000 - below higher rate threshold",
+  "inputs": {
+    "gross_annual": 25000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 21520,
+    "effective_rate": 0.1392,
+    "breakdown": {
+      "income_tax": 2486,
+      "national_insurance": 994
+    }
+  },
+  "tolerance": 50,
+  "sources": [
+    {
+      "description": "Verified using online UK tax calculator for 2025/26",
+      "url": "https://www.nutsaboutmoney.com/take-home-pay-calculator",
+      "date": "2026-01-22",
+      "notes": "Personal allowance: £12,570, Taxable: £12,430, Income tax (20%): £2,486, NI (8%): £994, Total deductions: £3,480, Net: £21,520"
+    }
+  ]
+}

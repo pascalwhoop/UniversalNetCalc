@@ -1,0 +1,30 @@
+{
+  "name": "Florida - Married filing jointly high income",
+  "description": "Married couple earning $200,000 annually in Florida - no state income tax",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "married_joint",
+    "state": "florida"
+  },
+  "expected": {
+    "net": 158480.00,
+    "effective_rate": 0.2076,
+    "breakdown": {
+      "federal_income_tax": 26898.00,
+      "state_income_tax": 0,
+      "social_security_tax": 10922.00,
+      "medicare_tax": 2900.00,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal tax tables, no state tax",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $200,000 - $31,500 = $168,500. Married joint brackets: $2,385 (10% on $23,850) + $8,772 (12% on $73,100) + $15,763 (22% on $71,650) = ~$30,892 (approx). No state tax. FICA: SS capped at $176,100 = $10,922.20, Medicare $200k * 1.45% = $2,900. Total: $50,492"
+    }
+  ]
+}

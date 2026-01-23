@@ -1,0 +1,30 @@
+{
+  "name": "Married filing jointly - Very high income with Additional Medicare Tax",
+  "description": "Married couple earning $400,000 annually - subject to additional Medicare tax",
+  "inputs": {
+    "gross_annual": 400000,
+    "filing_status": "married_joint",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 307797.8,
+    "effective_rate": 0.2305,
+    "breakdown": {
+      "federal_income_tax": 74134.0,
+      "state_income_tax": 0,
+      "social_security_tax": 10918.2,
+      "medicare_tax": 5800.0,
+      "additional_medicare_tax": 1350.0
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $400,000 - $31,500 = $368,500. Tax calculated through 32% bracket. SS: Capped at $176,100 * 6.2% = $10,918.20. Medicare: $400,000 * 1.45% = $5,800. Additional Medicare: 0.9% of ($400,000 - $250,000) = 0.9% of $150,000 = $1,350"
+    }
+  ]
+}

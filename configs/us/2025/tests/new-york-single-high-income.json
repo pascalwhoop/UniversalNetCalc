@@ -1,0 +1,30 @@
+{
+  "name": "New York - Single filer high income",
+  "description": "Single person earning $150,000 annually in New York - progressive state tax",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single",
+    "state": "new_york"
+  },
+  "expected": {
+    "net": 105281.25,
+    "effective_rate": 0.2981,
+    "breakdown": {
+      "federal_income_tax": 25067.00,
+      "state_income_tax": 7951.75,
+      "social_security_tax": 9300.00,
+      "medicare_tax": 2175.00,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal and NY state tax tables",
+      "url": "https://www.tax.ny.gov/pit/file/tax-tables/2025.htm",
+      "date": "2026-01-22",
+      "notes": "Federal: Same as federal-only test = $25,067. NY: Taxable $150,000 - $8,000 = $142,000. NY brackets: $340 (4% on $8,500) + $144 (4.5% on $3,200) + $115.50 (5.25% on $2,200) + $3,671.25 (5.5% on $66,750) + $4,969.50 (6% on $134,750) = ~$9,240. FICA: $9,300 + $2,175 = $11,475. Total: ~$46,007"
+    }
+  ]
+}

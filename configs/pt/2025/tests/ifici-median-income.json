@@ -1,0 +1,26 @@
+{
+  "name": "IFICI regime with median income (€50,000)",
+  "description": "Qualified professional under IFICI (Scientific Research & Innovation) regime with 20% flat tax rate",
+  "variant": "ifici",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 34500.00,
+    "effective_rate": 0.31000,
+    "breakdown": {
+      "irs_total": 10000.00,
+      "social_security_employee": 5500.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "IFICI regime provides 20% flat tax rate for qualified professionals",
+      "url": "https://taxsummaries.pwc.com/portugal/individual/other-tax-credits-and-incentives",
+      "retrieved_at": "2026-01-22",
+      "notes": "IFICI flat rate calculation: IRS=50000*0.20=10000; Social Security: 50000*0.11=5500; Total deductions: 15500; Net: 34500. Compare with standard regime (€30,294.43) - IFICI saves €4,205.57 on this income."
+    }
+  ]
+}

@@ -1,24 +1,18 @@
 {
   "name": "High income single earner",
-  "description": "Employee earning €60,000 annually - benefits from 2026 rate reduction on €22,000 in second bracket",
+  "description": "Employee earning €60,000 annually. Benefits from 2026 rate reduction on second bracket. Employment credit phases out above €50,000.",
   "inputs": {
     "gross_annual": 60000,
     "region_level_1": "marche"
   },
   "expected": {
-    "net": 34482,
-    "effective_rate": 0.4253,
-    "breakdown": {
-      "irpef": 18000,
-      "regional_tax": 1038,
-      "municipal_tax": 480,
-      "inps_employee": 6000
-    }
+    "net": 34968,
+    "effective_rate": 0.4172
   },
   "tolerance": 50,
   "sources": [
     {
-      "description": "Calculated with 2026 reduced rate: €440 savings vs 2025 (€22,000 × 2% rate reduction)",
+      "description": "2026 reduced rate provides €440 savings vs 2025 (€22,000 × 2% rate reduction)",
       "url": "https://www.mef.gov.it/en/focus/Main-measures-of-the-2026-Budget-Law-00001/",
       "retrieved_at": "2026-01-22"
     }

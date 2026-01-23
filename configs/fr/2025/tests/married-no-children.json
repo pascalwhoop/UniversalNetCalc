@@ -1,0 +1,29 @@
+{
+  "name": "Married couple - No children",
+  "description": "Married couple earning €80,000 annually combined, benefits from 2 fiscal parts",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "married",
+    "children": 0
+  },
+  "expected": {
+    "net": 53500,
+    "effective_rate": 0.331,
+    "breakdown": {
+      "income_tax": 15160,
+      "csg_deductible": 5345,
+      "csg_nondeductible": 1888,
+      "crds": 393,
+      "pension_contribution": 3715
+    }
+  },
+  "tolerance": 1000,
+  "tolerance_percent": 0.10,
+  "sources": [
+    {
+      "description": "Calculated with quotient familial (2 parts) - significant tax reduction vs single filer",
+      "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
+      "date": "2026-01-22"
+    }
+  ]
+}

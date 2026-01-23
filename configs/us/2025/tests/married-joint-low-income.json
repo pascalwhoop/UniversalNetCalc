@@ -1,0 +1,30 @@
+{
+  "name": "Married filing jointly - Low income",
+  "description": "Married couple earning $50,000 annually combined",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "married_joint",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 44325.0,
+    "effective_rate": 0.1135,
+    "breakdown": {
+      "federal_income_tax": 1850.0,
+      "state_income_tax": 0,
+      "social_security_tax": 3100.0,
+      "medicare_tax": 725.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $50,000 - $31,500 = $18,250. Tax: $2,385 (10% on first $23,850) but only $18,250 taxable, so 10% * $18,250 = $1,825. Wait - recalculating: since $18,250 < $23,850, all is at 10%, so $1,825. FICA: SS 6.2% * $50,000 = $3,100, Medicare 1.45% * $50,000 = $725"
+    }
+  ]
+}

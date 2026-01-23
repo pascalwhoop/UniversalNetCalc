@@ -1,0 +1,30 @@
+{
+  "name": "California - Married filing jointly high income",
+  "description": "Married couple earning $250,000 annually in California - high income with progressive state tax",
+  "inputs": {
+    "gross_annual": 250000,
+    "filing_status": "married_joint",
+    "state": "california"
+  },
+  "expected": {
+    "net": 182740.00,
+    "effective_rate": 0.2690,
+    "breakdown": {
+      "federal_income_tax": 38134.00,
+      "state_income_tax": 15304.00,
+      "social_security_tax": 10922.00,
+      "medicare_tax": 3625.00,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal and CA state tax tables",
+      "url": "https://www.ftb.ca.gov/forms/2024/2024-540-tax-rate-schedules.pdf",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $250,000 - $31,500 = $218,500. Brackets up to 24%: ~$41,967. CA: Taxable $250,000 - $11,080 = $238,920. CA progressive brackets up to 9.3%: ~$17,050. FICA: SS capped at $176,100 = $10,922.20, Medicare $250k * 1.45% = $3,625. Total: ~$72,842"
+    }
+  ]
+}

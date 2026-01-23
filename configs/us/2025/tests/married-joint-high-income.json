@@ -1,0 +1,30 @@
+{
+  "name": "Married filing jointly - High income",
+  "description": "Married couple earning $200,000 annually combined",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "married_joint",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 159283.8,
+    "effective_rate": 0.2036,
+    "breakdown": {
+      "federal_income_tax": 26898.0,
+      "state_income_tax": 0,
+      "social_security_tax": 10918.2,
+      "medicare_tax": 2900.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $200,000 - $31,500 = $168,500. Tax calculated through 22% bracket. SS: $200,000 * 6.2% = $12,400 (under wage base). Medicare: $200,000 * 1.45% = $2,900. No additional Medicare (under $250k for married joint)"
+    }
+  ]
+}

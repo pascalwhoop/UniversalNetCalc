@@ -1,0 +1,23 @@
+{
+  "name": "Median income - S$50,000",
+  "description": "Typical middle-income earner in Singapore",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 48750,
+    "effective_rate": 0.025,
+    "breakdown": {
+      "income_tax": 1250
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Calculated: S$0 + S$200 (2%) + S$350 (3.5%) + S$700 (7%) = S$1,250",
+      "url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

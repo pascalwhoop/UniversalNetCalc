@@ -1,0 +1,23 @@
+{
+  "name": "High income - S$120,000",
+  "description": "Income at the S$120,000 bracket boundary",
+  "inputs": {
+    "gross_annual": 120000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 112050,
+    "effective_rate": 0.06625,
+    "breakdown": {
+      "income_tax": 7950
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "From official IRAS table: Gross tax payable at S$120,000 is S$7,950",
+      "url": "https://money-snap.com/sg/income-tax-calculator/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

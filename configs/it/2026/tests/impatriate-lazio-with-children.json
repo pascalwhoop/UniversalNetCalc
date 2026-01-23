@@ -1,0 +1,23 @@
+{
+  "name": "Impatriate regime with minor children in Lazio",
+  "description": "Expat with impatriate regime and minor children earning €80,000 in Lazio (Rome), enhanced 60% exemption",
+  "variant": "impatriate",
+  "inputs": {
+    "gross_annual": 80000,
+    "region_level_1": "lazio",
+    "has_minor_children": true
+  },
+  "expected": {
+    "net": 63822,
+    "effective_rate": 0.2022
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Impatriate regime 2026: 60% of income exempt for workers with minor children. Benefits from 2026 reduced IRPEF second bracket.",
+      "url": "https://offconsulting.it/italy-impatriate-tax-regime-2025-key-clarifications-you-should-know/",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

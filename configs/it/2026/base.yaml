@@ -2,7 +2,7 @@ meta:
   country: "it"
   year: 2026
   currency: "EUR"
-  version: "1.0.0"
+  version: "2.0.0"
   sources:
     - url: "https://www.lexology.com/library/detail.aspx?g=25386883-69ba-499e-a085-f7a5342877ee"
       description: "Budget Law 2026 - IRPEF rate changes (second bracket reduced from 35% to 33%)"
@@ -10,13 +10,19 @@ meta:
     - url: "https://taxing.it/personal-income-tax-irpef-rates/"
       description: "Italian Personal Income Tax Rates for FY 2026"
       retrieved_at: "2026-01-22"
+    - url: "https://taxing.it/tax-credit-for-employment-income/"
+      description: "Employment Tax Credit (Detrazione lavoro dipendente) - creates no-tax area"
+      retrieved_at: "2026-01-23"
     - url: "https://www.mef.gov.it/en/focus/Main-measures-of-the-2026-Budget-Law-00001/"
       description: "Ministry of Economy and Finance - Main measures of the 2026 Budget Law"
       retrieved_at: "2026-01-22"
-  updated_at: "2026-01-22"
+  updated_at: "2026-01-23"
   notes: |
-    Key change from 2025: The second IRPEF bracket rate is reduced from 35% to 33%
-    for incomes between €28,001 and €50,000, providing tax relief for middle-income earners.
+    Key changes for 2026:
+    - Second IRPEF bracket rate reduced from 35% to 33% (€28,001-€50,000)
+    - Employment Tax Credit (Detrazione lavoro dipendente) creates no-tax area at €8,500
+    - New €1,000 fixed deduction for incomes up to €32,000
+    - INPS contribution cuts extended (cuneo fiscale)
 
 notices:
   - id: "salary_input"
@@ -27,9 +33,17 @@ notices:
     title: "Regional Tax Varies by Location"
     body: "Regional tax (addizionale regionale) rates are set by each region and range from 1.23% to 3.33%. Select your region of residence to apply the correct rate."
     severity: "info"
+  - id: "employment_credit"
+    title: "Employment Tax Credit Applied"
+    body: "Your IRPEF is reduced by the employment tax credit (detrazione lavoro dipendente). This creates a 'no-tax area' for incomes up to €8,500 and reduces the effective tax rate for low to middle incomes."
+    severity: "info"
   - id: "2026_tax_cut"
-    title: "2026 Tax Reduction"
-    body: "Starting in 2026, the second IRPEF bracket rate (€28,001-€50,000) was reduced from 35% to 33%, providing savings for middle-income earners."
+    title: "2026 Tax Relief"
+    body: "For 2026: the second IRPEF bracket rate (€28,001-€50,000) is reduced from 35% to 33%, and there's a new €1,000 fixed deduction for incomes up to €32,000."
+    severity: "info"
+  - id: "inps_cut"
+    title: "Social Security Relief for 2026"
+    body: "For 2026, the government provides a 7 percentage point cut in INPS contributions for incomes up to €25,000, and 6 percentage points for €25,001-€35,000."
     severity: "info"
 
 inputs:
@@ -119,21 +133,158 @@ parameters:
     - { threshold: 28000, rate: 0.33 }
     - { threshold: 50000, rate: 0.43 }
 
+  # Employment Tax Credit (Detrazione lavoro dipendente) thresholds
+  # This creates the "no-tax area" (area di non tassazione) of €8,500
+  employment_credit_max: 1955          # Maximum credit (creates no-tax area at €8,500)
+  employment_credit_tier2_base: 1910   # Base for income €15,001-€28,000
+  employment_credit_tier2_additional: 1190  # Additional amount that phases out
+  employment_credit_tier1_threshold: 15000
+  employment_credit_tier2_threshold: 28000
+  employment_credit_tier3_threshold: 50000
+
+  # Additional €65 for incomes €25,000-€35,000
+  employment_credit_bonus: 65
+  employment_credit_bonus_min: 25000
+  employment_credit_bonus_max: 35000
+
+  # New 2026: €1,000 fixed deduction for incomes up to €32,000
+  fixed_deduction_2026: 1000
+  fixed_deduction_threshold: 32000
+
   # INPS (Social Security) - Employee contribution
-  inps_employee_rate: 0.10
+  # Standard rate is 9.19%, but reduced for low incomes (cuneo fiscale)
+  inps_employee_rate: 0.0919
+
+  # INPS contribution cut for low incomes (cuneo fiscale 2026)
+  # 7 percentage points cut for income up to €25,000
+  # 6 percentage points cut for income €25,001-€35,000
+  inps_cut_threshold_1: 25000
+  inps_cut_threshold_2: 35000
+  inps_cut_rate_1: 0.07   # Cut for incomes up to €25,000
+  inps_cut_rate_2: 0.06   # Cut for incomes €25,001-€35,000
 
   # Municipal tax - average rate (varies by municipality from 0% to 0.9%)
-  # Most major cities charge 0.8% for incomes above a threshold
   municipal_tax_rate: 0.008
 
 calculations:
-  # National Income Tax (IRPEF)
-  - id: irpef
+  # Taxable income (for standard case, same as gross annual)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # Gross National Income Tax (IRPEF) before credits
+  - id: irpef_gross
     type: bracket_tax
-    base: "@gross_annual"
+    base: "$taxable_income"
     brackets: "$irpef_brackets"
+
+  # Employment Tax Credit (Detrazione lavoro dipendente)
+  # Formula varies by income band:
+  # - Up to €15,000: €1,955
+  # - €15,001-€28,000: €1,910 + €1,190 × [(€28,000 - income) / €13,000]
+  # - €28,001-€50,000: €1,910 × [(€50,000 - income) / €22,000]
+  # - Over €50,000: €0
+  - id: employment_credit_base
+    type: conditional
+    condition:
+      type: lte
+      left: "@gross_annual"
+      right: "$employment_credit_tier1_threshold"
+    then: "$employment_credit_max"
+    else:
+      type: conditional
+      condition:
+        type: lte
+        left: "@gross_annual"
+        right: "$employment_credit_tier2_threshold"
+      then:
+        type: sum
+        values:
+          - "$employment_credit_tier2_base"
+          - type: mul
+            values:
+              - "$employment_credit_tier2_additional"
+              - type: div
+                values:
+                  - type: sub
+                    values:
+                      - "$employment_credit_tier2_threshold"
+                      - "@gross_annual"
+                  - 13000
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: "$employment_credit_tier3_threshold"
+        then:
+          type: mul
+          values:
+            - "$employment_credit_tier2_base"
+            - type: div
+              values:
+                - type: sub
+                  values:
+                    - "$employment_credit_tier3_threshold"
+                    - "@gross_annual"
+                - 22000
+        else: 0
+
+  # Additional €65 for incomes €25,000-€35,000
+  - id: employment_credit_bonus_amount
+    type: conditional
+    condition:
+      type: gte
+      left: "@gross_annual"
+      right: "$employment_credit_bonus_min"
+    then:
+      type: conditional
+      condition:
+        type: lte
+        left: "@gross_annual"
+        right: "$employment_credit_bonus_max"
+      then: "$employment_credit_bonus"
+      else: 0
+    else: 0
+
+  # New 2026: €1,000 fixed deduction for incomes up to €32,000
+  - id: fixed_deduction
+    type: conditional
+    condition:
+      type: lte
+      left: "@gross_annual"
+      right: "$fixed_deduction_threshold"
+    then: "$fixed_deduction_2026"
+    else: 0
+
+  # Total employment tax credit (base + bonus + 2026 fixed deduction)
+  - id: employment_credit
+    type: sum
+    values:
+      - "$employment_credit_base"
+      - "$employment_credit_bonus_amount"
+      - "$fixed_deduction"
+
+  # Net IRPEF after employment credit (cannot go below 0)
+  - id: irpef
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$irpef_gross"
+          - "$employment_credit"
     category: income_tax
     label: "IRPEF (National Income Tax)"
+
+  # Employment credit display (as negative value for breakdown)
+  - id: employment_credit_display
+    type: credit
+    amount: "$employment_credit"
+    refundable: false
+    category: credit
+    label: "Employment Tax Credit (Detrazione)"
+    description: "Reduces IRPEF based on income level"
 
   # Regional tax rate based on region selection
   - id: regional_tax_rate
@@ -166,16 +317,15 @@ calculations:
   # Regional Income Tax (Addizionale Regionale)
   - id: regional_tax
     type: percent_of
-    base: "@gross_annual"
+    base: "$taxable_income"
     rate: "$regional_tax_rate"
     category: income_tax
     label: "Regional Tax (Addizionale Regionale)"
 
   # Municipal Income Tax (Addizionale Comunale)
-  # Using average rate of 0.8% (actual rates vary by municipality)
   - id: municipal_tax
     type: percent_of
-    base: "@gross_annual"
+    base: "$taxable_income"
     rate: "$municipal_tax_rate"
     category: income_tax
     label: "Municipal Tax (Addizionale Comunale, ~0.8% avg)"
@@ -188,11 +338,35 @@ calculations:
       - "$regional_tax"
       - "$municipal_tax"
 
+  # INPS contribution cut rate based on income (cuneo fiscale)
+  - id: inps_cut_rate
+    type: conditional
+    condition:
+      type: lte
+      left: "@gross_annual"
+      right: "$inps_cut_threshold_1"
+    then: "$inps_cut_rate_1"
+    else:
+      type: conditional
+      condition:
+        type: lte
+        left: "@gross_annual"
+        right: "$inps_cut_threshold_2"
+      then: "$inps_cut_rate_2"
+      else: 0
+
+  # Effective INPS rate after cut
+  - id: inps_effective_rate
+    type: sub
+    values:
+      - "$inps_employee_rate"
+      - "$inps_cut_rate"
+
   # Social Security Contributions (INPS) - Employee portion
   - id: inps_employee
     type: percent_of
     base: "@gross_annual"
-    rate: "$inps_employee_rate"
+    rate: "$inps_effective_rate"
     category: contribution
     label: "Social Security (INPS - Employee)"
 
@@ -225,3 +399,5 @@ outputs:
       - "$municipal_tax"
     contributions:
       - "$inps_employee"
+    credits:
+      - "$employment_credit_display"

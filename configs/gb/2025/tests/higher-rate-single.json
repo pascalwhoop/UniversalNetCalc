@@ -1,0 +1,25 @@
+{
+  "name": "Higher rate taxpayer",
+  "description": "Single person earning £80,000 - higher rate tax band",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 56957,
+    "effective_rate": 0.2880,
+    "breakdown": {
+      "income_tax": 19432,
+      "national_insurance": 3611
+    }
+  },
+  "tolerance": 50,
+  "sources": [
+    {
+      "description": "Verified using online UK tax calculator for 2025/26",
+      "url": "https://www.nutsaboutmoney.com/take-home-pay-calculator",
+      "date": "2026-01-22",
+      "notes": "Personal allowance: £12,570, Taxable: £67,430, Income tax: £7,486 (basic) + £11,946 (higher 40%) = £19,432, NI: £2,994 (8%) + £617 (2%) = £3,611, Total deductions: £23,043, Net: £56,957"
+    }
+  ]
+}

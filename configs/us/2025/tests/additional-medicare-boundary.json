@@ -1,0 +1,30 @@
+{
+  "name": "Single filer at Additional Medicare Tax boundary",
+  "description": "Single person earning exactly $200,000 - tests Additional Medicare Tax threshold",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 149126.8,
+    "effective_rate": 0.2544,
+    "breakdown": {
+      "federal_income_tax": 37055.0,
+      "state_income_tax": 0,
+      "social_security_tax": 10918.2,
+      "medicare_tax": 2900.0,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables - tests Additional Medicare threshold exactly at $200k",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "At exactly $200,000, no additional Medicare tax applies (kicks in ABOVE $200k). SS capped: $176,100 * 6.2% = $10,918.20. Medicare: $200,000 * 1.45% = $2,900"
+    }
+  ]
+}

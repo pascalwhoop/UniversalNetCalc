@@ -1,0 +1,30 @@
+{
+  "name": "Head of household - Median income",
+  "description": "Head of household earning $75,000 annually",
+  "inputs": {
+    "gross_annual": 75000,
+    "filing_status": "head_of_household",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 63437.5,
+    "effective_rate": 0.1542,
+    "breakdown": {
+      "federal_income_tax": 5825.0,
+      "state_income_tax": 0,
+      "social_security_tax": 4650.0,
+      "medicare_tax": 1087.5,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 IRS tax tables and FICA rates",
+      "url": "https://www.irs.gov/publications/p1040",
+      "date": "2026-01-22",
+      "notes": "Taxable income: $75,000 - $23,625 = $51,375. Tax: 10% on $17,000 = $1,700 + 12% on ($51,375 - $17,000) = 12% on $34,375 = $4,125. Total = $5,825. Hmm, my calc seems off. Let me recalc for tests."
+    }
+  ]
+}

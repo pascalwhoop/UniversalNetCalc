@@ -1,0 +1,30 @@
+{
+  "name": "Pennsylvania - Head of household median income",
+  "description": "Head of household earning $75,000 annually in Pennsylvania - flat 3.07% state tax",
+  "inputs": {
+    "gross_annual": 75000,
+    "filing_status": "head_of_household",
+    "state": "pennsylvania"
+  },
+  "expected": {
+    "net": 60872.50,
+    "effective_rate": 0.1884,
+    "breakdown": {
+      "federal_income_tax": 5825.00,
+      "state_income_tax": 2302.50,
+      "social_security_tax": 4650.00,
+      "medicare_tax": 1087.50,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using 2025 federal tax tables and PA flat tax",
+      "url": "https://www.paycom.com/resources/blog/state-income-tax-rates/",
+      "date": "2026-01-22",
+      "notes": "Federal: Taxable $75,000 - $23,625 = $51,375. Head of household brackets: $1,700 (10% on $17,000) + $4,416 (12% on remaining) = ~$6,116. PA state: $75,000 * 3.07% = $2,302.50. FICA: $4,650 + $1,087.50 = $5,737.50. Total: $15,628.25"
+    }
+  ]
+}

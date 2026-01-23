@@ -1,0 +1,23 @@
+{
+  "name": "Second bracket - S$25,000",
+  "description": "Income in the 2% tax bracket (S$20,001 - S$30,000)",
+  "inputs": {
+    "gross_annual": 25000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 24900,
+    "effective_rate": 0.004,
+    "breakdown": {
+      "income_tax": 100
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation: First S$20,000 = S$0, Next S$5,000 at 2% = S$100",
+      "url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates",
+      "retrieved_at": "2026-01-22"
+    }
+  ]
+}

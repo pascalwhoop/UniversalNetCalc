@@ -1,0 +1,221 @@
+meta:
+  country: "gb"
+  year: 2025
+  currency: "GBP"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.gov.uk/income-tax-rates"
+      description: "Official UK income tax rates and personal allowances 2025/26"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.yourcompanyformations.co.uk/blog/tax-brackets-uk/"
+      description: "UK Tax Brackets 2025/26 - Income Tax Rates & Allowances"
+      retrieved_at: "2026-01-22"
+    - url: "https://www.moneysavingexpert.com/banking/tax-rates/"
+      description: "Tax rates 2025/26: tax bands explained"
+      retrieved_at: "2026-01-22"
+  updated_at: "2026-01-22"
+  notes: |
+    This configuration covers the standard UK tax system for the 2025/26 tax year
+    (6 April 2025 - 5 April 2026) for England, Wales, and Northern Ireland.
+
+    Key features:
+    - Personal Allowance: £12,570 (frozen since 2021)
+    - Personal Allowance tapers at £1 for every £2 earned over £100,000
+    - Progressive income tax brackets: 20%, 40%, 45%
+    - Class 1 National Insurance: 8% (£12,570-£50,270), 2% (above £50,270)
+
+    Important notes:
+    - Scotland has different income tax rates and bands (use variant if needed)
+    - This does not include employer National Insurance contributions
+    - Does not include student loan repayments or pension contributions
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions. This should be
+      your employment income only. Do not include dividends, savings interest, or
+      other income sources.
+    severity: "info"
+
+  - id: "region_notice"
+    title: "England, Wales & Northern Ireland"
+    body: |
+      This configuration applies to taxpayers in England, Wales, and Northern Ireland.
+      Scottish taxpayers have different income tax rates and should use the Scotland
+      variant (if available).
+    severity: "info"
+
+  - id: "personal_allowance_taper"
+    title: "High Income Personal Allowance Reduction"
+    body: |
+      If you earn over £100,000, your Personal Allowance reduces by £1 for every £2
+      you earn over £100,000. This means it's completely eliminated at £125,140.
+      This creates an effective 60% tax rate on income between £100,000 and £125,140.
+    severity: "warning"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before tax and National Insurance"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    description: "Individual tax return - UK uses individual taxation, not joint filing"
+    options:
+      single:
+        label: "Single"
+        description: "Individual taxpayer"
+      married:
+        label: "Married"
+        description: "Married taxpayer (Marriage Allowance may apply separately)"
+
+parameters:
+  # Personal allowance
+  personal_allowance_base: 12570
+  personal_allowance_taper_start: 100000
+  personal_allowance_taper_rate: 0.5  # £1 reduction for every £2 earned
+
+  # Income tax brackets on TAXABLE income (after personal allowance deduction)
+  # When PA = £12,570:
+  #   Taxable £0-£37,700 = Gross £12,571-£50,270 (basic rate 20%)
+  #   Taxable £37,701-£112,570 = Gross £50,271-£125,140 (higher rate 40%)
+  #   Taxable £112,571+ = Gross £125,141+ (additional rate 45%)
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0.20      # Basic rate
+    - threshold: 37700
+      rate: 0.40      # Higher rate
+    - threshold: 112570
+      rate: 0.45      # Additional rate
+
+  # National Insurance Class 1 (Employee) thresholds and rates
+  ni_primary_threshold: 12570
+  ni_upper_earnings_limit: 50270
+  ni_rate_main: 0.08
+  ni_rate_additional: 0.02
+
+calculations:
+  # Calculate tapered personal allowance
+  - id: personal_allowance_reduction
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "@gross_annual"
+                  - "$personal_allowance_taper_start"
+          - "$personal_allowance_taper_rate"
+
+  - id: personal_allowance
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$personal_allowance_base"
+          - "$personal_allowance_reduction"
+
+  # Taxable income after personal allowance deduction
+  - id: taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$personal_allowance"
+
+  # Income tax on taxable income
+  - id: income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Income Tax"
+    description: "UK income tax on earnings"
+
+  # National Insurance calculation
+  - id: ni_main_band
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: min
+            values:
+              - type: max
+                values:
+                  - 0
+                  - type: sub
+                    values:
+                      - "@gross_annual"
+                      - "$ni_primary_threshold"
+              - type: sub
+                values:
+                  - "$ni_upper_earnings_limit"
+                  - "$ni_primary_threshold"
+          - "$ni_rate_main"
+
+  - id: ni_additional_band
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "@gross_annual"
+                  - "$ni_upper_earnings_limit"
+          - "$ni_rate_additional"
+
+  - id: national_insurance
+    type: sum
+    values:
+      - "$ni_main_band"
+      - "$ni_additional_band"
+    category: social_security
+    label: "National Insurance"
+    description: "Class 1 Employee National Insurance contributions"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$income_tax"
+      - "$national_insurance"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$national_insurance"
