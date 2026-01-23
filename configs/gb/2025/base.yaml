@@ -24,6 +24,21 @@ meta:
     - Progressive income tax brackets: 20%, 40%, 45%
     - Class 1 National Insurance: 8% (£12,570-£50,270), 2% (above £50,270)
 
+    ⚠️ THE £100K TAX TRAP:
+    Between £100,000 and £125,140, you face an effective marginal tax rate of 60%
+    (or 62% including National Insurance). This occurs because:
+    - For every £2 earned over £100k, you lose £1 of Personal Allowance
+    - That £1 of "lost allowance" is now taxable at 40% (higher rate)
+    - Combined with the 40% tax on the income itself = 60% effective rate
+    - Add 2% NI for employees = 62% total
+
+    Example at £101,000 vs £100,000:
+    - Extra £1 gross becomes £1.50 extra taxable
+    - Tax at 40% = £0.60 + NI 2% = £0.62 total
+    - Effective rate: 62% marginal
+
+    Test vectors verify this behavior at key points: £101k, £115k, and £125,140.
+
     Important notes:
     - Scotland has different income tax rates and bands (use variant if needed)
     - This does not include employer National Insurance contributions
@@ -47,11 +62,25 @@ notices:
     severity: "info"
 
   - id: "personal_allowance_taper"
-    title: "High Income Personal Allowance Reduction"
+    title: "⚠️ The £100k Tax Trap - 60% Effective Rate"
     body: |
-      If you earn over £100,000, your Personal Allowance reduces by £1 for every £2
-      you earn over £100,000. This means it's completely eliminated at £125,140.
-      This creates an effective 60% tax rate on income between £100,000 and £125,140.
+      If you earn between £100,000 and £125,140, beware the 100k tax trap!
+
+      Your Personal Allowance reduces by £1 for every £2 you earn over £100,000.
+      This creates an **effective marginal tax rate of 60%** on income in this range
+      (compared to 40% just below £100k).
+
+      For employees, add 2% National Insurance on top = **62% total marginal rate**,
+      meaning only 38p of each extra £1 earned reaches your pocket.
+
+      Example: Earning £101,000 instead of £100,000 costs you:
+      - £0.60 in income tax (40% on £1.50 extra taxable)
+      - £0.02 in National Insurance
+      - Net: Only £0.38 of the extra £1 is take-home
+
+      The Personal Allowance is fully eliminated at £125,140, where normal rates resume.
+
+      Consider pension contributions to keep your taxable income below £100,000.
     severity: "warning"
 
 inputs:

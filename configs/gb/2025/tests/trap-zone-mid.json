@@ -1,0 +1,25 @@
+{
+  "name": "100k tax trap - mid-range (£115,000)",
+  "description": "Single person earning £115,000 - demonstrates the full effect of the 60% trap zone. At this level, the personal allowance is reduced by £7,500.",
+  "inputs": {
+    "gross_annual": 115000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 74257.80,
+    "effective_rate": 0.35428,
+    "breakdown": {
+      "income_tax": 36432,
+      "national_insurance": 4310.20
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Manual calculation verified using UK tax bracket rules",
+      "date": "2026-01-23",
+      "notes": "PA reduction = (£115k - £100k) × 50% = £7,500. Personal allowance = £12,570 - £7,500 = £5,070. Taxable = £115,000 - £5,070 = £109,930. Income tax: £37,700 × 20% + £72,230 × 40% = £7,540 + £28,892 = £36,432. NI: (£50,270 - £12,570) × 8% + (£115,000 - £50,270) × 2% = £3,015.60 + £1,294.60 = £4,310.20."
+    }
+  ]
+}

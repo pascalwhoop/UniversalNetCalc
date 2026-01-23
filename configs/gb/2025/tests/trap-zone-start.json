@@ -1,0 +1,25 @@
+{
+  "name": "100k tax trap - just above threshold (£101,000)",
+  "description": "Single person earning £101,000 - demonstrates when the 60% tax trap begins. At £101k, the marginal tax rate jumps to 60% (£1 extra gross = £1.50 extra taxable = 60% effective rate).",
+  "inputs": {
+    "gross_annual": 101000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 68937.80,
+    "effective_rate": 0.31749,
+    "breakdown": {
+      "income_tax": 28032,
+      "national_insurance": 4030.20
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Manual calculation verified using UK tax bracket rules",
+      "date": "2026-01-23",
+      "notes": "PA reduction = (£101k - £100k) × 50% = £500. Personal allowance = £12,570 - £500 = £12,070. Taxable = £101,000 - £12,070 = £88,930. Income tax: £37,700 × 20% + £51,230 × 40% = £7,540 + £20,492 = £28,032. NI: (£50,270 - £12,570) × 8% + (£101,000 - £50,270) × 2% = £3,015.60 + £1,014.60 = £4,030.20."
+    }
+  ]
+}

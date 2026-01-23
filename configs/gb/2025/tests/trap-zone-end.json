@@ -1,0 +1,25 @@
+{
+  "name": "100k tax trap - allowance fully eliminated (£125,140)",
+  "description": "Single person earning £125,140 - the exact threshold where the personal allowance is fully eliminated (£12,570 ÷ 0.5 = £25,140 above £100k). Beyond this, the 60% trap ends and normal higher rate (40%) applies.",
+  "inputs": {
+    "gross_annual": 125140,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 77433,
+    "effective_rate": 0.38125,
+    "breakdown": {
+      "income_tax": 43194,
+      "national_insurance": 4513
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Manual calculation verified using UK tax bracket rules",
+      "date": "2026-01-23",
+      "notes": "PA reduction = (£125,140 - £100k) × 50% = £12,570 (fully eliminated). Personal allowance = £0. Taxable = £125,140. Income tax: £37,700 × 20% + (£112,570 - £37,700) × 40% + (£125,140 - £112,570) × 45% = £7,540 + £29,948 + £5,706 = £43,194. NI: (£50,270 - £12,570) × 8% + (£125,140 - £50,270) × 2% = £3,015.60 + £1,497.40 = £4,513."
+    }
+  ]
+}
