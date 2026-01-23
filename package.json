@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
-		"build": "npm run build:configs && npm run generate:manifest && next build",
+		"build": "npm run build:configs && npm run generate:manifest && npm run cf-typegen && next build",
 		"build:configs": "node scripts/bundle-configs.mjs",
 		"generate:manifest": "node generate-manifest.mjs",
 		"start": "next start",
