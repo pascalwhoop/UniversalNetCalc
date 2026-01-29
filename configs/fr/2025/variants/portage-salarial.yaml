@@ -1,0 +1,221 @@
+meta:
+  variant: "portage-salarial"
+  label: "Portage Salarial"
+  description: "Portage salarial employment model with portage company fee deduction"
+  base: "base.yaml"
+  notes: |
+    Portage salarial (employee leasing) is a French employment model where:
+    - A consultant/contractor works through a portage company
+    - The company handles administration, payroll, and invoicing
+    - A fee (typically 7-10%) is deducted from revenue
+    - The remaining amount is taxed as employee salary
+
+    This variant models the fee deduction while maintaining standard salarié taxation.
+  sources:
+    - url: "https://www.portagesalarial.org/"
+      description: "French Portage Salarial Federation information"
+
+inputs:
+  portage_fee_rate:
+    type: number
+    required: false
+    default: 0.08
+    min: 0
+    max: 0.15
+    label: "Portage Company Fee Rate"
+    description: "Fee charged by portage company as % of gross (typically 7-10%)"
+
+parameters:
+  portage_fee_rate: 0.08  # Default 8% fee
+
+calculations:
+  # Delete base nodes that need to reference the fee-adjusted gross
+  - id: csg_crds_base
+    $delete: true
+  - id: csg_deductible
+    $delete: true
+  - id: csg_nondeductible
+    $delete: true
+  - id: crds
+    $delete: true
+  - id: pension_uncapped
+    $delete: true
+  - id: pension_capped_base
+    $delete: true
+  - id: pension_capped
+    $delete: true
+  - id: professional_expenses_uncapped
+    $delete: true
+  - id: professional_expenses
+    $delete: true
+  - id: pension_contribution
+    $delete: true
+  - id: net_before_tax
+    $delete: true
+  - id: taxable_income_before_qf
+    $delete: true
+  - id: income_tax
+    $delete: true
+  - id: total_contributions
+    $delete: true
+  - id: net_annual
+    $delete: true
+  - id: total_deductions
+    $delete: true
+
+  # ====================
+  # PORTAGE FEE DEDUCTION
+  # ====================
+
+  # Portage fee calculation (8% default, can be customized)
+  - id: portage_fee
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$portage_fee_rate"
+    category: deduction
+    label: "Portage Company Fee"
+    description: "Fee charged by portage salarial company (7-10% typical)"
+
+  # Effective gross salary after portage fee
+  - id: gross_after_portage_fee
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$portage_fee"
+
+  # ====================
+  # SOCIAL CONTRIBUTIONS (adjusted for fee)
+  # ====================
+
+  # CSG/CRDS Base (98.25% of fee-adjusted gross salary)
+  - id: csg_crds_base
+    type: percent_of
+    base: "$gross_after_portage_fee"
+    rate: "$csg_crds_rate"
+
+  # CSG Deductible (6.8% of base)
+  - id: csg_deductible
+    type: percent_of
+    base: "$csg_crds_base"
+    rate: "$csg_rate_deductible"
+    category: contribution
+    label: "CSG Deductible"
+    description: "6.8% deductible social contribution on 98.25% of gross"
+
+  # CSG Non-Deductible (2.4% of base)
+  - id: csg_nondeductible
+    type: percent_of
+    base: "$csg_crds_base"
+    rate: "$csg_rate_nondeductible"
+    category: contribution
+    label: "CSG Non-Deductible"
+    description: "2.4% non-deductible social contribution on 98.25% of gross"
+
+  # CRDS (0.5% of base)
+  - id: crds
+    type: percent_of
+    base: "$csg_crds_base"
+    rate: "$crds_rate"
+    category: contribution
+    label: "CRDS"
+    description: "0.5% debt reduction contribution on 98.25% of gross"
+
+  # Pension contribution - uncapped portion (0.4% on total)
+  - id: pension_uncapped
+    type: percent_of
+    base: "$gross_after_portage_fee"
+    rate: "$pension_rate_uncapped"
+
+  # Pension contribution - capped portion (6.9% up to ceiling)
+  - id: pension_capped_base
+    type: min
+    values:
+      - "$gross_after_portage_fee"
+      - "$social_security_ceiling"
+
+  - id: pension_capped
+    type: percent_of
+    base: "$pension_capped_base"
+    rate: "$pension_rate_capped"
+
+  # Total pension contribution
+  - id: pension_contribution
+    type: sum
+    values:
+      - "$pension_uncapped"
+      - "$pension_capped"
+    category: contribution
+    label: "Pension Insurance (Assurance Vieillesse)"
+    description: "0.4% on total + 6.9% up to €48,048"
+
+  # Total social contributions (for net salary calculation)
+  - id: total_contributions
+    type: sum
+    values:
+      - "$csg_deductible"
+      - "$csg_nondeductible"
+      - "$crds"
+      - "$pension_contribution"
+
+  # ====================
+  # TAXABLE INCOME
+  # ====================
+
+  # Professional expenses deduction (10% of fee-adjusted gross, with min/max)
+  - id: professional_expenses_uncapped
+    type: percent_of
+    base: "$gross_after_portage_fee"
+    rate: "$professional_expenses_rate"
+
+  - id: professional_expenses
+    type: max
+    values:
+      - type: min
+        values:
+          - "$professional_expenses_uncapped"
+          - "$professional_expenses_max"
+      - "$professional_expenses_min"
+
+  # Taxable income = Gross (after fee) - Deductible CSG - Professional expenses
+  - id: taxable_income_before_qf
+    type: sub
+    values:
+      - "$gross_after_portage_fee"
+      - type: sum
+        values:
+          - "$csg_deductible"
+          - "$professional_expenses"
+
+  # ====================
+  # INCOME TAX
+  # ====================
+
+  # Use family quotient function to calculate income tax
+  - id: income_tax
+    type: function
+    name: "family_quotient_tax"
+    inputs:
+      gross: "$taxable_income_before_qf"
+      family_units: "$total_parts"
+    category: income_tax
+    label: "Income Tax (Impôt sur le Revenu)"
+    description: "Progressive tax with family quotient system"
+
+  # ====================
+  # TOTALS
+  # ====================
+
+  # Total deductions (contributions + income tax)
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_contributions"
+      - "$income_tax"
+
+  # Net annual salary (take-home pay after fee deduction and all taxes)
+  - id: net_annual
+    type: sub
+    values:
+      - "$gross_after_portage_fee"
+      - "$total_deductions"
+

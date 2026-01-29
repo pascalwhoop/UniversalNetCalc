@@ -88,7 +88,9 @@
     "fr": {
       "years": {
         "2025": {
-          "variants": []
+          "variants": [
+            "portage-salarial"
+          ]
         }
       }
     },

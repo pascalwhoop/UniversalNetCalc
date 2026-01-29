@@ -1,0 +1,30 @@
+{
+  "name": "Portage Salarial - Single filer, high revenue",
+  "description": "Senior consultant earning €100,000 annual revenue through portage salarial company (8% fee), net after fee and all deductions",
+  "variant": "portage-salarial",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 56228,
+    "effective_rate": 0.4377,
+    "breakdown": {
+      "income_tax": 26019,
+      "csg_deductible": 6147,
+      "csg_nondeductible": 2169,
+      "crds": 451,
+      "pension_contribution": 6473
+    }
+  },
+  "tolerance": 3000,
+  "tolerance_percent": 0.20,
+  "sources": [
+    {
+      "description": "Portage salarial: €100k revenue, 8% fee deducted from gross, then salarié taxes applied to remaining net amount",
+      "url": "https://www.portagesalarial.org/",
+      "date": "2026-01-23"
+    }
+  ]
+}

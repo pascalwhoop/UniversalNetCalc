@@ -286,33 +286,58 @@ calculations:
       - "@gross_annual"
       - "$health_care_cap"
 
-  # Determine if region is Saxony (sn) - all other states use standard rates
-  - id: is_saxony_region
-    type: function
-    name: "is_region_saxony"
-    inputs:
-      region_value: 0  # Dummy input - not used, function will access @region from context
-    description: "Check if region is Saxony"
-
   # Determine care insurance rate based on region and children status
+  # Saxony (sn) has higher rates; all other states use standard rates
+  - id: care_rate_with_children
+    type: switch
+    on: "@region"
+    cases:
+      sn: "$care_rate_saxony_with_children"
+      bw: "$care_rate_standard_with_children"
+      by: "$care_rate_standard_with_children"
+      be: "$care_rate_standard_with_children"
+      bb: "$care_rate_standard_with_children"
+      hb: "$care_rate_standard_with_children"
+      hh: "$care_rate_standard_with_children"
+      he: "$care_rate_standard_with_children"
+      mv: "$care_rate_standard_with_children"
+      ni: "$care_rate_standard_with_children"
+      nw: "$care_rate_standard_with_children"
+      rp: "$care_rate_standard_with_children"
+      sl: "$care_rate_standard_with_children"
+      st: "$care_rate_standard_with_children"
+      sh: "$care_rate_standard_with_children"
+      th: "$care_rate_standard_with_children"
+    default: "$care_rate_standard_with_children"
+
+  - id: care_rate_without_children
+    type: switch
+    on: "@region"
+    cases:
+      sn: "$care_rate_saxony_without_children"
+      bw: "$care_rate_standard_without_children"
+      by: "$care_rate_standard_without_children"
+      be: "$care_rate_standard_without_children"
+      bb: "$care_rate_standard_without_children"
+      hb: "$care_rate_standard_without_children"
+      hh: "$care_rate_standard_without_children"
+      he: "$care_rate_standard_without_children"
+      mv: "$care_rate_standard_without_children"
+      ni: "$care_rate_standard_without_children"
+      nw: "$care_rate_standard_without_children"
+      rp: "$care_rate_standard_without_children"
+      sl: "$care_rate_standard_without_children"
+      st: "$care_rate_standard_without_children"
+      sh: "$care_rate_standard_without_children"
+      th: "$care_rate_standard_without_children"
+    default: "$care_rate_standard_without_children"
+
   - id: care_rate
-    type: conditional
-    condition:
-      type: gt
-      left: "$is_saxony_region"
-      right: 0.5
-    then:
-      type: switch
-      on: "@has_children"
-      cases:
-        true: "$care_rate_saxony_with_children"
-        false: "$care_rate_saxony_without_children"
-    else:
-      type: switch
-      on: "@has_children"
-      cases:
-        true: "$care_rate_standard_with_children"
-        false: "$care_rate_standard_without_children"
+    type: switch
+    on: "@has_children"
+    cases:
+      true: "$care_rate_with_children"
+      false: "$care_rate_without_children"
 
   - id: care_contribution
     type: percent_of
