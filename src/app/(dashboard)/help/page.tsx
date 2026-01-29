@@ -73,7 +73,7 @@ export default async function HelpPage() {
             <div>
               <h4 className="font-semibold mb-2">Config-Driven Tax Calculations</h4>
               <p className="text-muted-foreground">
-                Each country's tax rules are defined in YAML configuration files. These configs
+                Each country&apos;s tax rules are defined in YAML configuration files. These configs
                 describe a <strong>directed acyclic graph (DAG)</strong> of calculations that
                 process your inputs to produce the final net salary.
               </p>

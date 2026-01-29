@@ -32,6 +32,14 @@ interface LogAPIRequestParams {
   responseTime: number
 }
 
+interface CloudflareAnalyticsEngine {
+  writeDataPoint(data: {
+    indexes?: string[]
+    blobs?: string[]
+    doubles?: number[]
+  }): void
+}
+
 /**
  * Get Analytics Engine binding from Cloudflare context
  */
@@ -151,7 +159,7 @@ export async function logAPIRequest(
 
     // Write to Analytics Engine
     // Type assertion is safe because we validate existence above
-    const engine = analyticsEngine as any
+    const engine = analyticsEngine as CloudflareAnalyticsEngine
     engine.writeDataPoint({
       indexes,
       blobs,
