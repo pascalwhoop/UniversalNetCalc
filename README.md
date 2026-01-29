@@ -45,3 +45,4 @@ See `CLAUDE.md` for detailed contribution guide.
 - **Next.js UI**: React frontend deployed to Cloudflare Workers
 
 See `docs/` for detailed documentation.
+
