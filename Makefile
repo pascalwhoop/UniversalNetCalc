@@ -99,7 +99,13 @@ preview: build-cloudflare
 # Deployment
 deploy-preview: build-cloudflare
 	@echo "→ Deploying to preview environment..."
-	@npx wrangler deploy --env preview
+	@if [ -n "$(WORKER_NAME)" ]; then \
+		echo "  Using custom worker name: $(WORKER_NAME)"; \
+		npx wrangler deploy --name $(WORKER_NAME); \
+	else \
+		echo "  Using default preview worker"; \
+		npx wrangler deploy --env preview; \
+	fi
 	@echo "✓ Preview deployed"
 
 deploy-prod: build-cloudflare
