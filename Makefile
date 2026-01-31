@@ -101,7 +101,7 @@ deploy-preview: build-cloudflare
 	@echo "→ Deploying to preview environment..."
 	@if [ -n "$(WORKER_NAME)" ]; then \
 		echo "  Using custom worker name: $(WORKER_NAME)"; \
-		npx wrangler deploy --name $(WORKER_NAME) --compatibility-date 2024-01-01; \
+		npx wrangler deploy --name $(WORKER_NAME); \
 	else \
 		echo "  Using default preview worker"; \
 		npx wrangler deploy --env preview; \
