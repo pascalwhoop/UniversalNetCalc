@@ -1,0 +1,30 @@
+{
+  "name": "Income with healthcare cost deduction",
+  "description": "€55,000 gross with €3,000 healthcare expenses (threshold ~€900)",
+  
+  "inputs": {
+    "gross_annual": 55000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 0,
+    "mortgage_start_year": 0,
+    "pension_contributions": 0,
+    "jaarruimte_available": 0,
+    "healthcare_expenses": 3000
+  },
+  "expected": {
+    "net": 40300,
+    "effective_rate": 0.2673,
+    "breakdown": {
+      "healthcare_deduction": 2100
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/relatie_familie_en_gezondheid/gezondheid/aftrek_zorgkosten/",
+      "description": "Healthcare cost deduction rules",
+      "retrieved_at": "2026-01-31"
+    }
+  ]
+}

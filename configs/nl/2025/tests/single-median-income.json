@@ -1,9 +1,14 @@
 {
   "name": "Single filer at median income",
-  "description": "Standard case for single person earning €50,000 in the Netherlands",
+  "description": "Standard case for single person earning \u20ac50,000 in the Netherlands",
   "inputs": {
     "gross_annual": 50000,
-    "filing_status": "single"
+    "filing_status": "single",
+    "mortgage_interest_paid": 0,
+    "mortgage_start_year": 0,
+    "pension_contributions": 0,
+    "jaarruimte_available": 0,
+    "healthcare_expenses": 0
   },
   "expected": {
     "net": 38746,
@@ -16,7 +21,7 @@
       "description": "Calculated using official 2025 Dutch tax rates and credits from Belastingdienst",
       "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
       "retrieved_at": "2026-01-22",
-      "notes": "Income tax: 35.82% up to €38,441, then 37.48% up to €76,817. General credit phaseout: 6.337% above €28,406. Labour credit: €5,220 + 2.258% of (income - €26,288)"
+      "notes": "Income tax: 35.82% up to \u20ac38,441, then 37.48% up to \u20ac76,817. General credit phaseout: 6.337% above \u20ac28,406. Labour credit: \u20ac5,220 + 2.258% of (income - \u20ac26,288)"
     }
   ]
 }

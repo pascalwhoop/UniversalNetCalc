@@ -1,0 +1,33 @@
+{
+  "name": "All deductions combined",
+  "description": "€80,000 gross with mortgage (€12,000), pension (€6,000), and healthcare (€4,000)",
+  
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 12000,
+    "mortgage_start_year": 2018,
+    "pension_contributions": 6000,
+    "jaarruimte_available": 10000,
+    "healthcare_expenses": 4000
+  },
+  "expected": {
+    "net": 54000,
+    "effective_rate": 0.325,
+    "breakdown": {
+      "mortgage_interest_deduction": 12000,
+      "pension_contribution_deduction": 6000,
+      "healthcare_deduction": 3050,
+      "total_deductions": 21050
+    }
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.015,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/aftrekposten/persoonsgebonden-aftrek/",
+      "description": "Personal deductions overview",
+      "retrieved_at": "2026-01-31"
+    }
+  ]
+}

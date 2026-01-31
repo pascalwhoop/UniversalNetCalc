@@ -1,0 +1,32 @@
+{
+  "name": "Median income with no deductions",
+  "description": "Baseline test - €50,000 gross with no deductions. Should match base config.",
+  
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 0,
+    "mortgage_start_year": 0,
+    "pension_contributions": 0,
+    "jaarruimte_available": 0,
+    "healthcare_expenses": 0
+  },
+  "expected": {
+    "net": 36978,
+    "effective_rate": 0.26044,
+    "breakdown": {
+      "income_tax_and_social_security": 17914,
+      "general_tax_credit": 3068,
+      "labour_tax_credit": 1824
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "description": "Official 2025 tax rates",
+      "retrieved_at": "2026-01-31"
+    }
+  ]
+}

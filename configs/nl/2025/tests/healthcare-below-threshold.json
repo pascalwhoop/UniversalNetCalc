@@ -1,0 +1,30 @@
+{
+  "name": "Healthcare costs below threshold (not deductible)",
+  "description": "€50,000 gross with €500 healthcare expenses (below ~€815 threshold)",
+  
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 0,
+    "mortgage_start_year": 0,
+    "pension_contributions": 0,
+    "jaarruimte_available": 0,
+    "healthcare_expenses": 500
+  },
+  "expected": {
+    "net": 36978,
+    "effective_rate": 0.26044,
+    "breakdown": {
+      "healthcare_deduction": 0
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/relatie_familie_en_gezondheid/gezondheid/aftrek_zorgkosten/hoe_berekent_u_uw_aftrek/drempelbedrag_berekenen/drempelbedrag-2025",
+      "description": "Healthcare threshold 2025",
+      "retrieved_at": "2026-01-31"
+    }
+  ]
+}

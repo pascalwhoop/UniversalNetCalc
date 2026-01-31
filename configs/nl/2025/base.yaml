@@ -75,6 +75,48 @@ inputs:
         label: "With Fiscal Partner"
         description: "Married or registered partnership (used for credit distribution)"
 
+  # Optional deduction inputs
+  mortgage_interest_paid:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Mortgage Interest Paid (Optional)"
+    description: "Annual interest paid on your mortgage for primary residence (hypotheekrente)"
+
+  mortgage_start_year:
+    type: number
+    required: false
+    min: 1990
+    max: 2025
+    default: 0
+    label: "Mortgage Start Year (Optional)"
+    description: "Year when mortgage was first taken out (for 30-year eligibility check)"
+
+  pension_contributions:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Pension/Annuity Contributions (Optional)"
+    description: "Additional pension or annuity contributions (lijfrentepremies)"
+
+  jaarruimte_available:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Available Jaarruimte (Optional)"
+    description: "Your available annual allowance for pension deductions from previous year"
+
+  healthcare_expenses:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Healthcare Expenses (Optional)"
+    description: "Out-of-pocket medical and healthcare costs (specifieke zorgkosten)"
+
 parameters:
   # Income tax brackets for Box 1 (under AOW age) - 2025 rates
   # These include income tax + social security premiums
@@ -115,13 +157,135 @@ parameters:
       rate: 0
       base: 0
 
-calculations:
-  # Taxable income (for standard case, same as gross)
-  - id: taxable_income
-    type: identity
-    value: "@gross_annual"
+  # Deduction parameters
+  mortgage_interest_max_rate: 0.3748  # Maximum deduction rate for 2025
+  mortgage_max_years: 30
+  current_year: 2025
 
-  # Income tax (bracket tax on full income)
+  # Healthcare threshold parameters (simplified approximation)
+  healthcare_threshold_fixed: 132
+  healthcare_threshold_rate: 0.0165
+  healthcare_threshold_income_start: 8625
+
+calculations:
+  # ============================================================================
+  # DEDUCTION CALCULATIONS
+  # ============================================================================
+  # Calculate all deductions first, then adjust taxable income
+
+  # Mortgage interest deduction
+  - id: has_mortgage_data
+    type: conditional
+    condition:
+      type: gt
+      left: "@mortgage_interest_paid"
+      right: 0
+    then:
+      type: conditional
+      condition:
+        type: gt
+        left: "@mortgage_start_year"
+        right: 0
+      then: 1
+      else: 0
+    else: 0
+
+  - id: mortgage_years_elapsed
+    type: conditional
+    condition:
+      type: gt
+      left: "$has_mortgage_data"
+      right: 0
+    then:
+      type: sub
+      values:
+        - "$current_year"
+        - "@mortgage_start_year"
+    else: 999
+
+  - id: mortgage_within_30_years
+    type: conditional
+    condition:
+      type: lte
+      left: "$mortgage_years_elapsed"
+      right: "$mortgage_max_years"
+    then: 1
+    else: 0
+
+  - id: mortgage_interest_deduction
+    type: deduction
+    amount:
+      type: mul
+      values:
+        - "@mortgage_interest_paid"
+        - "$mortgage_within_30_years"
+    rate_limit: "$mortgage_interest_max_rate"
+    category: deduction
+    label: "Mortgage Interest"
+    description: "Hypotheekrente (max 30 years, 37.48% rate)"
+
+  # Pension contribution deduction
+  - id: pension_contribution_deduction
+    type: deduction
+    amount: "@pension_contributions"
+    cap: "@jaarruimte_available"
+    rate_limit: "$mortgage_interest_max_rate"
+    category: deduction
+    label: "Pension Contributions"
+    description: "Lijfrentepremies (capped by jaarruimte)"
+
+  # Healthcare cost deduction
+  - id: healthcare_threshold_variable
+    type: mul
+    values:
+      - type: max
+        values:
+          - 0
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$healthcare_threshold_income_start"
+      - "$healthcare_threshold_rate"
+
+  - id: healthcare_threshold_total
+    type: sum
+    values:
+      - "$healthcare_threshold_fixed"
+      - "$healthcare_threshold_variable"
+
+  - id: healthcare_deduction
+    type: deduction
+    amount: "@healthcare_expenses"
+    threshold:
+      amount: "$healthcare_threshold_total"
+      mode: "above"
+    category: deduction
+    label: "Healthcare Costs"
+    description: "Specifieke zorgkosten (only above threshold)"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$mortgage_interest_deduction"
+      - "$pension_contribution_deduction"
+      - "$healthcare_deduction"
+
+  # ============================================================================
+  # TAXABLE INCOME
+  # ============================================================================
+  # Gross income minus deductions
+
+  - id: taxable_income
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+  # ============================================================================
+  # TAX CALCULATIONS
+  # ============================================================================
+  # Income tax (bracket tax on taxable income after deductions)
   - id: income_tax_and_social_security
     type: bracket_tax
     base: "$taxable_income"
