@@ -1,0 +1,26 @@
+{
+  "name": "Pension contribution capped by jaarruimte",
+  "description": "\u20ac75,000 gross with \u20ac10,000 pension contribution but only \u20ac6,000 jaarruimte available",
+  "inputs": {
+    "gross_annual": 75000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 0,
+    "mortgage_start_year": 0,
+    "pension_contributions": 10000,
+    "jaarruimte_available": 6000,
+    "healthcare_expenses": 0
+  },
+  "expected": {
+    "net": 53793,
+    "effective_rate": 0.28276
+  },
+  "tolerance": 20,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/aftrek-en-kortingen/content/hoe-bereken-ik-mijn-jaarruimte",
+      "description": "Jaarruimte cap for pension deductions",
+      "retrieved_at": "2026-01-31"
+    }
+  ]
+}

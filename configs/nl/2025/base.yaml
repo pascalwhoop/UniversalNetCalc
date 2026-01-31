@@ -455,6 +455,10 @@ outputs:
   breakdown:
     taxes:
       - "$income_tax_and_social_security"
+    deductions:
+      - "$mortgage_interest_deduction"
+      - "$pension_contribution_deduction"
+      - "$healthcare_deduction"
     credits:
       - "$general_tax_credit"
       - "$labour_tax_credit"
