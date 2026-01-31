@@ -1,6 +1,10 @@
 name: PR Preview
 
 on:
+  # Automatic deployment on PR pushes (non-fork only)
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # Manual deployment via comment
   issue_comment:
     types: [created]
 
@@ -9,42 +13,68 @@ permissions:
   contents: read
 
 jobs:
-  check-permission:
+  check-trigger:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/release-preview')
     outputs:
-      has-permission: ${{ steps.check.outputs.has-permission }}
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+      pr-number: ${{ steps.check.outputs.pr-number }}
+      trigger-type: ${{ steps.check.outputs.trigger-type }}
     steps:
-      - name: Check user has write access
+      - name: Check deployment trigger
         id: check
         run: |
-          # Check if user has write permission
-          if [ "${{ github.event.comment.author_association }}" = "OWNER" ] || \
-             [ "${{ github.event.comment.author_association }}" = "COLLABORATOR" ] || \
-             [ "${{ github.event.comment.author_association }}" = "MEMBER" ]; then
-            echo "has-permission=true" >> $GITHUB_OUTPUT
-          else
-            echo "has-permission=false" >> $GITHUB_OUTPUT
+          # Check if triggered by pull_request event (automatic)
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Only deploy for PRs from the same repo (not forks)
+            if [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
+              echo "should-deploy=true" >> $GITHUB_OUTPUT
+              echo "pr-number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+              echo "trigger-type=auto" >> $GITHUB_OUTPUT
+              echo "✅ Auto-deploy enabled for non-fork PR"
+            else
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+              echo "⏭️ Skipping fork PR (security)"
+            fi
+          # Check if triggered by comment (manual)
+          elif [ "${{ github.event_name }}" = "issue_comment" ]; then
+            if [ -n "${{ github.event.issue.pull_request }}" ] && echo "${{ github.event.comment.body }}" | grep -q "/release-preview"; then
+              # Check if user has write permission
+              if [ "${{ github.event.comment.author_association }}" = "OWNER" ] || \
+                 [ "${{ github.event.comment.author_association }}" = "COLLABORATOR" ] || \
+                 [ "${{ github.event.comment.author_association }}" = "MEMBER" ]; then
+                echo "should-deploy=true" >> $GITHUB_OUTPUT
+                echo "pr-number=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+                echo "trigger-type=manual" >> $GITHUB_OUTPUT
+                echo "✅ Manual deploy authorized"
+              else
+                echo "should-deploy=false" >> $GITHUB_OUTPUT
+                echo "trigger-type=manual-denied" >> $GITHUB_OUTPUT
+                echo "❌ User lacks permission"
+              fi
+            else
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+              echo "⏭️ Not a preview comment"
+            fi
           fi
 
   deploy:
     runs-on: ubuntu-latest
-    needs: check-permission
-    if: needs.check-permission.outputs.has-permission == 'true'
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should-deploy == 'true'
     environment:
       name: preview
     steps:
-      - name: Get PR info
-        id: pr
+      - name: Set deployment info
+        id: info
         run: |
-          PR_NUMBER=${{ github.event.issue.number }}
+          PR_NUMBER=${{ needs.check-trigger.outputs.pr-number }}
           echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
           echo "worker-name=universal-net-calc-pr-$PR_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/merge
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || format('refs/pull/{0}/merge', needs.check-trigger.outputs.pr-number) }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -68,17 +98,30 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const prNumber = context.issue.number;
+            const prNumber = ${{ steps.info.outputs.pr-number }};
             const previewUrl = `https://universal-net-calc-pr-${prNumber}.reconnct.workers.dev`;
+            const triggerType = '${{ needs.check-trigger.outputs.trigger-type }}';
+
+            let message;
+            if (triggerType === 'auto') {
+              message = `✅ **PR preview updated automatically!**\n\n[🔗 Preview Link](${previewUrl})\n\n_Preview auto-updates on every push. Available until PR is closed._`;
+            } else {
+              message = `✅ **PR preview deployed!**\n\n[🔗 Preview Link](${previewUrl})\n\n_This preview will auto-update on pushes or you can redeploy with \`/release-preview\`._`;
+            }
+
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: prNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `✅ PR preview deployed!\n\n[🔗 Preview Link](${previewUrl})\n\n_This preview will be available for testing until the PR is closed._`
+              body: message
             });
 
-      - name: Handle permission denied
-        if: ${{ failure() && needs.check-permission.outputs.has-permission == 'false' }}
+  notify-permission-denied:
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: needs.check-trigger.outputs.trigger-type == 'manual-denied'
+    steps:
+      - name: Comment permission denied
         uses: actions/github-script@v7
         with:
           script: |
@@ -86,5 +129,6 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `❌ You don't have permission to trigger PR previews. Only collaborators can use the \`/release-preview\` command.`
+              body: `❌ You don't have permission to trigger PR previews. Only collaborators can use the \`/release-preview\` command.\n\n_Note: PRs from the same repository auto-deploy on every push._`
             });
+
