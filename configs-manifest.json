@@ -160,6 +160,9 @@
           "variants": [
             "paye"
           ]
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
