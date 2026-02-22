@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { ChevronLeft, ChevronRight, Check, Info } from "lucide-react"
 import {
   Dialog,
@@ -29,7 +29,7 @@ import { DeductionManager } from "./deduction-manager"
 import { CostOfLivingSection } from "./cost-of-living-section"
 import { NoticeIcon } from "./notices"
 import { CountryColumnState, CostOfLiving } from "@/lib/types"
-import { getCountryName, getCurrencySymbol } from "@/lib/api"
+import { getCountryName, getCurrencySymbol, fetchExchangeRate } from "@/lib/api"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { useCountries, useYears, useVariants, useInputs } from "@/lib/queries"
 
@@ -40,6 +40,8 @@ interface DestinationWizardProps {
   onClose: () => void
   initialState: CountryColumnState
   onSave: (state: CountryColumnState) => void
+  salaryModeSynced?: boolean
+  isLeader?: boolean
 }
 
 export function DestinationWizard({
@@ -47,15 +49,23 @@ export function DestinationWizard({
   onClose,
   initialState,
   onSave,
+  salaryModeSynced = false,
+  isLeader = true,
 }: DestinationWizardProps) {
   const [step, setStep] = useState(0)
   const [draft, setDraft] = useState<CountryColumnState>(initialState)
+
+  // Track the leader's gross/currency so we can convert when destination currency loads
+  const leaderGrossRef = useRef<string>(initialState.gross_annual)
+  const leaderCurrencyRef = useRef<string>(initialState.currency || "EUR")
 
   // Reset draft and step when wizard opens
   useEffect(() => {
     if (open) {
       setDraft(initialState)
       setStep(0)
+      leaderGrossRef.current = initialState.gross_annual
+      leaderCurrencyRef.current = initialState.currency || "EUR"
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -78,6 +88,26 @@ export function DestinationWizard({
     }
   }, [years, year, country])
 
+  // Convert synced salary to destination currency when inputs load
+  const convertSyncedSalary = useCallback(
+    (destinationCurrency: string) => {
+      if (!salaryModeSynced || isLeader) return
+      const sourceCurrency = leaderCurrencyRef.current
+      const sourceAmount = parseFloat(leaderGrossRef.current)
+      if (isNaN(sourceAmount) || sourceAmount <= 0) return
+      if (sourceCurrency === destinationCurrency) return
+      fetchExchangeRate(sourceCurrency, destinationCurrency)
+        .then(rate => {
+          const converted = String(Math.round(sourceAmount * rate))
+          setDraft(prev => ({ ...prev, gross_annual: converted }))
+        })
+        .catch(() => {
+          // Leave as-is on error (already pre-filled with leader's amount)
+        })
+    },
+    [salaryModeSynced, isLeader]
+  )
+
   // Update currency and initialize form defaults when inputs load
   useEffect(() => {
     if (!inputsData) return
@@ -86,6 +116,7 @@ export function DestinationWizard({
 
     if (inputsData.currency && inputsData.currency !== currency) {
       updates.currency = inputsData.currency
+      convertSyncedSalary(inputsData.currency)
     }
 
     const newFormValues = { ...formValues }
@@ -262,18 +293,46 @@ export function DestinationWizard({
                     />
                   )}
                 </div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                    {currencySymbol}
-                  </span>
-                  <Input
-                    type="number"
-                    placeholder="100000"
-                    className="h-9 pl-10"
-                    value={gross_annual}
-                    onChange={e => updateFormValue("gross_annual", e.target.value)}
-                  />
-                </div>
+                {salaryModeSynced && !isLeader ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                            {currencySymbol}
+                          </span>
+                          <Input
+                            type="number"
+                            placeholder="100000"
+                            className="h-9 pl-10 opacity-60 cursor-not-allowed"
+                            value={gross_annual}
+                            disabled
+                            readOnly
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs text-xs">
+                          Salary is synced from the primary destination. Switch to{" "}
+                          <strong>Local salaries</strong> mode to set each country independently.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                      {currencySymbol}
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="100000"
+                      className="h-9 pl-10"
+                      value={gross_annual}
+                      onChange={e => updateFormValue("gross_annual", e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Enum inputs */}

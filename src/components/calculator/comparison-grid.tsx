@@ -589,6 +589,12 @@ export function ComparisonGrid() {
           onClose={() => setWizardTargetId(null)}
           initialState={wizardInitialState}
           onSave={handleWizardSave}
+          salaryModeSynced={salaryModeSynced}
+          isLeader={
+            wizardTargetId === "__new__"
+              ? false
+              : (countries.find(c => c.id === wizardTargetId)?.index ?? 1) === 0
+          }
         />
       )}
     </div>
