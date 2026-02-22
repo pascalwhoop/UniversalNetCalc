@@ -24,7 +24,8 @@ import {
 import { ResultBreakdown } from "./result-breakdown"
 import { SalaryRangeChart } from "./salary-range-chart"
 import { NoticeIcon } from "./notices"
-import { getCountryName, getCurrencySymbol, type CalcRequest } from "@/lib/api"
+import { getCountryName, getCurrencySymbol, type CalcRequest, type InputDefinition } from "@/lib/api"
+import { DeductionManager } from "./deduction-manager"
 import { CountryColumnState } from "@/lib/types"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { Crown } from "lucide-react"
@@ -160,13 +161,19 @@ export function CountryColumn({
 
     // Add form values
     for (const [key, value] of Object.entries(formValues)) {
-      if (key !== "gross_annual" && value) {
-        const inputDef = inputsData?.inputs[key]
-        if (inputDef?.type === "boolean") {
-          request[key] = value === "true"
-        } else {
-          request[key] = value
+      if (key === "gross_annual") continue
+
+      const inputDef = inputsData?.inputs[key] as InputDefinition | undefined
+
+      if (inputDef?.type === "boolean") {
+        request[key] = value === "true"
+      } else if (inputDef?.type === "number") {
+        const numValue = parseFloat(value || "0")
+        if (!isNaN(numValue)) {
+          request[key] = numValue
         }
+      } else if (value) {
+        request[key] = value
       }
     }
 
@@ -393,6 +400,14 @@ export function CountryColumn({
               ))}
             </div>
           )}
+
+          {/* Deductions Manager */}
+          <DeductionManager
+            inputDefs={inputDefs}
+            formValues={formValues}
+            onUpdateFormValue={updateFormValue}
+            columnIndex={index}
+          />
 
           {/* Variant Selection */}
           {variants.length > 0 && (
