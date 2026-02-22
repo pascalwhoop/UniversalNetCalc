@@ -1,16 +1,18 @@
 name: Claude Code Review
 
 on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
+  issue_comment:
+    types: [created]
 
 jobs:
   claude-review:
-    # Skip draft PRs and PRs from bots (except our own agent PRs)
     if: |
-      github.event.pull_request.draft == false &&
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '/review') &&
       (
-        github.event.pull_request.user.login != 'dependabot[bot]'
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'
       )
 
     runs-on: ubuntu-latest
@@ -35,7 +37,7 @@ jobs:
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
+              issue_number: context.payload.issue.number,
             });
             const reviewComments = comments.data.filter(c =>
               c.body.includes('<!-- claude-reviewer -->'),
