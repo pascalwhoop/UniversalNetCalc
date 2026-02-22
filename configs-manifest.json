@@ -57,6 +57,9 @@
         },
         "2025": {
           "variants": []
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
@@ -64,12 +67,20 @@
       "years": {
         "2025": {
           "variants": []
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
     "dk": {
       "years": {
         "2025": {
+          "variants": [
+            "researcher"
+          ]
+        },
+        "2026": {
           "variants": [
             "researcher"
           ]
@@ -91,6 +102,11 @@
           "variants": [
             "portage-salarial"
           ]
+        },
+        "2026": {
+          "variants": [
+            "portage-salarial"
+          ]
         }
       }
     },
@@ -104,6 +120,11 @@
     "ie": {
       "years": {
         "2025": {
+          "variants": [
+            "sarp"
+          ]
+        },
+        "2026": {
           "variants": [
             "sarp"
           ]
@@ -160,6 +181,9 @@
           "variants": [
             "paye"
           ]
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
@@ -182,6 +206,11 @@
     "se": {
       "years": {
         "2025": {
+          "variants": [
+            "expert-tax"
+          ]
+        },
+        "2026": {
           "variants": [
             "expert-tax"
           ]
