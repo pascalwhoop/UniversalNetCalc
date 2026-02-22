@@ -1,0 +1,22 @@
+{
+  "name": "Ireland 2026 SARP - €150,000 (above new €125k threshold)",
+  "variant": "sarp",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 93269,
+    "effective_rate": 0.3782,
+    "breakdown": {
+      "sarp_relief": 7500,
+      "income_tax": 42400,
+      "usc": 8031,
+      "prsi": 6300,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.002
+}
