@@ -4,9 +4,9 @@ import { PresetCards } from "@/components/landing/preset-cards"
 import { FeaturesSection } from "@/components/landing/features-section"
 
 export const metadata: Metadata = {
-  title: "NetCalc - Compare Salaries Across Countries",
+  title: "NetCalc - Tax-Advisor-Level Salary Comparisons for Mobile Professionals",
   description:
-    "Accurate, transparent, and free tax calculations. Compare net salaries side-by-side with currency conversion and shareable links.",
+    "If I move to [country/city], how will I actually be standing financially? Tax-advisor-level accuracy for EU free movers, expats, remote workers. Canton/municipality level, expat regimes, free & open source.",
 }
 
 export default function LandingPage() {
