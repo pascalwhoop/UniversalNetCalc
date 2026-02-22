@@ -1,4 +1,4 @@
-name: Agent - Project Manager
+name: Agent - Product Manager
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Manual trigger
 
 jobs:
-  project-manager:
+  product-manager:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Needed to commit pm/ updates directly to main
@@ -38,9 +38,9 @@ jobs:
           use_vertex: true
           claude_args: '--max-turns 40'
           prompt: |
-            /project-manager
+            /product-manager
 
-            You are the product manager agent for this repository. Follow your project-manager
+            You are the product manager agent for this repository. Follow your product-manager
             skill instructions fully, including reading pm/vision.md and pm/roadmap.md first,
             then running your full research and coordination pass, then writing a timestamped
             update to pm/updates/ and committing it directly to main.
