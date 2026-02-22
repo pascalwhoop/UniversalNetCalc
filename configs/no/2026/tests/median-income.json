@@ -1,0 +1,11 @@
+{
+  "name": "Median income - NOK 500,000",
+  "inputs": {
+    "gross_annual": 500000
+  },
+  "expected": {
+    "net": 396991,
+    "effective_rate": 0.20602
+  },
+  "tolerance": 10
+}
