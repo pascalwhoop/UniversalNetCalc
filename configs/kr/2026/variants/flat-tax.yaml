@@ -1,0 +1,211 @@
+meta:
+  variant: "flat-tax"
+  label: "19% Flat Tax (Foreign Workers)"
+  description: "Simplified 19% flat tax rate for eligible foreign workers (total 20.9% with local tax)"
+  base: "base.yaml"
+  sources:
+    - url: "https://taxsummaries.pwc.com/republic-of-korea/individual/taxes-on-personal-income"
+      description: "PWC Korea - Flat Tax Election for Foreign Workers"
+      retrieved_at: "2026-02-22"
+    - url: "https://barunlaw.com/letter/publications/Legal500_Comparative_Country_Guides_2026_Private_Client_South_Korea.pdf"
+      description: "Legal 500 Country Comparative Guides 2026 - Foreign Worker Flat Tax"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    Foreign workers who started work in Korea before December 31, 2026 can elect
+    a flat 19% tax rate (plus 10% local tax = 20.9% total) instead of the
+    progressive tax system.
+
+    IMPORTANT TRADE-OFFS:
+    - Duration: 20 years from first day of work
+    - All deductions are forfeited (earned income deduction, basic deduction)
+    - All tax credits are forfeited
+    - Social insurance contributions still apply normally (using 2026 rates)
+
+    Eligibility:
+    - Must be a foreign worker
+    - Must start work in Korea no later than December 31, 2026
+    - Cannot have controlling influence in company
+    - Applies to Korean employment income only
+
+    Application:
+    - Must apply within 3 months of starting work
+    - Submit to employer or tax authorities
+
+parameters:
+  # Flat tax rate (national)
+  flat_tax_rate: 0.19
+
+  # Local tax still applies (10% of national tax)
+  local_tax_rate: 0.10
+
+  # Social insurance rates remain the same (2026 rates)
+  national_pension_rate: 0.0475
+  national_pension_monthly_cap: 6370000
+  health_insurance_rate: 0.03595
+  long_term_care_rate: 0.1314
+  employment_insurance_rate: 0.009
+
+notices:
+  - id: "flat_tax_election"
+    title: "19% Flat Tax Election"
+    body: |
+      You have elected the simplified 19% flat tax rate available to foreign workers.
+      This rate applies for 20 years but you forfeit ALL deductions and credits.
+      Total effective rate: 20.9% (19% national + 10% local).
+    severity: "warning"
+
+  - id: "no_deductions"
+    title: "No Deductions or Credits"
+    body: |
+      With the flat tax election, you cannot claim:
+      - Earned income deduction
+      - Basic personal deduction
+      - Any other tax credits or exemptions
+
+      Social insurance contributions still apply normally.
+    severity: "warning"
+
+  - id: "eligibility_deadline"
+    title: "Eligibility Deadline"
+    body: |
+      To be eligible for this flat tax rate, you must have started work in Korea
+      no later than December 31, 2026. The election must be made within 3 months
+      of starting work.
+    severity: "info"
+
+calculations:
+  # Delete the complex earned income deduction calculation
+  - id: earned_income_deduction_uncapped
+    $delete: true
+
+  - id: earned_income_deduction
+    $delete: true
+
+  - id: adjusted_gross_income
+    $delete: true
+
+  - id: taxable_income
+    $delete: true
+
+  # Override national income tax with flat rate calculation
+  - id: national_income_tax
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$flat_tax_rate"
+    category: income_tax
+    label: "National Income Tax (Flat 19%)"
+    description: "Flat 19% rate for eligible foreign workers"
+
+  # Local tax calculation references the overridden national tax
+  - id: local_income_tax
+    type: mul
+    values:
+      - "$national_income_tax"
+      - "$local_tax_rate"
+    category: income_tax
+    label: "Local Income Tax"
+    description: "10% of national income tax"
+
+  - id: total_income_tax
+    type: sum
+    values:
+      - "$national_income_tax"
+      - "$local_income_tax"
+
+  # Social insurance calculations remain the same (not deleted from base)
+  # They will be inherited from base.yaml
+
+  - id: annual_pension_cap
+    type: mul
+    values:
+      - "$national_pension_monthly_cap"
+      - 12
+
+  - id: pension_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$annual_pension_cap"
+
+  - id: national_pension
+    type: mul
+    values:
+      - "$pension_base"
+      - "$national_pension_rate"
+    category: contribution
+    label: "National Pension"
+    description: "4.75% of salary (capped at KRW 6.37M/month)"
+
+  - id: health_insurance_base
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$health_insurance_rate"
+
+  - id: health_insurance
+    type: identity
+    value: "$health_insurance_base"
+    category: contribution
+    label: "Health Insurance"
+    description: "3.595% of salary"
+
+  - id: long_term_care_insurance
+    type: mul
+    values:
+      - "$health_insurance_base"
+      - "$long_term_care_rate"
+    category: contribution
+    label: "Long-term Care Insurance"
+    description: "13.14% of health insurance contribution"
+
+  - id: employment_insurance
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$employment_insurance_rate"
+    category: contribution
+    label: "Employment Insurance"
+    description: "0.9% of salary"
+
+  - id: total_social_insurance
+    type: sum
+    values:
+      - "$national_pension"
+      - "$health_insurance"
+      - "$long_term_care_insurance"
+      - "$employment_insurance"
+
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_income_tax"
+      - "$total_social_insurance"
+
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$national_income_tax"
+      - "$local_income_tax"
+    contributions:
+      - "$national_pension"
+      - "$health_insurance"
+      - "$long_term_care_insurance"
+      - "$employment_insurance"

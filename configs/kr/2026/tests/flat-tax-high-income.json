@@ -1,0 +1,22 @@
+{
+  "name": "Flat Tax - High Income (KRW 100M)",
+  "description": "High income with 19% flat tax - comparing vs progressive tax system",
+  "variant": "flat-tax",
+  "inputs": {
+    "gross_annual": 100000000
+  },
+  "expected": {
+    "net": 70501717,
+    "effective_rate": 0.29498,
+    "breakdown": {
+      "national_income_tax": 19000000,
+      "local_income_tax": 1900000,
+      "national_pension": 3630900,
+      "health_insurance": 3595000,
+      "long_term_care_insurance": 472383,
+      "employment_insurance": 900000
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005
+}
