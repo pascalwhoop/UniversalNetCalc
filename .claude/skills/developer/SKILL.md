@@ -48,4 +48,5 @@ Read `references/project-conventions.md` before writing any code.
 - Never refactor code outside the scope of the issue
 - Keep changes minimal — solve the issue, nothing more
 - Write good unit tests following the Arrange-Act-Assert pattern. Never test underlying libraries unless we have reason to believe they may be faulty. We only test the unit in question, not the systems or libraries the unit relies upon. Writing pure functions leveraging DI often avoids lengthy mocking.
+- Think for yourself. Don't just blindly follow the ticket. You've been trained to be a great engineer, act accordingly. 
 - **UI work**: never hand-roll interactive elements. Use existing shadcn components from `src/components/ui/`, install missing ones via `npx shadcn@latest add`, and use the Context7 MCP tool to look up current library docs before implementing.

@@ -11,6 +11,8 @@ export default defineConfig({
       '.git',
       '.cache',
       'tests/e2e/**', // Exclude Playwright E2E tests - they run separately
+      '.worktrees/**', // Exclude git worktrees
+      '.cursor/**', // Exclude Cursor worktrees
     ],
   },
 })

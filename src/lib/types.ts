@@ -3,6 +3,25 @@
 import { CalculationResult } from "./api"
 
 /**
+ * Monthly cost-of-living expenses in local currency
+ */
+export interface CostOfLiving {
+  rent: number
+  healthcare: number
+  food: number
+  mobility: number
+  travel: number
+}
+
+export const DEFAULT_COST_OF_LIVING: CostOfLiving = {
+  rent: 0,
+  healthcare: 0,
+  food: 0,
+  mobility: 0,
+  travel: 0,
+}
+
+/**
  * State for a single country calculation
  */
 export interface CalculationState {
@@ -23,6 +42,7 @@ export interface CountryColumnState extends CalculationState {
   result: CalculationResult | null
   isCalculating: boolean
   calculationError: string | null
+  costOfLiving: CostOfLiving
 }
 
 /**

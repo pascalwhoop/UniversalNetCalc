@@ -75,6 +75,50 @@ inputs:
         label: "With Fiscal Partner"
         description: "Married or registered partnership (used for credit distribution)"
 
+  # Optional deduction inputs
+  mortgage_interest_paid:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Mortgage Interest Paid (Optional)"
+    description: "Annual interest paid on your mortgage for primary residence (hypotheekrente)"
+
+  mortgage_start_year:
+    type: number
+    required: false
+    group: mortgage_interest_paid
+    min: 1990
+    max: 2025
+    default: 2025
+    label: "Mortgage Start Year (Optional)"
+    description: "Year when mortgage was first taken out (for 30-year eligibility check)"
+
+  pension_contributions:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Pension/Annuity Contributions (Optional)"
+    description: "Additional pension or annuity contributions (lijfrentepremies)"
+
+  jaarruimte_available:
+    type: number
+    required: false
+    group: pension_contributions
+    min: 0
+    default: 0
+    label: "Available Jaarruimte (Optional)"
+    description: "Your available annual allowance for pension deductions from previous year"
+
+  healthcare_expenses:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Healthcare Expenses (Optional)"
+    description: "Out-of-pocket medical and healthcare costs (specifieke zorgkosten)"
+
 parameters:
   # Income tax brackets for Box 1 (under AOW age) - 2025 rates
   # These include income tax + social security premiums
@@ -115,13 +159,170 @@ parameters:
       rate: 0
       base: 0
 
-calculations:
-  # Taxable income (for standard case, same as gross)
-  - id: taxable_income
-    type: identity
-    value: "@gross_annual"
+  # Deduction parameters
+  mortgage_max_years: 30
+  current_year: 2025
+  top_bracket_threshold: 76817  # Box 1 top bracket starts here (2025)
 
-  # Income tax (bracket tax on full income)
+  # Healthcare threshold parameters (simplified approximation)
+  healthcare_threshold_fixed: 132
+  healthcare_threshold_rate: 0.0165
+  healthcare_threshold_income_start: 8625
+
+calculations:
+  # ============================================================================
+  # DEDUCTION CALCULATIONS
+  # ============================================================================
+  # Calculate all deductions first, then adjust taxable income
+
+  # Mortgage interest deduction
+  - id: has_mortgage_data
+    type: conditional
+    condition:
+      type: gt
+      left: "@mortgage_interest_paid"
+      right: 0
+    then:
+      type: conditional
+      condition:
+        type: gt
+        left: "@mortgage_start_year"
+        right: 0
+      then: 1
+      else: 0
+    else: 0
+
+  - id: mortgage_years_elapsed
+    type: conditional
+    condition:
+      type: gt
+      left: "$has_mortgage_data"
+      right: 0
+    then:
+      type: sub
+      values:
+        - "$current_year"
+        - "@mortgage_start_year"
+    else: 999
+
+  - id: mortgage_within_30_years
+    type: conditional
+    condition:
+      type: lte
+      left: "$mortgage_years_elapsed"
+      right: "$mortgage_max_years"
+    then: 1
+    else: 0
+
+  - id: mortgage_interest_deduction
+    type: deduction
+    amount:
+      type: mul
+      values:
+        - "@mortgage_interest_paid"
+        - "$mortgage_within_30_years"
+    category: deduction
+    label: "Mortgage Interest"
+    description: "Hypotheekrente (max 30 years)"
+
+  # Pension contribution deduction
+  # Note: pension (lijfrente) is NOT rate-capped in NL — deductible at full marginal rate
+  - id: pension_contribution_deduction
+    type: deduction
+    amount: "@pension_contributions"
+    cap: "@jaarruimte_available"
+    category: deduction
+    label: "Pension Contributions"
+    description: "Lijfrentepremies (capped by jaarruimte)"
+
+  # Healthcare cost deduction
+  - id: healthcare_threshold_variable
+    type: mul
+    values:
+      - type: max
+        values:
+          - 0
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$healthcare_threshold_income_start"
+      - "$healthcare_threshold_rate"
+
+  - id: healthcare_threshold_total
+    type: sum
+    values:
+      - "$healthcare_threshold_fixed"
+      - "$healthcare_threshold_variable"
+
+  - id: healthcare_deduction
+    type: deduction
+    amount: "@healthcare_expenses"
+    threshold:
+      amount: "$healthcare_threshold_total"
+      mode: "above"
+    category: deduction
+    label: "Healthcare Costs"
+    description: "Specifieke zorgkosten (only above threshold)"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$mortgage_interest_deduction"
+      - "$pension_contribution_deduction"
+      - "$healthcare_deduction"
+
+  # ============================================================================
+  # MORTGAGE INTEREST RATE CAP CORRECTION (hypotheekrente aftrekbeperking)
+  # ============================================================================
+  # NL law: mortgage interest benefit is capped at 37.48% even for top-bracket
+  # (49.5%) earners. The deduction correctly reduces taxable income, but for the
+  # portion of interest that falls in the 49.5% bracket, we must claw back the
+  # excess benefit: (49.5% - 37.48%) = 12.02% of the interest in that bracket.
+  #
+  # We use gross_annual (before deductions) to determine how much income was in
+  # the top bracket, which determines how much of the mortgage interest
+  # benefited at the uncapped 49.5% rate.
+
+  - id: gross_above_top_bracket
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$top_bracket_threshold"
+
+  - id: mortgage_in_top_bracket
+    type: min
+    values:
+      - "$mortgage_interest_deduction"
+      - "$gross_above_top_bracket"
+
+  - id: mortgage_rate_cap_correction
+    type: mul
+    values:
+      - "$mortgage_in_top_bracket"
+      - 0.1202  # 49.5% - 37.48%
+    category: surtax
+    label: "Mortgage Rate Cap Adjustment"
+    description: "Claws back excess benefit for top-bracket earners (NL law caps at 37.48%)"
+
+  # ============================================================================
+  # TAXABLE INCOME
+  # ============================================================================
+  # Gross income minus deductions
+
+  - id: taxable_income
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+  # ============================================================================
+  # TAX CALCULATIONS
+  # ============================================================================
+  # Income tax (bracket tax on taxable income after deductions)
   - id: income_tax_and_social_security
     type: bracket_tax
     base: "$taxable_income"
@@ -244,11 +445,12 @@ calculations:
     label: "Labour Tax Credit"
     description: "Arbeidskorting"
 
-  # Total tax before credits
+  # Total tax before credits (includes mortgage rate-cap correction surtax)
   - id: total_tax_before_credits
     type: sum
     values:
       - "$income_tax_and_social_security"
+      - "$mortgage_rate_cap_correction"
 
   # Total credits
   - id: total_credits
@@ -291,6 +493,12 @@ outputs:
   breakdown:
     taxes:
       - "$income_tax_and_social_security"
+    surtaxes:
+      - "$mortgage_rate_cap_correction"
+    deductions:
+      - "$mortgage_interest_deduction"
+      - "$pension_contribution_deduction"
+      - "$healthcare_deduction"
     credits:
       - "$general_tax_credit"
       - "$labour_tax_credit"

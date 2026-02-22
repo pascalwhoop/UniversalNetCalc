@@ -62,5 +62,4 @@ jobs:
           github_token: ${{ secrets.PM_AGENT_TOKEN }}
           additional_permissions: |
             actions: read
-          allowed_tools: 'Bash,Edit,MultiEdit,Glob,Grep,LS,Read,Write,mcp__github_comment__update_claude_comment'
-          claude_args: '--max-turns 100'
+          claude_args: '--max-turns 100 --allowedTools Bash,Edit,MultiEdit,Glob,Grep,LS,Read,Write,mcp__github_comment__update_claude_comment'
