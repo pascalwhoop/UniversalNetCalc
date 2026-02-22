@@ -4,6 +4,23 @@ import type {
   BracketEntry,
   PhaseoutConfig,
   InlineNode,
+  IdentityNode,
+  SumNode,
+  SubNode,
+  MulNode,
+  DivNode,
+  MinNode,
+  MaxNode,
+  ClampNode,
+  BracketTaxNode,
+  PercentOfNode,
+  CreditNode,
+  DeductionNode,
+  SwitchNode,
+  LookupNode,
+  ConditionalNode,
+  RoundNode,
+  FunctionNode,
 } from '../../schema/src/config-types'
 
 export function evaluateNode(
@@ -11,67 +28,73 @@ export function evaluateNode(
   context: CalculationContext,
   functions: Map<string, Function>
 ): any {
-  const type = node.type
-
-  switch (type) {
+  switch (node.type) {
     case 'identity':
-      return evaluateIdentity(node as any, context)
+      return evaluateIdentity(node as IdentityNode, context)
     case 'sum':
-      return evaluateSum(node as any, context, functions)
+      return evaluateSum(node as SumNode, context, functions)
     case 'sub':
-      return evaluateSub(node as any, context, functions)
+      return evaluateSub(node as SubNode, context, functions)
     case 'mul':
-      return evaluateMul(node as any, context, functions)
+      return evaluateMul(node as MulNode, context, functions)
     case 'div':
-      return evaluateDiv(node as any, context, functions)
+      return evaluateDiv(node as DivNode, context, functions)
     case 'min':
-      return evaluateMin(node as any, context, functions)
+      return evaluateMin(node as MinNode, context, functions)
     case 'max':
-      return evaluateMax(node as any, context, functions)
+      return evaluateMax(node as MaxNode, context, functions)
     case 'clamp':
-      return evaluateClamp(node as any, context, functions)
+      return evaluateClamp(node as ClampNode, context, functions)
     case 'bracket_tax':
-      return evaluateBracketTax(node as any, context, functions)
+      return evaluateBracketTax(node as BracketTaxNode, context, functions)
     case 'percent_of':
-      return evaluatePercentOf(node as any, context, functions)
+      return evaluatePercentOf(node as PercentOfNode, context, functions)
     case 'credit':
-      return evaluateCredit(node as any, context, functions)
+      return evaluateCredit(node as CreditNode, context, functions)
     case 'deduction':
-      return evaluateDeduction(node as any, context, functions)
+      return evaluateDeduction(node as DeductionNode, context, functions)
     case 'switch':
-      return evaluateSwitch(node as any, context, functions)
+      return evaluateSwitch(node as SwitchNode, context, functions)
     case 'lookup':
-      return evaluateLookup(node as any, context, functions)
+      return evaluateLookup(node as LookupNode, context, functions)
     case 'conditional':
-      return evaluateConditional(node as any, context, functions)
+      return evaluateConditional(node as ConditionalNode, context, functions)
     case 'round':
-      return evaluateRound(node as any, context, functions)
+      return evaluateRound(node as RoundNode, context, functions)
     case 'function':
-      return evaluateFunction(node as any, context, functions)
+      return evaluateFunction(node as FunctionNode, context, functions)
     default:
-      throw new Error(`Unknown node type: ${type}`)
+      throw new Error(`Unknown node type: ${(node as any).type}`)
   }
 }
 
 // Helper to resolve a value (number, reference, or inline node)
-function resolveValue(
-  value: string | number | InlineNode,
+export function resolveValue(
+  value: string | number | InlineNode | any,
   context: CalculationContext,
   functions: Map<string, Function>
-): number {
+): any {
   if (typeof value === 'number') {
     return value
   }
 
   if (typeof value === 'string') {
+    // If it's a plain string that doesn't look like a reference, return it as-is
+    if (!value.startsWith('@') && !value.startsWith('$')) {
+      return value
+    }
     return resolveReference(value, context)
   }
 
   // Inline node
-  return evaluateNode(value as any, context, functions)
+  if (typeof value === 'object' && value !== null && 'type' in value) {
+    return evaluateNode(value as any, context, functions)
+  }
+
+  return value
 }
 
-function resolveReference(ref: string, context: CalculationContext): number {
+export function resolveReference(ref: string, context: CalculationContext): any {
   if (ref.startsWith('@')) {
     const inputName = ref.slice(1)
     const parts = inputName.split('.')
@@ -85,7 +108,12 @@ function resolveReference(ref: string, context: CalculationContext): number {
       throw new Error(`Input not found: ${inputName}`)
     }
 
-    return typeof value === 'number' ? value : parseFloat(String(value))
+    // Coerce numeric strings to numbers, but leave other types alone
+    if (typeof value === 'string' && !isNaN(Number(value)) && value.trim() !== '') {
+      return Number(value)
+    }
+
+    return typeof value === 'number' ? value : value
   }
 
   if (ref.startsWith('$')) {
@@ -93,50 +121,20 @@ function resolveReference(ref: string, context: CalculationContext): number {
 
     if (context.nodes[name] !== undefined) {
       const nodeValue = context.nodes[name]
+      // Only coerce to number if it's not an array or object
+      if (Array.isArray(nodeValue) || typeof nodeValue === 'object') {
+        return nodeValue
+      }
       return typeof nodeValue === 'number' ? nodeValue : Number(nodeValue)
     }
 
     if (context.parameters[name] !== undefined) {
       const param = context.parameters[name]
-      if (typeof param === 'number') {
+      // Only coerce to number if it's not an array or object
+      if (Array.isArray(param) || typeof param === 'object') {
         return param
       }
-      throw new Error(`Parameter ${name} is not a number`)
-    }
-
-    throw new Error(`Reference not found: ${name}`)
-  }
-
-  throw new Error(`Invalid reference: ${ref}`)
-}
-
-// Helper to resolve a reference that can be any type (not just number)
-function resolveReferenceAny(ref: string, context: CalculationContext): any {
-  if (ref.startsWith('@')) {
-    const inputName = ref.slice(1)
-    const parts = inputName.split('.')
-
-    let value: unknown = context.inputs[parts[0]]
-    for (let i = 1; i < parts.length; i++) {
-      value = (value as Record<string, unknown>)?.[parts[i]]
-    }
-
-    if (value === undefined) {
-      throw new Error(`Input not found: ${inputName}`)
-    }
-
-    return value
-  }
-
-  if (ref.startsWith('$')) {
-    const name = ref.slice(1)
-
-    if (context.nodes[name] !== undefined) {
-      return context.nodes[name]
-    }
-
-    if (context.parameters[name] !== undefined) {
-      return context.parameters[name]
+      return typeof param === 'number' ? param : Number(param)
     }
 
     throw new Error(`Reference not found: ${name}`)
@@ -146,12 +144,12 @@ function resolveReferenceAny(ref: string, context: CalculationContext): any {
 }
 
 // Arithmetic evaluators
-function evaluateIdentity(node: any, context: CalculationContext): number {
+function evaluateIdentity(node: IdentityNode, context: CalculationContext): number {
   return resolveValue(node.value, context, new Map())
 }
 
 function evaluateSum(
-  node: any,
+  node: SumNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -162,7 +160,7 @@ function evaluateSum(
 }
 
 function evaluateSub(
-  node: any,
+  node: SubNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -174,7 +172,7 @@ function evaluateSub(
 }
 
 function evaluateMul(
-  node: any,
+  node: MulNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -185,7 +183,7 @@ function evaluateMul(
 }
 
 function evaluateDiv(
-  node: any,
+  node: DivNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -200,7 +198,7 @@ function evaluateDiv(
 }
 
 function evaluateMin(
-  node: any,
+  node: MinNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -209,7 +207,7 @@ function evaluateMin(
 }
 
 function evaluateMax(
-  node: any,
+  node: MaxNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -218,7 +216,7 @@ function evaluateMax(
 }
 
 function evaluateClamp(
-  node: any,
+  node: ClampNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -230,7 +228,7 @@ function evaluateClamp(
 
 // Tax evaluators
 function evaluateBracketTax(
-  node: any,
+  node: BracketTaxNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -260,6 +258,24 @@ function evaluateBracketTax(
   let tax = 0
   let remaining = base
 
+  // Check if brackets use base_amount (German-style)
+  const useBaseAmount = brackets.some((b) => b.base_amount !== undefined)
+
+  if (useBaseAmount) {
+    // Find the applicable bracket (highest threshold <= base)
+    let applicableBracket = brackets[0]
+    for (let i = brackets.length - 1; i >= 0; i--) {
+      if (base >= brackets[i].threshold) {
+        applicableBracket = brackets[i]
+        break
+      }
+    }
+    const taxableInBracket = base - applicableBracket.threshold
+    tax = (applicableBracket.base_amount || 0) + taxableInBracket * applicableBracket.rate
+    return tax
+  }
+
+  // Standard progressive calculation
   for (let i = 0; i < brackets.length; i++) {
     const bracket = brackets[i]
     const nextThreshold = i < brackets.length - 1 ? brackets[i + 1].threshold : Infinity
@@ -269,12 +285,6 @@ function evaluateBracketTax(
     if (bracketAmount <= 0) break
 
     tax += bracketAmount * bracket.rate
-
-    // Add base_amount if this is first euro in bracket (German-style)
-    if (bracket.base_amount && remaining > 0) {
-      tax += bracket.base_amount
-    }
-
     remaining -= bracketAmount
   }
 
@@ -282,7 +292,7 @@ function evaluateBracketTax(
 }
 
 function evaluatePercentOf(
-  node: any,
+  node: PercentOfNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -300,7 +310,7 @@ function evaluatePercentOf(
 }
 
 function evaluateCredit(
-  node: any,
+  node: CreditNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -335,7 +345,7 @@ function applyPhaseout(
 }
 
 function evaluateDeduction(
-  node: any,
+  node: DeductionNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -369,40 +379,15 @@ function evaluateDeduction(
 
 // Control flow evaluators
 function evaluateSwitch(
-  node: any,
+  node: SwitchNode,
   context: CalculationContext,
   functions: Map<string, Function>
-): number {
+): any {
   // Get the switch value (could be string or number)
-  let switchValue: any
-  const ref = node.on
+  const switchValue = resolveValue(node.on, context, functions)
 
-  if (ref.startsWith('@')) {
-    // Input reference - can be string or number
-    const inputName = ref.slice(1)
-    const parts = inputName.split('.')
-
-    switchValue = context.inputs[parts[0]]
-    for (let i = 1; i < parts.length; i++) {
-      switchValue = switchValue?.[parts[i]]
-    }
-
-    if (switchValue === undefined) {
-      throw new Error(`Input not found: ${inputName}`)
-    }
-  } else if (ref.startsWith('$')) {
-    // Parameter or node reference
-    const name = ref.slice(1)
-
-    if (context.nodes[name] !== undefined) {
-      switchValue = context.nodes[name]
-    } else if (context.parameters[name] !== undefined) {
-      switchValue = context.parameters[name]
-    } else {
-      throw new Error(`Reference not found: ${name}`)
-    }
-  } else {
-    throw new Error(`Invalid reference in switch: ${ref}`)
+  if (switchValue === undefined) {
+    throw new Error(`Switch value not found: ${node.on}`)
   }
 
   // Try to find matching case
@@ -411,24 +396,13 @@ function evaluateSwitch(
 
     // Compare as strings for string inputs, or as numbers for numeric inputs
     if (switchValue.toString() === caseKey) {
-      // Check if the case value is a reference to a non-numeric parameter
-      if (typeof caseValue === 'string' && caseValue.startsWith('$')) {
-        const param = resolveReferenceAny(caseValue, context)
-        // If it's a number, return it; if it's an array/object, it will be used by a parent node
-        return typeof param === 'number' ? param : param
-      }
-      return resolveValue(caseValue as any, context, functions)
+      return resolveValue(caseValue, context, functions)
     }
   }
 
   // Use default case
   if (node.cases._ !== undefined) {
-    const defaultValue = node.cases._
-    if (typeof defaultValue === 'string' && defaultValue.startsWith('$')) {
-      const param = resolveReferenceAny(defaultValue, context)
-      return typeof param === 'number' ? param : param
-    }
-    return resolveValue(defaultValue, context, functions)
+    return resolveValue(node.cases._, context, functions)
   }
   if (node.default !== undefined) {
     return resolveValue(node.default, context, functions)
@@ -438,10 +412,10 @@ function evaluateSwitch(
 }
 
 function evaluateLookup(
-  node: any,
+  node: LookupNode,
   context: CalculationContext,
   functions: Map<string, Function>
-): number {
+): any {
   const tableRef = node.table.startsWith('$') ? node.table.slice(1) : node.table
   const table = context.parameters[tableRef]
 
@@ -449,11 +423,11 @@ function evaluateLookup(
     throw new Error(`Lookup table not found: ${tableRef}`)
   }
 
-  const key = resolveReference(node.key, context).toString()
+  const key = resolveValue(node.key, context, functions).toString()
 
   let value: any
   if (node.subkey) {
-    const subkey = resolveReference(node.subkey, context).toString()
+    const subkey = resolveValue(node.subkey, context, functions).toString()
     value = (table as any)[key]?.[subkey]
   } else {
     value = (table as any)[key]
@@ -466,35 +440,20 @@ function evaluateLookup(
     throw new Error(`Lookup key not found: ${key}${node.subkey ? '.' + node.subkey : ''}`)
   }
 
-  return typeof value === 'number' ? value : parseFloat(value)
+  return value
 }
 
 function evaluateConditional(
-  node: any,
+  node: ConditionalNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): any {
   const conditionMet = evaluateCondition(node.condition, context, functions)
 
-  const thenValue = node.then
-  const elseValue = node.else
-
   if (conditionMet) {
-    // If it's a plain string (not a reference), return it as-is
-    if (typeof thenValue === 'string' && !thenValue.startsWith('@') && !thenValue.startsWith('$')) {
-      return thenValue
-    }
-    return resolveValue(thenValue, context, functions)
+    return resolveValue(node.then, context, functions)
   } else {
-    // If it's a plain string (not a reference), return it as-is
-    if (typeof elseValue === 'string' && !elseValue.startsWith('@') && !elseValue.startsWith('$')) {
-      return elseValue
-    }
-    // Check if it's a nested conditional
-    if (typeof elseValue === 'object' && elseValue.type === 'conditional') {
-      return evaluateConditional(elseValue, context, functions)
-    }
-    return resolveValue(elseValue, context, functions)
+    return resolveValue(node.else, context, functions)
   }
 }
 
@@ -526,7 +485,7 @@ function evaluateCondition(
 
 // Utility evaluators
 function evaluateRound(
-  node: any,
+  node: RoundNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -549,7 +508,7 @@ function evaluateRound(
 
 // Function evaluator (escape hatch)
 function evaluateFunction(
-  node: any,
+  node: FunctionNode,
   context: CalculationContext,
   functions: Map<string, Function>
 ): number {
@@ -560,7 +519,7 @@ function evaluateFunction(
   }
 
   // Resolve all inputs
-  const resolvedInputs: Record<string, number> = {}
+  const resolvedInputs: Record<string, any> = {}
   for (const [key, value] of Object.entries(node.inputs)) {
     resolvedInputs[key] = resolveValue(value as any, context, functions)
   }

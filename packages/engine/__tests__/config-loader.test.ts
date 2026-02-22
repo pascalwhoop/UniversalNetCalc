@@ -43,7 +43,8 @@ describe('ConfigLoader - Regression Tests', () => {
     })
 
     it('should return empty array for non-existent country', async () => {
-      const years = await loader.listYears('nonexistent')
+      // 'xx' is a valid 2-letter code format but not a real country directory
+      const years = await loader.listYears('xx')
       expect(years).toEqual([])
     })
 

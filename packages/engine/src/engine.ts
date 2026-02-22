@@ -6,7 +6,7 @@ import type {
   NodeCategory,
   BreakdownItem,
 } from '../../schema/src/config-types'
-import { evaluateNode } from './evaluators'
+import { evaluateNode, resolveValue, resolveReference } from './evaluators'
 import { resolveFunctions } from './functions'
 
 export class CalculationEngine {
@@ -55,11 +55,12 @@ export class CalculationEngine {
     }
 
     // Resolve outputs
-    const gross = this.resolveValue(this.config.outputs.gross, context)
-    const net = this.resolveValue(this.config.outputs.net, context)
-    const effective_rate = this.resolveValue(
+    const gross = resolveValue(this.config.outputs.gross, context, this.functions)
+    const net = resolveValue(this.config.outputs.net, context, this.functions)
+    const effective_rate = resolveValue(
       this.config.outputs.effective_rate,
-      context
+      context,
+      this.functions
     )
 
     // Build breakdown
@@ -74,65 +75,6 @@ export class CalculationEngine {
       config_version_hash: this.hashConfig(),
       config_last_updated: this.config.meta.updated_at,
     }
-  }
-
-  private resolveValue(
-    value: string | number | InlineNode,
-    context: CalculationContext
-  ): number {
-    if (typeof value === 'number') {
-      return value
-    }
-
-    if (typeof value === 'string') {
-      return this.resolveReference(value, context)
-    }
-
-    // Inline node
-    return evaluateNode(value as any, context, this.functions)
-  }
-
-  resolveReference(ref: string, context: CalculationContext): number {
-    if (ref.startsWith('@')) {
-      // Input reference
-      const inputName = ref.slice(1)
-      const parts = inputName.split('.')
-
-      let value: unknown = context.inputs[parts[0]]
-      for (let i = 1; i < parts.length; i++) {
-        value = (value as Record<string, unknown>)?.[parts[i]]
-      }
-
-      if (value === undefined) {
-        throw new Error(`Input not found: ${inputName}`)
-      }
-
-      return typeof value === 'number' ? value : parseFloat(String(value))
-    }
-
-    if (ref.startsWith('$')) {
-      // Parameter or node reference
-      const name = ref.slice(1)
-
-      // Check nodes first
-      if (context.nodes[name] !== undefined) {
-        const nodeValue = context.nodes[name]
-        return typeof nodeValue === 'number' ? nodeValue : Number(nodeValue)
-      }
-
-      // Check parameters
-      if (context.parameters[name] !== undefined) {
-        const param = context.parameters[name]
-        if (typeof param === 'number') {
-          return param
-        }
-        throw new Error(`Parameter ${name} is not a number`)
-      }
-
-      throw new Error(`Reference not found: ${name}`)
-    }
-
-    throw new Error(`Invalid reference: ${ref}`)
   }
 
   private buildBreakdown(context: CalculationContext): BreakdownItem[] {
