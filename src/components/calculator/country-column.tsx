@@ -335,11 +335,11 @@ export function CountryColumn({
             </div>
           </div>
 
-          {/* Dynamic Enum Inputs */}
+          {/* Dynamic Enum Inputs - single column so long labels/options fit */}
           {enumInputs.length > 0 && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
               {enumInputs.map(([key, def]) => (
-                <div key={key} className="space-y-1">
+                <div key={key} className="space-y-1 min-w-0">
                   <Label htmlFor={`${key}-${index}`} className="text-xs text-muted-foreground">
                     {def.label || key}
                   </Label>
@@ -347,7 +347,7 @@ export function CountryColumn({
                     value={formValues[key] || (def.default ? String(def.default) : "__none__")}
                     onValueChange={v => updateFormValue(key, v === "__none__" ? "" : v)}
                   >
-                    <SelectTrigger id={`${key}-${index}`} className="h-10 md:h-9">
+                    <SelectTrigger id={`${key}-${index}`} className="h-10 md:h-9 w-full">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
