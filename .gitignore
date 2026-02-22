@@ -69,3 +69,4 @@ bundle-analysis*.html
 history/
 
 .worktrees/
+data/
