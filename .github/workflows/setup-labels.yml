@@ -1,0 +1,62 @@
+name: Setup Labels
+
+on:
+  workflow_dispatch: # Run manually once to create all labels
+
+jobs:
+  setup-labels:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Create labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              // Status labels
+              { name: 'status:ready',        color: '0e8a16', description: 'Ready for a developer to pick up' },
+              { name: 'status:blocked',       color: 'e4e669', description: 'Blocked by another issue or external factor' },
+              { name: 'status:in-progress',   color: '1d76db', description: 'Currently being implemented' },
+              { name: 'status:in-review',     color: '5319e7', description: 'PR created, under review' },
+              { name: 'status:needs-rework',  color: 'd93f0b', description: 'Review requested changes' },
+              { name: 'status:done',          color: 'c5def5', description: 'Completed and merged' },
+              // Type labels
+              { name: 'type:feature',         color: '84b6eb', description: 'New feature or enhancement' },
+              { name: 'type:bug',             color: 'ee0701', description: 'Something is broken' },
+              { name: 'type:refactor',        color: 'bfdadc', description: 'Code improvement without behavior change' },
+              { name: 'type:test',            color: 'fef2c0', description: 'Test coverage improvement' },
+              { name: 'type:docs',            color: 'c2e0c6', description: 'Documentation update' },
+              // Priority labels
+              { name: 'priority:p0',          color: 'b60205', description: 'Critical - blocking' },
+              { name: 'priority:p1',          color: 'e99695', description: 'High priority' },
+              { name: 'priority:p2',          color: 'f9d0c4', description: 'Normal priority' },
+              { name: 'priority:p3',          color: 'ffffff', description: 'Low priority / nice to have' },
+              // Agent coordination labels
+              { name: 'agent:needs-triage',   color: 'ededed', description: 'PM has not yet triaged this issue' },
+              { name: 'needs-human',          color: 'e11d48', description: 'Requires human action — not assignable to an agent' },
+            ];
+
+            for (const label of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label,
+                });
+                console.log(`Created: ${label.name}`);
+              } catch (e) {
+                if (e.status === 422) {
+                  // Label already exists, update it
+                  await github.rest.issues.updateLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ...label,
+                  });
+                  console.log(`Updated: ${label.name}`);
+                } else {
+                  console.error(`Failed ${label.name}: ${e.message}`);
+                }
+              }
+            }

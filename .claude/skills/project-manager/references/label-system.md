@@ -20,3 +20,6 @@ If missing on a `status:ready` issue, infer and add the most appropriate one.
 `priority:p0` (critical/blocking), `priority:p1` (high), `priority:p2` (normal), `priority:p3` (low/nice-to-have)
 
 If missing, default to `priority:p2`.
+
+## Human escalation label
+`needs-human` — requires human action (admin access, external accounts, product decisions beyond the agent's scope). **Never trigger the developer on these. Never auto-triage. Leave as-is and skip in all automation.**
