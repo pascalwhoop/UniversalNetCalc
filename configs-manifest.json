@@ -64,6 +64,9 @@
       "years": {
         "2025": {
           "variants": []
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
@@ -91,6 +94,11 @@
           "variants": [
             "portage-salarial"
           ]
+        },
+        "2026": {
+          "variants": [
+            "portage-salarial"
+          ]
         }
       }
     },
@@ -104,6 +112,11 @@
     "ie": {
       "years": {
         "2025": {
+          "variants": [
+            "sarp"
+          ]
+        },
+        "2026": {
           "variants": [
             "sarp"
           ]
@@ -160,6 +173,9 @@
           "variants": [
             "paye"
           ]
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
@@ -182,6 +198,11 @@
     "se": {
       "years": {
         "2025": {
+          "variants": [
+            "expert-tax"
+          ]
+        },
+        "2026": {
           "variants": [
             "expert-tax"
           ]
