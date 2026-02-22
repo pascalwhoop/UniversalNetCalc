@@ -206,7 +206,6 @@ export interface DeductionNode extends BaseNode {
   amount: string | number | InlineNode
   cap?: string | number
   threshold?: ThresholdConfig // Only amounts above/below threshold are deductible
-  rate_limit?: number // Maximum tax rate at which deduction provides benefit (metadata)
   phaseout?: PhaseoutConfig // Reduce deduction based on income
   category?: NodeCategory
   label?: string

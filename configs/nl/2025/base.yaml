@@ -158,7 +158,6 @@ parameters:
       base: 0
 
   # Deduction parameters
-  mortgage_interest_max_rate: 0.3748  # Maximum deduction rate for 2025
   mortgage_max_years: 30
   current_year: 2025
 
@@ -219,17 +218,16 @@ calculations:
       values:
         - "@mortgage_interest_paid"
         - "$mortgage_within_30_years"
-    rate_limit: "$mortgage_interest_max_rate"
     category: deduction
     label: "Mortgage Interest"
-    description: "Hypotheekrente (max 30 years, 37.48% rate)"
+    description: "Hypotheekrente (max 30 years)"
 
   # Pension contribution deduction
+  # Note: pension (lijfrente) is NOT rate-capped in NL — deductible at full marginal rate
   - id: pension_contribution_deduction
     type: deduction
     amount: "@pension_contributions"
     cap: "@jaarruimte_available"
-    rate_limit: "$mortgage_interest_max_rate"
     category: deduction
     label: "Pension Contributions"
     description: "Lijfrentepremies (capped by jaarruimte)"
@@ -270,6 +268,42 @@ calculations:
       - "$mortgage_interest_deduction"
       - "$pension_contribution_deduction"
       - "$healthcare_deduction"
+
+  # ============================================================================
+  # MORTGAGE INTEREST RATE CAP CORRECTION (hypotheekrente aftrekbeperking)
+  # ============================================================================
+  # NL law: mortgage interest benefit is capped at 37.48% even for top-bracket
+  # (49.5%) earners. The deduction correctly reduces taxable income, but for the
+  # portion of interest that falls in the 49.5% bracket, we must claw back the
+  # excess benefit: (49.5% - 37.48%) = 12.02% of the interest in that bracket.
+  #
+  # We use gross_annual (before deductions) to determine how much income was in
+  # the top bracket, which determines how much of the mortgage interest
+  # benefited at the uncapped 49.5% rate.
+
+  - id: gross_above_top_bracket
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - 76817  # Top bracket threshold (2025)
+
+  - id: mortgage_in_top_bracket
+    type: min
+    values:
+      - "$mortgage_interest_deduction"
+      - "$gross_above_top_bracket"
+
+  - id: mortgage_rate_cap_correction
+    type: mul
+    values:
+      - "$mortgage_in_top_bracket"
+      - 0.1202  # 49.5% - 37.48%
+    category: surtax
+    label: "Mortgage Rate Cap Adjustment"
+    description: "Claws back excess benefit for top-bracket earners (NL law caps at 37.48%)"
 
   # ============================================================================
   # TAXABLE INCOME
@@ -408,11 +442,12 @@ calculations:
     label: "Labour Tax Credit"
     description: "Arbeidskorting"
 
-  # Total tax before credits
+  # Total tax before credits (includes mortgage rate-cap correction surtax)
   - id: total_tax_before_credits
     type: sum
     values:
       - "$income_tax_and_social_security"
+      - "$mortgage_rate_cap_correction"
 
   # Total credits
   - id: total_credits
@@ -455,6 +490,8 @@ outputs:
   breakdown:
     taxes:
       - "$income_tax_and_social_security"
+    surtaxes:
+      - "$mortgage_rate_cap_correction"
     deductions:
       - "$mortgage_interest_deduction"
       - "$pension_contribution_deduction"
