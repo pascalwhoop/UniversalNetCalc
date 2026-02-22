@@ -1,0 +1,23 @@
+{
+  "name": "Expert Tax Stockholm 2026 - Very High Income (30% exemption, triggers state tax)",
+  "description": "Very high-earning foreign specialist earning SEK 1,500,000 in Stockholm with 2026 Expert Tax (30% exemption)",
+  "inputs": {
+    "gross_annual": 1500000,
+    "municipality": "stockholm"
+  },
+  "variant": "expert-tax",
+  "expected": {
+    "net": 1106621,
+    "effective_rate": 0.26225
+  },
+  "tolerance": 1000,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on 2026 Expert Tax rules: 30% exemption. Stockholm municipal tax 30.55%, state tax 20% above taxable 643,000, grundavdrag SEK 17,400",
+      "url": "https://forskarskattenamnden.se/andra-sprak/taxation-of-research-workers-board/about-tax-relief",
+      "retrieved_at": "2026-02-22",
+      "notes": "Expert taxable: 1,500,000 × 70% = 1,050,000. Taxable after grundavdrag: 1,050,000 - 17,400 = 1,032,600. Municipal tax: 1,032,600 × 30.55% = 315,459. State tax: (1,032,600 - 643,000) × 20% = 389,600 × 20% = 77,920. Total tax: 393,379. Net: 1,106,621. Effective rate: 26.23%."
+    }
+  ]
+}
