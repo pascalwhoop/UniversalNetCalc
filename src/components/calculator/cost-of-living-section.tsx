@@ -10,6 +10,7 @@ interface CostOfLivingSectionProps {
   value: CostOfLiving
   currencySymbol: string
   onChange: (col: CostOfLiving) => void
+  alwaysOpen?: boolean
 }
 
 const FIELDS: { key: keyof CostOfLiving; label: string }[] = [
@@ -20,8 +21,9 @@ const FIELDS: { key: keyof CostOfLiving; label: string }[] = [
   { key: "travel", label: "Travel & Leisure" },
 ]
 
-export function CostOfLivingSection({ value, currencySymbol, onChange }: CostOfLivingSectionProps) {
+export function CostOfLivingSection({ value, currencySymbol, onChange, alwaysOpen = false }: CostOfLivingSectionProps) {
   const [open, setOpen] = useState(false)
+  const isOpen = alwaysOpen || open
 
   const handleChange = (key: keyof CostOfLiving, raw: string) => {
     const num = parseFloat(raw)
@@ -37,21 +39,23 @@ export function CostOfLivingSection({ value, currencySymbol, onChange }: CostOfL
 
   return (
     <div className="space-y-1">
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full flex items-center justify-between"
-        onClick={() => setOpen(v => !v)}
-        type="button"
-      >
-        <span className="flex items-center gap-2">
-          {totalMonthly === 0 && <Plus className="h-4 w-4" />}
-          {label}
-        </span>
-        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-      </Button>
+      {!alwaysOpen && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full flex items-center justify-between"
+          onClick={() => setOpen(v => !v)}
+          type="button"
+        >
+          <span className="flex items-center gap-2">
+            {totalMonthly === 0 && <Plus className="h-4 w-4" />}
+            {label}
+          </span>
+          {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </Button>
+      )}
 
-      {open && (
+      {isOpen && (
         <div className="space-y-2 pl-1">
           <p className="text-xs text-muted-foreground">Monthly costs in local currency</p>
           {FIELDS.map(({ key, label }) => (
