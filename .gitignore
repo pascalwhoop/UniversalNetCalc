@@ -64,3 +64,6 @@ cloudflare-env.d.ts
 bundle-analysis*.html
 
 .claude/settings.local.json
+
+# convx history
+history/
