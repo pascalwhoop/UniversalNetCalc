@@ -1,0 +1,30 @@
+{
+  "name": "Married expatriate with 2 children (30% flat-rate)",
+  "description": "Married expatriate earning €80,000, 2 children (3 parts), 30% exemption (Article 155B)",
+  "variant": "impatrie",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "married",
+    "children": 2
+  },
+  "expected": {
+    "net": 62554,
+    "effective_rate": 0.2181,
+    "breakdown": {
+      "income_tax": 6186,
+      "csg_deductible": 5345,
+      "csg_nondeductible": 1886,
+      "crds": 393,
+      "pension_contribution": 3636
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Verified against engine: family quotient 3 parts on 70% of gross, social on full gross",
+      "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
+      "date": "2026-02-22"
+    }
+  ]
+}
