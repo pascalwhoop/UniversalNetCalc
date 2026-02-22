@@ -1,0 +1,513 @@
+meta:
+  country: "nl"
+  year: 2026
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1"
+      description: "Official 2026 income tax rates (Box 1)"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.rijksoverheid.nl/onderwerpen/veranderingen/werk-en-inkomen"
+      description: "Rijksoverheid 2026 tax changes overview (heffingskortingen, arbeidskorting)"
+      retrieved_at: "2026-02-22"
+    - url: "https://driebergenaccountants.nl/tarieven-heffingskortingen-en-bedragen-inkomstenbelasting-2026/"
+      description: "2026 tax rates, tax credits and amounts overview"
+      retrieved_at: "2026-02-22"
+    - url: "https://bieb.knab.nl/inkomsten-uitgaven/zo-ziet-de-inkomstenbelasting-er-in-2026-uit"
+      description: "Detailed 2026 labour credit (arbeidskorting) brackets"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This configuration covers the standard Dutch tax system for 2026 for individuals
+    under AOW (state pension) age. The rates include both income tax and social
+    security premiums (AOW, ANW, WLZ).
+
+    Key changes from 2025:
+    - First bracket rate decreased from 35.82% to 35.75% (0 to €38,883)
+    - Second bracket threshold increased: €38,441→€38,883 and €76,817→€78,426
+    - Second bracket rate increased slightly from 37.48% to 37.56%
+    - Top rate of 49.50% applies above €78,426 (was €76,817)
+    - General tax credit maximum increased from €3,068 to €3,115
+    - General credit phaseout start increased from €28,406 to €29,736
+    - General credit phaseout rate: 6.398% (was 6.337%)
+    - Labour credit maximum increased from €5,599 to €5,685
+    - Labour credit phaseout start increased from €43,071 to €45,592
+    - Mortgage rate cap is now 37.56% (second bracket rate, was 37.48%)
+
+    Key assumptions:
+    - Taxpayer is under AOW age (retirement age) in 2026
+    - Standard employee in Box 1 (income from work and home)
+    - Does not include special situations like partial foreign tax liability
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions. If you receive
+      holiday allowance (vakantiegeld), include it in your gross annual salary.
+      The standard holiday allowance is 8% of your annual salary.
+    severity: "info"
+
+  - id: "box_1_only"
+    title: "Box 1 Income Only"
+    body: |
+      This calculator handles Box 1 income (work and home) only. It does not
+      calculate tax on substantial interest (Box 2) or savings/investments (Box 3).
+    severity: "info"
+
+  - id: "aow_age"
+    title: "Under AOW Age"
+    body: |
+      This configuration is for individuals under AOW age (retirement age) in 2026.
+      The AOW age in 2026 is 67. If you reached AOW age in 2026, different rates apply.
+    severity: "warning"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (including holiday allowance)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual without fiscal partner"
+      partner:
+        label: "With Fiscal Partner"
+        description: "Married or registered partnership (used for credit distribution)"
+
+  # Optional deduction inputs
+  mortgage_interest_paid:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Mortgage Interest Paid (Optional)"
+    description: "Annual interest paid on your mortgage for primary residence (hypotheekrente)"
+
+  mortgage_start_year:
+    type: number
+    required: false
+    group: mortgage_interest_paid
+    min: 1990
+    max: 2026
+    default: 2026
+    label: "Mortgage Start Year (Optional)"
+    description: "Year when mortgage was first taken out (for 30-year eligibility check)"
+
+  pension_contributions:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Pension/Annuity Contributions (Optional)"
+    description: "Additional pension or annuity contributions (lijfrentepremies)"
+
+  jaarruimte_available:
+    type: number
+    required: false
+    group: pension_contributions
+    min: 0
+    default: 0
+    label: "Available Jaarruimte (Optional)"
+    description: "Your available annual allowance for pension deductions from previous year"
+
+  healthcare_expenses:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Healthcare Expenses (Optional)"
+    description: "Out-of-pocket medical and healthcare costs (specifieke zorgkosten)"
+
+parameters:
+  # Income tax brackets for Box 1 (under AOW age) - 2026 rates
+  # These include income tax + social security premiums
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0.3575
+    - threshold: 38883
+      rate: 0.3756
+    - threshold: 78426
+      rate: 0.4950
+
+  # General tax credit (Algemene heffingskorting) - 2026
+  general_credit_max: 3115
+  general_credit_phaseout_start: 29736
+  general_credit_phaseout_end: 78426
+  general_credit_phaseout_rate: 0.06398
+
+  # Labour tax credit (Arbeidskorting) - 2026 complex bracket structure
+  labour_credit_brackets:
+    - threshold: 0
+      max: 11965
+      rate: 0.08324
+      base: 0
+    - threshold: 11965
+      max: 25845
+      rate: 0.31009
+      base: 996
+    - threshold: 25845
+      max: 45592
+      rate: 0.01950
+      base: 5300
+    - threshold: 45592
+      max: 132920
+      rate: -0.06510
+      base: 5685
+    - threshold: 132920
+      max: 999999999
+      rate: 0
+      base: 0
+
+  # Deduction parameters
+  mortgage_max_years: 30
+  current_year: 2026
+  top_bracket_threshold: 78426  # Box 1 top bracket starts here (2026)
+
+  # Healthcare threshold parameters (simplified approximation)
+  # Actual 2026 threshold: fixed ~€134 for income up to ~€9,680, then 1.65% of income
+  healthcare_threshold_fixed: 132
+  healthcare_threshold_rate: 0.0165
+  healthcare_threshold_income_start: 8625
+
+calculations:
+  # ============================================================================
+  # DEDUCTION CALCULATIONS
+  # ============================================================================
+  # Calculate all deductions first, then adjust taxable income
+
+  # Mortgage interest deduction
+  - id: has_mortgage_data
+    type: conditional
+    condition:
+      type: gt
+      left: "@mortgage_interest_paid"
+      right: 0
+    then:
+      type: conditional
+      condition:
+        type: gt
+        left: "@mortgage_start_year"
+        right: 0
+      then: 1
+      else: 0
+    else: 0
+
+  - id: mortgage_years_elapsed
+    type: conditional
+    condition:
+      type: gt
+      left: "$has_mortgage_data"
+      right: 0
+    then:
+      type: sub
+      values:
+        - "$current_year"
+        - "@mortgage_start_year"
+    else: 999
+
+  - id: mortgage_within_30_years
+    type: conditional
+    condition:
+      type: lte
+      left: "$mortgage_years_elapsed"
+      right: "$mortgage_max_years"
+    then: 1
+    else: 0
+
+  - id: mortgage_interest_deduction
+    type: deduction
+    amount:
+      type: mul
+      values:
+        - "@mortgage_interest_paid"
+        - "$mortgage_within_30_years"
+    category: deduction
+    label: "Mortgage Interest"
+    description: "Hypotheekrente (max 30 years)"
+
+  # Pension contribution deduction
+  # Note: pension (lijfrente) is NOT rate-capped in NL — deductible at full marginal rate
+  - id: pension_contribution_deduction
+    type: deduction
+    amount: "@pension_contributions"
+    cap: "@jaarruimte_available"
+    category: deduction
+    label: "Pension Contributions"
+    description: "Lijfrentepremies (capped by jaarruimte)"
+
+  # Healthcare cost deduction
+  - id: healthcare_threshold_variable
+    type: mul
+    values:
+      - type: max
+        values:
+          - 0
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$healthcare_threshold_income_start"
+      - "$healthcare_threshold_rate"
+
+  - id: healthcare_threshold_total
+    type: sum
+    values:
+      - "$healthcare_threshold_fixed"
+      - "$healthcare_threshold_variable"
+
+  - id: healthcare_deduction
+    type: deduction
+    amount: "@healthcare_expenses"
+    threshold:
+      amount: "$healthcare_threshold_total"
+      mode: "above"
+    category: deduction
+    label: "Healthcare Costs"
+    description: "Specifieke zorgkosten (only above threshold)"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$mortgage_interest_deduction"
+      - "$pension_contribution_deduction"
+      - "$healthcare_deduction"
+
+  # ============================================================================
+  # MORTGAGE INTEREST RATE CAP CORRECTION (hypotheekrente aftrekbeperking)
+  # ============================================================================
+  # NL law: mortgage interest benefit is capped at 37.56% even for top-bracket
+  # (49.5%) earners. The deduction correctly reduces taxable income, but for the
+  # portion of interest that falls in the 49.5% bracket, we must claw back the
+  # excess benefit: (49.5% - 37.56%) = 11.94% of the interest in that bracket.
+  #
+  # We use gross_annual (before deductions) to determine how much income was in
+  # the top bracket, which determines how much of the mortgage interest
+  # benefited at the uncapped 49.5% rate.
+
+  - id: gross_above_top_bracket
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$top_bracket_threshold"
+
+  - id: mortgage_in_top_bracket
+    type: min
+    values:
+      - "$mortgage_interest_deduction"
+      - "$gross_above_top_bracket"
+
+  - id: mortgage_rate_cap_correction
+    type: mul
+    values:
+      - "$mortgage_in_top_bracket"
+      - 0.1194  # 49.5% - 37.56%
+    category: surtax
+    label: "Mortgage Rate Cap Adjustment"
+    description: "Claws back excess benefit for top-bracket earners (NL law caps at 37.56%)"
+
+  # ============================================================================
+  # TAXABLE INCOME
+  # ============================================================================
+  # Gross income minus deductions
+
+  - id: taxable_income
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+  # ============================================================================
+  # TAX CALCULATIONS
+  # ============================================================================
+  # Income tax (bracket tax on taxable income after deductions)
+  - id: income_tax_and_social_security
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Income Tax & Social Security"
+    description: "Combined income tax and social security premiums (AOW, ANW, WLZ)"
+
+  # General tax credit calculation with phaseout
+  - id: general_credit_reduction
+    type: max
+    values:
+      - 0
+      - type: mul
+        values:
+          - type: max
+            values:
+              - 0
+              - type: sub
+                values:
+                  - "$taxable_income"
+                  - "$general_credit_phaseout_start"
+          - "$general_credit_phaseout_rate"
+
+  - id: general_tax_credit_amount
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$general_credit_max"
+          - "$general_credit_reduction"
+
+  - id: general_tax_credit
+    type: credit
+    amount: "$general_tax_credit_amount"
+    refundable: false
+    category: credit
+    label: "General Tax Credit"
+    description: "Algemene heffingskorting"
+
+  # Labour tax credit calculation (complex bracket structure)
+  - id: labour_credit_raw
+    type: switch
+    on: "@gross_annual"
+    cases:
+      _:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: 11965
+        then:
+          type: mul
+          values:
+            - "@gross_annual"
+            - 0.08324
+        else:
+          type: conditional
+          condition:
+            type: lte
+            left: "@gross_annual"
+            right: 25845
+          then:
+            type: sum
+            values:
+              - 996
+              - type: mul
+                values:
+                  - type: sub
+                    values:
+                      - "@gross_annual"
+                      - 11965
+                  - 0.31009
+          else:
+            type: conditional
+            condition:
+              type: lte
+              left: "@gross_annual"
+              right: 45592
+            then:
+              type: sum
+              values:
+                - 5300
+                - type: mul
+                  values:
+                    - type: sub
+                      values:
+                        - "@gross_annual"
+                        - 25845
+                    - 0.01950
+            else:
+              type: conditional
+              condition:
+                type: lte
+                left: "@gross_annual"
+                right: 132920
+              then:
+                type: sub
+                values:
+                  - 5685
+                  - type: mul
+                    values:
+                      - type: sub
+                        values:
+                          - "@gross_annual"
+                          - 45592
+                      - 0.06510
+              else: 0
+
+  - id: labour_tax_credit
+    type: credit
+    amount:
+      type: max
+      values:
+        - 0
+        - "$labour_credit_raw"
+    refundable: false
+    category: credit
+    label: "Labour Tax Credit"
+    description: "Arbeidskorting"
+
+  # Total tax before credits (includes mortgage rate-cap correction surtax)
+  - id: total_tax_before_credits
+    type: sum
+    values:
+      - "$income_tax_and_social_security"
+      - "$mortgage_rate_cap_correction"
+
+  # Total credits
+  - id: total_credits
+    type: sum
+    values:
+      - "$general_tax_credit_amount"
+      - type: max
+        values:
+          - 0
+          - "$labour_credit_raw"
+
+  # Tax after credits (cannot be negative)
+  - id: total_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$total_tax_before_credits"
+          - "$total_credits"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_tax"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$income_tax_and_social_security"
+    surtaxes:
+      - "$mortgage_rate_cap_correction"
+    deductions:
+      - "$mortgage_interest_deduction"
+      - "$pension_contribution_deduction"
+      - "$healthcare_deduction"
+    credits:
+      - "$general_tax_credit"
+      - "$labour_tax_credit"

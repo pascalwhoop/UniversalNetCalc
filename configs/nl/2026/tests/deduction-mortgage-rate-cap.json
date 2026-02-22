@@ -1,0 +1,22 @@
+{
+  "name": "Mortgage interest deduction - top bracket rate cap",
+  "description": "€100,000 gross with €10,000 mortgage interest. Taxpayer is in the 49.5% top bracket but the mortgage benefit must be capped at 37.56% (2026 second bracket rate). Without the surtax correction the engine would report a €4,950 saving (10000 × 49.5%); with the correction the saving should be ~€3,756 (10000 × 37.56%).",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 10000,
+    "mortgage_start_year": 2020
+  },
+  "expected": {
+    "net": 66467,
+    "effective_rate": 0.33533
+  },
+  "tolerance": 25,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "description": "2026 NL mortgage deduction capped at 37.56% (second bracket rate) for top-bracket earners. Benefit = €10,000 × 37.56% = €3,756.",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}
