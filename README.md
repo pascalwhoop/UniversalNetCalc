@@ -2,6 +2,8 @@
 
 Calculate accurate after-tax income for multiple countries using config-driven tax rules.
 
+> 💡 Now with latest 2026 data!
+
 ## Quick Start
 
 ```bash

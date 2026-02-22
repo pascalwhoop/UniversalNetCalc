@@ -1,0 +1,115 @@
+meta:
+  variant: "impatrie"
+  label: "Expatriate (Impâtrié)"
+  description: "French expatriate tax regime (Article 155B) — 30% flat-rate income tax exemption"
+  base: "base.yaml"
+  notes: |
+    The impâtrié regime (Article 155B CGI) provides tax relief for employees
+    recruited from abroad who were non-resident for ≥5 consecutive years.
+
+    This variant implements the flat-rate 30% option: 30% of total compensation
+    is treated as a tax-exempt expatriate bonus (prime d'impatriation).
+
+    Key rules:
+    - Income tax is calculated on only 70% of gross salary
+    - Social contributions (CSG, CRDS, pension) remain on full gross
+    - Duration: up to 31 December of the 8th calendar year after arrival
+    - Minimum taxable salary must equal a comparable non-expatriate employee
+
+  sources:
+    - url: "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime"
+      description: "Official French Tax Authority — Expatriate Tax Regime"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.berton-associes.fr/blog/droit-fiscal/regime-fiscal-impatries-france-guide-complet-article-155b/"
+      description: "Complete Guide to the Inpatriate Regime (Article 155B)"
+      retrieved_at: "2026-02-22"
+
+notices:
+  - id: "impatrie_info"
+    title: "Expatriate Regime (Impâtrié)"
+    body: |
+      The 30% flat-rate option treats 30% of your gross salary as a tax-exempt
+      expatriate bonus. Income tax is calculated on the remaining 70%.
+      Social contributions are still calculated on your full gross salary.
+    severity: "info"
+
+calculations:
+  # Delete nodes that need reordering (they reference $expatriate_bonus
+  # which is a new node appended at the end)
+  - id: taxable_income_before_qf
+    $delete: true
+  - id: income_tax
+    $delete: true
+  - id: total_deductions
+    $delete: true
+  - id: net_annual
+    $delete: true
+
+  # 30% of gross is tax-exempt
+  - id: expatriate_bonus
+    type: percent_of
+    base: "@gross_annual"
+    rate: 0.30
+    category: credit
+    label: "Expatriate Bonus Exemption (Prime d'Impatriation)"
+    description: "30% of gross salary exempt from income tax (Article 155B)"
+
+  # Taxable income = (Gross − 30% bonus) − Deductible CSG − Professional expenses
+  - id: taxable_income_before_qf
+    type: sub
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$expatriate_bonus"
+      - type: sum
+        values:
+          - "$csg_deductible"
+          - "$professional_expenses"
+
+  # Income tax on the reduced taxable income
+  - id: income_tax
+    type: function
+    name: "family_quotient_tax"
+    inputs:
+      gross: "$taxable_income_before_qf"
+      family_units: "$total_parts"
+      brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Income Tax (Impôt sur le Revenu)"
+    description: "Progressive tax with family quotient (on 70% of gross)"
+
+  # Total deductions from take-home pay (bonus is NOT a deduction)
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_contributions"
+      - "$income_tax"
+
+  # Net annual salary
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$income_tax"
+    exemptions:
+      - "$expatriate_bonus"
+    contributions:
+      - "$csg_deductible"
+      - "$csg_nondeductible"
+      - "$crds"
+      - "$pension_contribution"

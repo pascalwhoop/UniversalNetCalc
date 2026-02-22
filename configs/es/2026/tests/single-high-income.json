@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at high income",
+  "description": "High earner at €100,000 in Spain - above Social Security max base",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 61091,
+    "effective_rate": 0.3891
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Spanish national IRPF rates, Social Security (capped), and solidarity contribution",
+      "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRPF: up to 45% bracket. SS capped at €61,214.40. Solidarity: progressive brackets on €38,785.60 excess (0.19%/0.21%/0.24%). Total solidarity: ~€82.68."
+    }
+  ]
+}

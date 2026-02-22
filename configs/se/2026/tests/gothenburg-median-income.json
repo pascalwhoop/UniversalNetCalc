@@ -1,0 +1,22 @@
+{
+  "name": "Gothenburg 2026 - Median Income",
+  "description": "Single person earning SEK 410,000 in Gothenburg",
+  "inputs": {
+    "gross_annual": 410000,
+    "municipality": "gothenburg"
+  },
+  "expected": {
+    "net": 282012,
+    "effective_rate": 0.31216
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on Swedish Tax Agency 2026 rates: Gothenburg municipal tax 32.60%, grundavdrag SEK 17,400",
+      "url": "https://lon-efter-skatt.se/skattesatser",
+      "retrieved_at": "2026-02-22",
+      "notes": "Taxable: 410,000 - 17,400 = 392,600. Municipal tax: 392,600 × 32.60% = 127,988. State tax: 0. Work credit: 0 (simplified model). Net tax: 127,988. Net: 282,012. Effective rate: 31.22%. Note: Gothenburg tax rate increased significantly from 31.50% (2025) to 32.60% (2026)."
+    }
+  ]
+}

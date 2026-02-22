@@ -1,0 +1,7 @@
+{
+  "name": "NWT - Low income (CAD 30,000)",
+  "variant": "nwt",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 25900, "effective_rate": 0.137 },
+  "tolerance": 300, "tolerance_percent": 0.015
+}

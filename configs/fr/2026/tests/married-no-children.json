@@ -1,0 +1,29 @@
+{
+  "name": "Married couple - No children",
+  "description": "Married couple earning €80,000 annually, 2 fiscal parts",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "married",
+    "children": 0
+  },
+  "expected": {
+    "net": 52326,
+    "effective_rate": 0.346,
+    "breakdown": {
+      "income_tax": 16414,
+      "csg_deductible": 5345,
+      "csg_nondeductible": 1886,
+      "crds": 393,
+      "pension_contribution": 3636
+    }
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.05,
+  "sources": [
+    {
+      "description": "Calculated with quotient familial (2 parts for married couple), 2026 tax brackets",
+      "url": "https://impots.dispofi.fr/bareme-impot",
+      "date": "2026-02-22"
+    }
+  ]
+}

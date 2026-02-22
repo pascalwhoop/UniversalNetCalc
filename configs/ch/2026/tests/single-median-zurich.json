@@ -1,0 +1,28 @@
+{
+  "name": "Single filer at median income in Zürich (2026)",
+  "description": "Standard case for single person earning CHF 80,000 in Zürich canton",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single",
+    "region_level_1": "zurich"
+  },
+  "expected": {
+    "net": 64300,
+    "effective_rate": 0.196,
+    "breakdown": {
+      "federal_income_tax": 976,
+      "cantonal_municipal_tax": 9600,
+      "avs_ai_apg_contribution": 4240,
+      "unemployment_contribution": 880
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated using official 2026 federal tax brackets. Minor adjustment to top bracket threshold vs 2025. Married deduction increased to CHF 2,800 (no effect here). Federal tax ~976 CHF on taxable income of ~69,880. Cantonal/Municipal at 12% for Zurich mid-income. Social 6.4%.",
+      "url": "https://bl-api.webcloud7.ch/politik-und-behorden/direktionen/finanz-und-kirchendirektion/steuerverwaltung/steuerzahlungen/tarife-1/tarife-pdf/tarife-direkte-bundessteuer-2026.pdf/@@download/file/Tarife%20Direkte%20Bundessteuer%202026.pdf",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Married couple filing jointly (€70,000)",
+  "description": "Married joint filing taxpayer using quociente conjugal (quotient 2) for 2026",
+  "inputs": {
+    "gross_annual": 70000,
+    "filing_status": "married_joint"
+  },
+  "expected": {
+    "net": 46289.69,
+    "effective_rate": 0.33872,
+    "breakdown": {
+      "irs_total": 16010.31,
+      "social_security_employee": 7700.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2026 IRS brackets with quociente conjugal (quotient = 2)",
+      "url": "https://www.pwc.pt/en/pwcinforfisco/statebudget/pit-and-social-security.html",
+      "retrieved_at": "2026-02-22",
+      "notes": "Joint filing: income per quotient = 70000/2 = 35000. IRS per quotient = 8005.153 (same as median single). Total IRS = 8005.153*2=16010.306. SS: 70000*0.11=7700. Net: 70000-16010.306-7700=46289.694. Effective rate: (16010.306+7700)/70000=0.33872"
+    }
+  ]
+}

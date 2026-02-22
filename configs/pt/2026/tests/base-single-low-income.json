@@ -1,0 +1,25 @@
+{
+  "name": "Single filer with low income (€15,000)",
+  "description": "Low income single taxpayer spanning first 3 IRS brackets for 2026",
+  "inputs": {
+    "gross_annual": 15000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 11129.23,
+    "effective_rate": 0.25805,
+    "breakdown": {
+      "irs_total": 2220.77,
+      "social_security_employee": 1650.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2026 IRS brackets from Portuguese Tax Code Article 68 (OE2026)",
+      "url": "https://www.pwc.pt/en/pwcinforfisco/statebudget/pit-and-social-security.html",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRS: (0-8342): 8342*0.125=1042.75; (8342-12587): 4245*0.157=666.465; (12587-15000): 2413*0.212=511.556; Total IRS=2220.771; SS: 15000*0.11=1650; Net: 15000-2220.771-1650=11129.229"
+    }
+  ]
+}

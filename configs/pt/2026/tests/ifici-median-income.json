@@ -1,0 +1,26 @@
+{
+  "name": "IFICI variant - median income (€35,000)",
+  "description": "IFICI regime (20% flat rate) for median income taxpayer in 2026",
+  "variant": "ifici",
+  "inputs": {
+    "gross_annual": 35000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 24150.00,
+    "effective_rate": 0.31000,
+    "breakdown": {
+      "irs_total": 7000.00,
+      "social_security_employee": 3850.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "IFICI flat 20% rate applied to gross salary. Social security unchanged at 11%.",
+      "url": "https://rme-legal.com/ifici-portugal-2026/",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRS (IFICI): 35000*0.20=7000; SS: 35000*0.11=3850; Total deductions: 10850; Net: 24150; Effective rate: 10850/35000=0.31"
+    }
+  ]
+}

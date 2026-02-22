@@ -1,0 +1,173 @@
+meta:
+  country: "sg"
+  year: 2026
+  currency: "SGD"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates"
+      description: "IRAS Official Tax Rates for Residents - YA 2026 (From YA 2024 onwards)"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.grantthornton.sg/insights/2026-insights/singapore-budget-2026-summary-individuals/"
+      description: "Singapore Budget 2026 Summary for Individuals - No personal income tax rebate for YA 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.cpf.gov.sg/employer/employer-obligations/how-much-cpf-contributions-to-pay"
+      description: "CPF contribution rates from 1 January 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.pilotoasia.com/guide/personal-income-tax-singapore"
+      description: "2026 Personal Income Tax Guide for Singapore"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    Singapore uses a progressive personal income tax system for tax residents.
+    Year of Assessment (YA) 2026 covers income earned from 1 January to 31 December 2025.
+
+    Key features:
+    - First S$20,000 is tax-free
+    - Progressive rates from 2% to 24% (unchanged from YA 2024 onwards)
+    - No personal income tax rebate for YA 2026 (unlike YA 2025 which had a 60% SG60 rebate capped at S$200)
+    - No social security contributions for employees (CPF applies to citizens/PRs only)
+    - This calculator is for tax residents only
+
+    CPF rates increased from 1 January 2026 for workers aged above 55–65:
+    - Above 55–60: total 34% (employee 18%, employer 16%)
+    - Above 60–65: total 25% (employee 12.5%, employer 12.5%)
+    - These are retirement savings contributions, not income taxes
+
+    Non-residents are taxed at a flat 15% or progressive rates (whichever is higher)
+    and are not covered by this configuration.
+
+notices:
+  - id: "salary_input"
+    title: "Annual Chargeable Income"
+    body: |
+      Enter your annual chargeable income (gross salary minus deductions and reliefs).
+      For most employees, this is your gross salary before personal reliefs.
+      The calculator does not include CPF contributions, which apply only to
+      Singapore Citizens and Permanent Residents.
+    severity: "info"
+
+  - id: "resident_only"
+    title: "Tax Residents Only"
+    body: |
+      This calculator is for Singapore tax residents only. You are a tax resident if you:
+      - Are a Singapore Citizen or Permanent Resident (with some exceptions), OR
+      - Stayed/worked in Singapore for at least 183 days in the calendar year
+
+      Non-residents are taxed differently (15% flat or progressive rates, whichever is higher).
+    severity: "warning"
+
+  - id: "cpf_not_included"
+    title: "CPF Contributions Not Included"
+    body: |
+      CPF (Central Provident Fund) contributions are mandatory for Singapore Citizens
+      and Permanent Residents but are NOT a tax. They are retirement savings contributions.
+      This calculator shows income tax only. For Citizens/PRs, actual take-home pay will be
+      further reduced by employee CPF contributions (up to 20% capped at monthly wages).
+
+      CPF rates were updated from 1 January 2026 for workers aged above 55–65.
+    severity: "info"
+
+  - id: "no_rebate_ya2026"
+    title: "No Personal Income Tax Rebate for YA 2026"
+    body: |
+      Unlike YA 2025 (which had a one-off 60% SG60 rebate capped at S$200), there is
+      no personal income tax rebate for Year of Assessment 2026. Tax is calculated
+      at the full progressive rates.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Chargeable Income"
+    description: "Your total yearly chargeable income in SGD (after employment expenses, donations, but before personal reliefs)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    description: "Tax filing status (Singapore has individual taxation)"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual"
+      married:
+        label: "Married"
+        description: "Married individual (Singapore uses individual taxation, not joint filing)"
+
+parameters:
+  # Singapore progressive income tax brackets for YA 2026
+  # Source: IRAS official tax rates - unchanged from YA 2024 onwards
+  # URL: https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates
+  income_tax_brackets:
+    - threshold: 0
+      rate: 0.00        # First $20,000 - Tax free
+    - threshold: 20000
+      rate: 0.02        # $20,001 - $30,000 - 2%
+    - threshold: 30000
+      rate: 0.035       # $30,001 - $40,000 - 3.5%
+    - threshold: 40000
+      rate: 0.07        # $40,001 - $80,000 - 7%
+    - threshold: 80000
+      rate: 0.115       # $80,001 - $120,000 - 11.5%
+    - threshold: 120000
+      rate: 0.15        # $120,001 - $160,000 - 15%
+    - threshold: 160000
+      rate: 0.18        # $160,001 - $200,000 - 18%
+    - threshold: 200000
+      rate: 0.19        # $200,001 - $240,000 - 19%
+    - threshold: 240000
+      rate: 0.195       # $240,001 - $280,000 - 19.5%
+    - threshold: 280000
+      rate: 0.20        # $280,001 - $320,000 - 20%
+    - threshold: 320000
+      rate: 0.22        # $320,001 - $500,000 - 22%
+    - threshold: 500000
+      rate: 0.23        # $500,001 - $1,000,000 - 23%
+    - threshold: 1000000
+      rate: 0.24        # Above $1,000,000 - 24%
+
+calculations:
+  # Taxable income (same as gross for standard case)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # Income tax calculation using progressive brackets
+  - id: income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Personal Income Tax"
+    description: "Singapore progressive income tax for tax residents (YA 2026)"
+
+  # Net annual income (gross minus tax)
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$income_tax"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  # Effective tax rate
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+
+  # Breakdown showing only income tax
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions: []
+    credits: []

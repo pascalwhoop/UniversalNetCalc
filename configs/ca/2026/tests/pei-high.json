@@ -1,0 +1,8 @@
+{
+  "name": "PEI - High income (CAD 200,000)",
+  "variant": "pei",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 124259.13, "effective_rate": 0.37870 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

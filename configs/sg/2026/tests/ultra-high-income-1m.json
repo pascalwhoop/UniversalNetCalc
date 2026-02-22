@@ -1,0 +1,23 @@
+{
+  "name": "Ultra-high income - S$1,000,000",
+  "description": "Income at the 24% top bracket boundary (YA 2026)",
+  "inputs": {
+    "gross_annual": 1000000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 800850,
+    "effective_rate": 0.19915,
+    "breakdown": {
+      "income_tax": 199150
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation: S$44,550 (up to $320k) + S$39,600 ($180k at 22%) + S$115,000 ($500k at 23%) = S$199,150",
+      "url": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

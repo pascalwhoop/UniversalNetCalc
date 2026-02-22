@@ -1,0 +1,30 @@
+{
+  "name": "Single expatriate - High income (30% flat-rate)",
+  "description": "Single expatriate earning €100,000 with 30% income tax exemption (Article 155B)",
+  "variant": "impatrie",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 70351,
+    "effective_rate": 0.2965,
+    "breakdown": {
+      "income_tax": 16403,
+      "csg_deductible": 6681,
+      "csg_nondeductible": 2358,
+      "crds": 491,
+      "pension_contribution": 3716
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Verified against engine: 30% bonus exempt, social on full gross, pension capped at PASS",
+      "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
+      "date": "2026-02-22"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Federal only - Low income (CAD 30,000)",
+  "description": "Federal taxes only, low income. CPP on earnings from $3,500 to $30,000 = $26,500 * 5.95% = $1,576.75. EI = $30,000 * 1.63% = $489. Federal tax = bracket_tax(30000) = 30000 * 14% = $4,200. BPA credit = $16,452 * 14% = $2,303.28. Employment credit = $1,500 * 14% = $210. Tax after credits = max(0, 4200 - 2513.28) = $1,686.72.",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 26247.53,
+    "effective_rate": 0.1251
+  },
+  "tolerance": 15,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated from 2026 CRA federal rates",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/canadian-income-tax-rates-individuals-current-previous-years.html",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

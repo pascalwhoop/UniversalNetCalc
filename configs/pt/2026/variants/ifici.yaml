@@ -1,0 +1,126 @@
+meta:
+  variant: "ifici"
+  label: "IFICI (Scientific Research & Innovation)"
+  description: |
+    Tax Incentive for Scientific Research and Innovation (IFICI) regime.
+    Provides a 20% flat tax rate on Portuguese-source employment and business income
+    for qualified professionals in scientific, research, and innovation sectors.
+    This regime replaced the NHR (Non-Habitual Resident) program in 2024.
+    The 20% flat rate is unchanged for 2026.
+  base: "../base.yaml"
+  sources:
+    - url: "https://taxsummaries.pwc.com/portugal/individual/other-tax-credits-and-incentives"
+      description: "PwC - IFICI tax incentive scheme details"
+      retrieved_at: "2026-02-22"
+    - url: "https://rme-legal.com/ifici-portugal-2026/"
+      description: "IFICI Portugal 2026 - tax benefits overview"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    IFICI Eligibility (2026):
+    - Must not have been Portuguese tax resident in the previous 5 years
+    - Must work in eligible sectors:
+      * Manufacturing
+      * Information Technology and Telecommunications
+      * Agriculture, Aquaculture, and Forestry
+      * Multimedia and Audiovisual Production
+      * Certified company by AICEP or IAPMEI
+      * R&D project under SIFIDE
+      * Recognized Portuguese startup
+      * Employment in Madeira or Azores
+
+    Benefits:
+    - 20% flat tax rate on Portuguese-source employment/business income (unchanged from 2025)
+    - Foreign-source income generally exempt (subject to DTA provisions)
+    - Valid for non-renewable 10-year period
+
+    Differences from NHR:
+    - Foreign pensions taxed at progressive rates (not 10% flat)
+    - More restrictive eligibility criteria
+    - Stricter sector requirements
+
+notices:
+  - id: "ifici_eligibility"
+    title: "IFICI Eligibility Check Required"
+    body: |
+      This variant assumes you qualify for the IFICI tax incentive regime. To qualify:
+      - You must not have been a Portuguese tax resident in the past 5 years
+      - You must work in an eligible sector (IT, manufacturing, R&D, etc.)
+      - You must have approval from Portuguese tax authorities
+      - Cannot have benefited from NHR or former resident regime
+
+      Consult with a Portuguese tax advisor to confirm eligibility and apply for IFICI status.
+    severity: "warning"
+
+  - id: "ifici_20_percent_rate"
+    title: "20% Flat Tax Rate"
+    body: |
+      Under IFICI, your Portuguese-source employment income is taxed at a flat rate of 20%,
+      significantly lower than the standard progressive rates (12.5% to 48%).
+
+      This calculator applies the 20% rate to your gross annual salary.
+    severity: "info"
+
+  - id: "foreign_income_exempt"
+    title: "Foreign Income Generally Exempt"
+    body: |
+      Foreign-source income (employment, rental, dividends, capital gains) is generally
+      exempt from Portuguese taxation under IFICI, subject to double tax treaty provisions.
+      This calculator only covers Portuguese-source employment income.
+    severity: "info"
+
+  - id: "ten_year_limit"
+    title: "10-Year Non-Renewable Period"
+    body: |
+      IFICI status is valid for a non-renewable period of 10 consecutive years.
+      After expiration, you will be subject to standard Portuguese tax rates.
+    severity: "info"
+
+parameters:
+  # IFICI flat tax rate for Portuguese-source income (unchanged from 2025)
+  ifici_flat_rate: 0.20
+
+  # Social security rate remains the same
+  social_security_employee_rate: 0.11
+
+calculations:
+  # Override quotient and per-quotient calculations (not used in IFICI)
+  - id: quotient
+    type: identity
+    value: 1
+
+  - id: taxable_income_per_quotient
+    type: identity
+    value: "@gross_annual"
+
+  - id: irs_per_quotient
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ifici_flat_rate"
+
+  # Override IRS calculation with flat 20% rate
+  # Under IFICI, Portuguese employment income is taxed at 20% flat rate
+  - id: irs_total
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ifici_flat_rate"
+    category: income_tax
+    label: "IRS (IFICI - 20% Flat Rate)"
+    description: "Income tax under IFICI special regime - 20% flat rate"
+
+  # Note: Social security contribution remains at 11% (not affected by IFICI)
+  # The base.yaml calculation for social_security_employee will still apply
+
+  # Recalculate total deductions with IFICI rate
+  - id: total_deductions
+    type: sum
+    values:
+      - "$irs_total"
+      - "$social_security_employee"
+
+  # Recalculate net annual with IFICI rate
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"

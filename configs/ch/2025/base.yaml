@@ -97,6 +97,57 @@ inputs:
       neuchatel:
         label: "Neuchâtel"
 
+  # Optional deduction inputs (all reduce taxable income at federal/cantonal level)
+  pillar_3a_contributions:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Pillar 3a contributions (optional)"
+    description: "Voluntary pension savings (3a); deductible up to CHF 7,258 (2025)"
+
+  mortgage_interest_paid:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Mortgage interest paid (optional)"
+    description: "Interest on owner-occupied home loan; cap = investment income + CHF 50,000"
+
+  investment_income_annual:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    group: mortgage_interest_paid
+    label: "Investment income (optional)"
+    description: "Taxable investment income; used for mortgage interest deduction cap"
+
+  childcare_costs:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Childcare costs (optional)"
+    description: "Day-care, nanny, etc.; deductible up to CHF 25,000 per child (both parents working)"
+
+  number_of_children_eligible:
+    type: number
+    required: false
+    min: 0
+    default: 1
+    group: childcare_costs
+    label: "Number of children for childcare deduction"
+    description: "Children under 14 (or in education) for whom you claim childcare; used for cap"
+
+  medical_expenses:
+    type: number
+    required: false
+    min: 0
+    default: 0
+    label: "Medical expenses (optional)"
+    description: "Unreimbursed medical/dental costs; only amount above 5% of income is deductible"
+
 parameters:
   # Social security caps and rates
   unemployment_cap: 148200  # CHF 148,200 annual cap for unemployment insurance
@@ -111,6 +162,12 @@ parameters:
   insurance_premium_deduction_single: 1800   # CHF 1,800 for insurance premiums (federal)
   insurance_premium_deduction_married: 3600  # CHF 3,600 for married couples (federal)
   married_couple_deduction: 2600             # CHF 2,600 federal married deduction
+
+  # Optional deduction caps (federal)
+  pillar_3a_cap: 7258                       # Max deductible 3a (employees with 2nd pillar), 2025
+  mortgage_interest_cap_extra: 50000         # Mortgage deduction cap = investment_income + this
+  childcare_cap_per_child: 25000             # Max childcare deduction per child (federal)
+  medical_threshold_rate: 0.05              # Medical deductible only above 5% of income
 
   # Federal income tax brackets for single filers (2025 - unchanged from 2024)
   # Source: https://taxsummaries.pwc.com/switzerland/individual/taxes-on-personal-income
@@ -290,18 +347,94 @@ calculations:
       - "$insurance_premium_deduction"
       - "$married_deduction"
 
-  # Taxable income = gross - social contributions - standard deductions
+  # Income before optional (user-claimable) deductions
   - id: income_after_social
     type: sub
     values:
       - "@gross_annual"
       - "$total_social_contributions"
 
-  - id: taxable_income_federal
+  - id: income_before_optional_deductions
     type: sub
     values:
       - "$income_after_social"
       - "$total_standard_deductions"
+
+  # Optional deductions (pillar 3a, mortgage interest, childcare, medical)
+  - id: pillar_3a_deduction
+    type: deduction
+    amount: "@pillar_3a_contributions"
+    cap: "$pillar_3a_cap"
+    category: deduction
+    label: "Pillar 3a"
+
+  - id: mortgage_interest_cap
+    type: sum
+    values:
+      - "@investment_income_annual"
+      - "$mortgage_interest_cap_extra"
+
+  - id: mortgage_interest_deduction
+    type: deduction
+    amount: "@mortgage_interest_paid"
+    cap: "$mortgage_interest_cap"
+    category: deduction
+    label: "Mortgage interest"
+
+  - id: childcare_cap
+    type: mul
+    values:
+      - "$childcare_cap_per_child"
+      - "@number_of_children_eligible"
+
+  - id: childcare_deduction
+    type: deduction
+    amount: "@childcare_costs"
+    cap: "$childcare_cap"
+    category: deduction
+    label: "Childcare"
+
+  - id: optional_deductions_before_medical
+    type: sum
+    values:
+      - "$pillar_3a_deduction"
+      - "$mortgage_interest_deduction"
+      - "$childcare_deduction"
+
+  - id: income_after_non_medical_optionals
+    type: sub
+    values:
+      - "$income_before_optional_deductions"
+      - "$optional_deductions_before_medical"
+
+  - id: medical_threshold
+    type: mul
+    values:
+      - "$income_after_non_medical_optionals"
+      - "$medical_threshold_rate"
+
+  - id: medical_deduction
+    type: deduction
+    amount: "@medical_expenses"
+    threshold:
+      amount: "$medical_threshold"
+      mode: "above"
+    category: deduction
+    label: "Medical expenses"
+
+  - id: total_optional_deductions
+    type: sum
+    values:
+      - "$pillar_3a_deduction"
+      - "$mortgage_interest_deduction"
+      - "$childcare_deduction"
+      - "$medical_deduction"
+
+  - id: taxable_income_federal
+    type: sub
+    values:
+      - "$income_before_optional_deductions"
+      - "$total_optional_deductions"
 
   # Federal income tax (applied to taxable income, not gross)
   - id: federal_tax_brackets
@@ -549,3 +682,8 @@ outputs:
     contributions:
       - "$avs_ai_apg_contribution"
       - "$unemployment_contribution"
+    deductions:
+      - "$pillar_3a_deduction"
+      - "$mortgage_interest_deduction"
+      - "$childcare_deduction"
+      - "$medical_deduction"

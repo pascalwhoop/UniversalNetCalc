@@ -1,0 +1,23 @@
+{
+  "name": "Beckham Law at low income",
+  "description": "Expat under Beckham Law at €60,000 - below Social Security max base",
+  "variant": "beckham-law",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 41700,
+    "effective_rate": 0.305
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Beckham Law flat rate and Social Security",
+      "url": "https://www.lawants.com/en/beckham-law/",
+      "retrieved_at": "2026-02-22",
+      "notes": "Beckham tax: 24% of €60,000 = €14,400. SS: 6.50% of €60,000 = €3,900 (below max base). No solidarity."
+    }
+  ]
+}

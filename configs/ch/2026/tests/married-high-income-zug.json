@@ -1,0 +1,28 @@
+{
+  "name": "Married filers at high income in Zug (2026)",
+  "description": "Married couple with combined income of CHF 150,000 in Zug, the lowest-tax canton",
+  "inputs": {
+    "gross_annual": 150000,
+    "filing_status": "married",
+    "region_level_1": "zug"
+  },
+  "expected": {
+    "net": 128800,
+    "effective_rate": 0.141,
+    "breakdown": {
+      "federal_income_tax": 4013,
+      "cantonal_municipal_tax": 7500,
+      "avs_ai_apg_contribution": 7950,
+      "unemployment_contribution": 1630
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Zug has Switzerland's lowest tax rates. Taxable income for federal: 150000 - 9580 - 9600 = 130820 (with 2026 married deduction of 2800). Federal tax ~4013 CHF. Cantonal/Municipal 5% for married mid-income in Zug. Social 6.39% (unemployment capped).",
+      "url": "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

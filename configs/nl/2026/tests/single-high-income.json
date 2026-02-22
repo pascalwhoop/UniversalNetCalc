@@ -1,0 +1,21 @@
+{
+  "name": "Single filer at high income",
+  "description": "Standard case for single person earning €100,000 in the Netherlands 2026",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 62711,
+    "effective_rate": 0.37289
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using official 2026 Dutch tax rates. Tax: 35.75% × €38,883 + 37.56% × €39,543 + 49.50% × €21,574 = €39,432. General credit: €0 (fully phased out above €78,426). Labour credit: €5,685 - 6.510% × (€100,000 - €45,592) = €2,143. Tax after credits: €37,289.",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

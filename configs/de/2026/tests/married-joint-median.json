@@ -1,0 +1,33 @@
+{
+  "name": "Married filing jointly - Low household income",
+  "description": "Married couple with €20,000 household income using Tax Class III",
+  "inputs": {
+    "gross_annual": 20000,
+    "filing_status": "married_joint",
+    "has_children": false,
+    "region": "sn",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 15550,
+    "effective_rate": 0.223,
+    "breakdown": {
+      "income_tax": 0,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 1860,
+      "health_contribution": 1750,
+      "unemployment_contribution": 260,
+      "care_contribution": 580
+    }
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated from 2026 official parameters. Income below Grundfreibetrag of €24,696 for married couples.",
+      "url": "https://www.steuerberater-rauch.de/steuertarif-2026/",
+      "date": "2026-02-22",
+      "notes": "Tax Class III, Saxony, no church tax, statutory insurance, 2.9% health surcharge. Income below tax-free threshold."
+    }
+  ]
+}

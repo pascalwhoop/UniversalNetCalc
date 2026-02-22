@@ -1,0 +1,125 @@
+meta:
+  variant: "newfoundland"
+  label: "Newfoundland and Labrador"
+  description: "Newfoundland and Labrador provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/nl.htm"
+      description: "Newfoundland and Labrador tax rates for 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This variant adds Newfoundland and Labrador provincial income tax to the federal base configuration.
+
+    Newfoundland features for 2026 (indexation factor 1.1%):
+    - 8 provincial tax brackets (8.7% to 21.8%)
+    - Basic Personal Amount of $11,188 (up from $11,067 in 2025)
+    - No provincial surtaxes or health premiums
+    - Very high top bracket threshold ($1,141,275+)
+
+parameters:
+  # Newfoundland provincial tax brackets - 2026
+  newfoundland_tax_brackets:
+    - threshold: 0
+      rate: 0.0870
+    - threshold: 44678
+      rate: 0.1450
+    - threshold: 89354
+      rate: 0.1580
+    - threshold: 159528
+      rate: 0.1780
+    - threshold: 223340
+      rate: 0.1980
+    - threshold: 285319
+      rate: 0.2080
+    - threshold: 570638
+      rate: 0.2130
+    - threshold: 1141275
+      rate: 0.2180
+
+  # Newfoundland Basic Personal Amount - 2026
+  newfoundland_bpa: 11188
+  newfoundland_lowest_rate: 0.0870
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # Newfoundland provincial income tax before credits
+  - id: newfoundland_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$newfoundland_tax_brackets"
+    category: income_tax
+    label: "Newfoundland Income Tax"
+    description: "Newfoundland provincial income tax before credits"
+
+  # Newfoundland basic personal credit
+  - id: newfoundland_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$newfoundland_bpa"
+        - "$newfoundland_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Newfoundland Basic Personal Credit"
+    description: "Newfoundland non-refundable tax credit for basic personal amount"
+
+  # Newfoundland tax after credits
+  - id: newfoundland_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$newfoundland_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$newfoundland_bpa"
+              - "$newfoundland_lowest_rate"
+    category: income_tax
+    label: "Newfoundland Income Tax (After Credits)"
+    description: "Newfoundland provincial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_newfoundland
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$newfoundland_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_newfoundland"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$newfoundland_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$newfoundland_basic_personal_credit"

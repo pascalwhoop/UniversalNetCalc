@@ -1,0 +1,8 @@
+{
+  "name": "Quebec - Low income (CAD 30,000)",
+  "variant": "quebec",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 24979.12, "effective_rate": 0.16736 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Single expatriate - Median income (30% flat-rate)",
+  "description": "Single expatriate earning €60,000 with 30% income tax exemption (Article 155B)",
+  "variant": "impatrie",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 43067,
+    "effective_rate": 0.2822,
+    "breakdown": {
+      "income_tax": 7659,
+      "csg_deductible": 4009,
+      "csg_nondeductible": 1415,
+      "crds": 295,
+      "pension_contribution": 3556
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Verified against engine: 30% bonus exempt, social on full gross, tax on reduced taxable income",
+      "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
+      "date": "2026-02-22"
+    }
+  ]
+}

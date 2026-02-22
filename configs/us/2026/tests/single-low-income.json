@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - Low income",
+  "description": "Single person earning $30,000 annually - lower income scenario in Texas (no state tax)",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 26285,
+    "effective_rate": 0.12383,
+    "breakdown": {
+      "federal_income_tax": 1420,
+      "state_income_tax": 0,
+      "social_security_tax": 1860,
+      "medicare_tax": 435,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Calculated using 2026 IRS tax brackets (Rev. Proc. 2025-32) and FICA rates",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+      "date": "2026-02-22",
+      "notes": "Standard deduction: $16,100. Taxable income: $30,000 - $16,100 = $13,900. Tax: 10% on $12,400 = $1,240 + 12% on $1,500 = $180 = $1,420. SS: $30,000 * 6.2% = $1,860. Medicare: $30,000 * 1.45% = $435. No additional Medicare (under $200k). Net: $30,000 - $3,715 = $26,285."
+    }
+  ]
+}

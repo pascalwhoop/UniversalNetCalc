@@ -1,0 +1,23 @@
+{
+  "name": "Beckham Law at high income",
+  "description": "Expat under Beckham Law at €200,000 - above Social Security max base",
+  "variant": "beckham-law",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 147698,
+    "effective_rate": 0.2615
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Beckham Law flat rate, Social Security, and solidarity contribution",
+      "url": "https://www.lawants.com/en/beckham-law/",
+      "retrieved_at": "2026-02-22",
+      "notes": "Beckham tax: 24% of €200,000 = €48,000. SS: 6.50% × €61,214.40 = €3,978.94. Solidarity on €138,785.60 excess: ~€322.68."
+    }
+  ]
+}

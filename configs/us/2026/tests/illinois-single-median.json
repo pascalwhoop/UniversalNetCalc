@@ -1,0 +1,30 @@
+{
+  "name": "Illinois - Single filer at median income",
+  "description": "Single person earning $60,000 annually in Illinois (flat 4.95% state tax)",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single",
+    "state": "illinois"
+  },
+  "expected": {
+    "net": 47420,
+    "effective_rate": 0.20967,
+    "breakdown": {
+      "federal_income_tax": 5020,
+      "state_income_tax": 2970,
+      "social_security_tax": 3720,
+      "medicare_tax": 870,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Calculated using 2026 IRS tax brackets and Illinois flat 4.95% state income tax",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+      "date": "2026-02-22",
+      "notes": "Federal: std deduction $16,100, taxable $43,900, federal tax $5,020. Illinois: 4.95%*$60,000=$2,970. SS: $3,720. Medicare: $870. Total deductions: $12,580. Net: $47,420."
+    }
+  ]
+}

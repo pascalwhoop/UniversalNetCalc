@@ -1,0 +1,21 @@
+{
+  "name": "Alberta - Median income (CAD 60,000)",
+  "variant": "alberta",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 46699,
+    "effective_rate": 0.2217
+  },
+  "tolerance": 20,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated from 2026 Alberta provincial rates",
+      "url": "https://www.taxtips.ca/taxrates/ab.htm",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

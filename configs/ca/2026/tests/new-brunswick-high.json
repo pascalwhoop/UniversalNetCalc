@@ -1,0 +1,8 @@
+{
+  "name": "New Brunswick - High income (CAD 200,000)",
+  "variant": "new-brunswick",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 127943.88, "effective_rate": 0.36028 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

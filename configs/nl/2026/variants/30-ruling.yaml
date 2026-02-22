@@ -1,0 +1,99 @@
+meta:
+  variant: "30-ruling"
+  label: "30% Ruling"
+  description: |
+    Tax benefit for highly skilled migrants recruited from abroad. Under this ruling,
+    30% of the gross salary is considered tax-free compensation for extraterritorial
+    expenses, making only 70% of the salary taxable.
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen"
+      description: "30% ruling eligibility and conditions 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://limes-int.com/2026-salary-thresholds/"
+      description: "2026 salary norms and income cap for 30% ruling (official LIMES publication)"
+      retrieved_at: "2026-02-22"
+    - url: "https://crop.nl/en/knowledgebase/30-ruling-salary-requirements-for-2026-and-more/"
+      description: "30% ruling salary requirements and WNT income cap for 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    Eligibility requirements for 2026:
+    - Must be recruited from abroad (more than 150km from Dutch border for >16 of 24 months)
+    - Possess specific expertise scarce on Dutch labor market
+    - Minimum taxable salary: €48,013 (excluding 30% allowance)
+    - For employees under 30 with master's degree: €36,497
+    - Valid for maximum 5 years
+    - Must be applied for within 4 months of starting employment
+    - Income cap (WNT/Balkenende norm): €262,000 — transitional arrangement expired
+      January 1, 2026; cap now applies to ALL employees from that date
+
+    Important: The 30% ruling will reduce to 27% starting January 1, 2027
+    for employees who started using the facility on or after January 1, 2024.
+    Those who received the ruling before 2024 continue to receive 30% for
+    the full 5-year period.
+
+notices:
+  - id: "30_ruling_eligibility"
+    title: "Eligibility Check Required"
+    body: |
+      This variant assumes you qualify for the 30% ruling. To qualify in 2026:
+      - You must be recruited from abroad (>150km from Dutch border)
+      - You must have specific expertise scarce in the Netherlands
+      - Your taxable salary must meet the minimum threshold (€48,013, or €36,497 if under 30 with master's)
+      - Application must be submitted within 4 months of employment start
+
+      Consult with your employer or a tax advisor to confirm eligibility.
+    severity: "warning"
+
+  - id: "30_ruling_salary_calculation"
+    title: "30% Calculation Method"
+    body: |
+      Enter your GROSS salary (before the 30% deduction). The calculator will
+      automatically apply the 30% ruling, making only 70% of your salary taxable.
+
+      Example: If your gross salary is €60,000, only €42,000 (70%) is taxable,
+      and €18,000 (30%) is tax-free.
+    severity: "info"
+
+  - id: "30_ruling_income_cap"
+    title: "Income Cap (WNT Norm)"
+    body: |
+      As of January 1, 2026, the transitional arrangement for the income cap has
+      expired. The 30% ruling now applies to a maximum gross salary of €262,000
+      (WNT/Balkenende norm) for all employees. Income above this threshold is not
+      eligible for the tax-free allowance.
+    severity: "info"
+
+  - id: "30_ruling_future_changes"
+    title: "Reduction to 27% from 2027"
+    body: |
+      For employees who started using the 30% facility on or after January 1, 2024,
+      the maximum reimbursement will reduce from 30% to 27% starting January 1, 2027.
+      Employees who received the ruling before 2024 continue to receive 30% for
+      their full 5-year period.
+    severity: "info"
+
+parameters:
+  # 30% ruling: only 70% of income is taxable
+  taxable_percentage: 0.70
+
+calculations:
+  # Override taxable income calculation
+  # Only 70% of gross salary is taxable under 30% ruling
+  - id: taxable_income
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$taxable_percentage"
+    description: "Only 70% of gross income is taxable under 30% ruling"
+
+  # Add a calculation to show the tax-free allowance
+  - id: tax_free_allowance_30_ruling
+    type: mul
+    values:
+      - "@gross_annual"
+      - 0.30
+    category: deduction
+    label: "30% Ruling Tax-Free Allowance"
+    description: "30% of gross salary excluded from taxation"

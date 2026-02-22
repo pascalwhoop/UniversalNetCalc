@@ -1,0 +1,21 @@
+{
+  "name": "Ireland 2026 - Low Income (€20,000)",
+  "config": "base.yaml",
+  "inputs": {
+    "gross_annual": 20000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 18940,
+    "effective_rate": 0.053,
+    "breakdown": {
+      "income_tax": 0,
+      "usc": 220,
+      "prsi": 840,
+      "personal_credit": 2000,
+      "employee_credit": 2000
+    }
+  },
+  "tolerance": 5,
+  "tolerance_percent": 0.001
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Single filer - Low income",
+  "description": "Single person earning €25,000 annually",
+  "inputs": {
+    "gross_annual": 25000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 16748,
+    "effective_rate": 0.330,
+    "breakdown": {
+      "income_tax": 4045,
+      "csg_deductible": 1670,
+      "csg_nondeductible": 590,
+      "crds": 123,
+      "pension_contribution": 1825
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.05,
+  "sources": [
+    {
+      "description": "Calculated based on 2026 French tax brackets (0.9% revalorisation, loi de finances 2026) and social contribution rates",
+      "url": "https://impots.dispofi.fr/bareme-impot",
+      "date": "2026-02-22"
+    }
+  ]
+}

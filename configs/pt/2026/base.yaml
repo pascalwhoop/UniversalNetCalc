@@ -1,0 +1,186 @@
+meta:
+  country: "pt"
+  year: 2026
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.pwc.pt/en/pwcinforfisco/statebudget/pit-and-social-security.html"
+      description: "PwC Portugal - IRS 2026 State Budget analysis with official tax brackets"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.santander.pt/salto/escaloes-irs"
+      description: "Santander Portugal - IRS 2026 tax brackets table (escalões)"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.lvpadvogados.com/tax-updates-state-budget-proposal-for-2026-and-new-measures-also-planned-for-2026"
+      description: "LVP Advogados - Portugal 2026 State Budget tax updates overview"
+      retrieved_at: "2026-02-22"
+    - url: "https://euro-hr-solutions.com/hr-outsourcing-in-portugal/"
+      description: "Social security contributions in Portugal (Segurança Social)"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This configuration covers the standard Portuguese tax system (IRS) for 2026.
+
+    Key features:
+    - Progressive income tax with 9 brackets (12.5% to 48%)
+    - Brackets updated by 3.51% vs 2025 (automatic indexation mechanism)
+    - Rates for 2nd to 5th brackets reduced by 0.3 percentage points vs 2025
+    - Social security contributions (TSU): 11% employee, 23.75% employer
+    - Tax rates apply to rendimento coletável (taxable income after specific deductions)
+    - For simplicity, this calculator uses gross income directly
+
+    Changes from 2025:
+    - All bracket thresholds increased by 3.51% (inflation adjustment)
+    - Rates for brackets 2-5 reduced by 0.3pp (relief for middle class)
+    - Minimum subsistence level (mínimo de existência) updated to €12,880
+
+    Note: The NHR (Non-Habitual Resident) regime ended in 2024 and was replaced
+    by IFICI (Tax Incentive for Scientific Research and Innovation). See the
+    'ifici' variant for the special 20% flat rate regime.
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions (salário bruto anual).
+      This should be your employment income before taxes and social security contributions.
+    severity: "info"
+
+  - id: "irs_progressive"
+    title: "Progressive IRS Tax System"
+    body: |
+      Portugal uses a progressive income tax system (IRS - Imposto sobre o Rendimento
+      das Pessoas Singulares) with 9 tax brackets ranging from 12.5% to 48%.
+      For 2026, brackets were updated by 3.51% and rates for the 2nd to 5th brackets
+      were reduced by 0.3 percentage points to ease the tax burden on middle incomes.
+    severity: "info"
+
+  - id: "social_security"
+    title: "Social Security Contributions"
+    body: |
+      Employees contribute 11% to Social Security (Segurança Social/TSU).
+      Employers contribute an additional 23.75% (not shown in this calculation).
+    severity: "info"
+
+  - id: "special_regimes"
+    title: "Special Tax Regimes Available"
+    body: |
+      Portugal offers special tax regimes for certain individuals:
+      - IFICI: 20% flat rate for qualified professionals in scientific research/innovation
+      - Youth IRS: Partial exemptions for taxpayers up to 35 years old
+
+      Use the 'ifici' variant if you qualify for the special 20% regime.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (salário bruto)"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    description: "Your tax filing status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried individual (solteiro/a)"
+      married_joint:
+        label: "Married (Joint Filing)"
+        description: "Married filing jointly with spouse (casado/a - tributação conjunta)"
+
+parameters:
+  # IRS (Personal Income Tax) brackets for 2026
+  # Source: OE2026, Article 68 of IRS Code, updated 3.51% from 2025
+  # Rates for 2nd-5th brackets reduced by 0.3pp vs 2025
+  irs_brackets:
+    - { threshold: 0, rate: 0.125 }
+    - { threshold: 8342, rate: 0.157 }
+    - { threshold: 12587, rate: 0.212 }
+    - { threshold: 17838, rate: 0.241 }
+    - { threshold: 23089, rate: 0.311 }
+    - { threshold: 29397, rate: 0.349 }
+    - { threshold: 43090, rate: 0.431 }
+    - { threshold: 46566, rate: 0.446 }
+    - { threshold: 86634, rate: 0.480 }
+
+  # Social Security (Segurança Social) - Employee contribution (TSU)
+  # Unchanged from 2025
+  social_security_employee_rate: 0.11
+
+  # Quociente conjugal (spousal quotient) for married joint filing
+  spousal_quotient: 2
+
+calculations:
+  # Determine quociente (quotient) based on filing status
+  - id: quotient
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: 1
+      married_joint: 2
+    default: 1
+
+  # For married joint filing, divide income by quotient
+  - id: taxable_income_per_quotient
+    type: div
+    values:
+      - "@gross_annual"
+      - "$quotient"
+
+  # Calculate IRS on the quotient amount
+  - id: irs_per_quotient
+    type: bracket_tax
+    base: "$taxable_income_per_quotient"
+    brackets: "$irs_brackets"
+
+  # Multiply by quotient to get total IRS
+  - id: irs_total
+    type: mul
+    values:
+      - "$irs_per_quotient"
+      - "$quotient"
+    category: income_tax
+    label: "IRS (Income Tax)"
+    description: "Imposto sobre o Rendimento das Pessoas Singulares"
+
+  # Social Security (Segurança Social) - Employee contribution
+  - id: social_security_employee
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$social_security_employee_rate"
+    category: contribution
+    label: "Social Security (Employee)"
+    description: "Segurança Social - Employee contribution (TSU) - 11%"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$irs_total"
+      - "$social_security_employee"
+
+  # Net annual salary
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$irs_total"
+    contributions:
+      - "$social_security_employee"

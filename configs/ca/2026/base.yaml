@@ -1,0 +1,352 @@
+meta:
+  country: "ca"
+  year: 2026
+  currency: "CAD"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/canadian-income-tax-rates-individuals-current-previous-years.html"
+      description: "Official 2026 federal tax brackets and rates"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/canada-pension-plan-cpp/cpp-contribution-rates-maximums-exemptions.html"
+      description: "CPP contribution rates and maximums for 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/employment-insurance-ei/ei-premium-rates-maximums.html"
+      description: "EI premium rates and maximums for 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.canada.ca/en/revenue-agency/programs/about-canada-revenue-agency-cra/federal-government-budgets/basic-personal-amount.html"
+      description: "Basic Personal Amount information"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.taxtips.ca/taxrates/canada.htm"
+      description: "Canada 2026 federal tax rates and brackets (TaxTips.ca)"
+      retrieved_at: "2026-02-22"
+    - url: "https://assets.kpmg.com/content/dam/kpmg/ca/pdf/2026/01/ca-federal-and-provincial-territorial-non-refundable-tax-credit-rates-and-amounts-2026.pdf"
+      description: "KPMG Federal and Provincial/Territorial Non-Refundable Tax Credit Rates and Amounts for 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This configuration covers the FEDERAL-ONLY Canadian tax system for 2026.
+    Provincial taxes are handled by provincial variants (see variants/ folder).
+
+    Key changes for 2026 vs 2025:
+    - Federal indexation factor: 2.0%
+    - First bracket rate drops to 14% (fully in effect; was blended 14.5% in 2025)
+    - CPP YMPE increases to $74,600 (from $71,300)
+    - CPP2 YAMPE increases to $85,000 (from $81,200)
+    - EI rate decreases to 1.63% (from 1.64%); max insurable increases to $68,900
+    - Basic Personal Amount increases to $16,452 (from $16,129) for low earners
+    - BPA minimum for high earners: $14,829 (from $14,538)
+    - BPA phaseout range: $181,440–$258,482
+    - Canada Employment Amount: $1,500
+
+    Key assumptions:
+    - Employee (not self-employed)
+    - Not exempt from CPP or EI
+    - Does not account for provincial taxes (use provincial variants)
+    - Standard employment situation
+
+notices:
+  - id: "federal_only"
+    title: "Federal Taxes Only"
+    body: |
+      This base configuration calculates FEDERAL taxes only. You must use a provincial
+      variant (e.g., ontario, bc, quebec) to get your complete tax calculation including
+      provincial income tax.
+    severity: "warning"
+
+  - id: "provincial_residence"
+    title: "Provincial Residency"
+    body: |
+      Provincial tax is determined by your province of residence on December 31 of the
+      tax year. If you moved between provinces during the year, you pay tax to the
+      province where you live on December 31.
+    severity: "info"
+
+  - id: "cpp_two_tiers"
+    title: "CPP Has Two Contribution Levels"
+    body: |
+      The Canada Pension Plan (CPP) has two contribution tiers as of 2026:
+      - Base CPP: 5.95% on earnings from $3,500 to $74,600
+      - CPP2 (additional): 4.00% on earnings from $74,600 to $85,000
+    severity: "info"
+
+  - id: "bpa_phaseout"
+    title: "Basic Personal Amount Reduction"
+    body: |
+      The Basic Personal Amount (BPA) of $16,452 is gradually reduced for incomes
+      between $181,440 and $258,482, down to a minimum of $14,829 for high earners.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly employment income before any deductions"
+
+  filing_status:
+    type: enum
+    required: false
+    default: "single"
+    label: "Filing Status"
+    description: "Not used for Canadian calculations (no separate brackets)"
+    options:
+      single:
+        label: "Single"
+        description: "Standard filing"
+      married:
+        label: "Married"
+        description: "Standard filing (no difference in rates)"
+
+parameters:
+  # Federal income tax brackets - 2026
+  # First bracket is now fully 14% (no longer blended)
+  federal_tax_brackets:
+    - threshold: 0
+      rate: 0.1400
+    - threshold: 58523
+      rate: 0.2050
+    - threshold: 117045
+      rate: 0.2600
+    - threshold: 181440
+      rate: 0.2900
+    - threshold: 258482
+      rate: 0.3300
+
+  # Basic Personal Amount (BPA) - 2026
+  bpa_max: 16452
+  bpa_min: 14829
+  bpa_phaseout_start: 181440
+  bpa_phaseout_end: 258482
+  federal_lowest_rate: 0.1400
+
+  # Canada Employment Amount - 2026
+  canada_employment_amount: 1500
+
+  # CPP parameters - 2026
+  cpp_exemption: 3500
+  cpp_ympe: 74600  # Year's Maximum Pensionable Earnings
+  cpp_rate: 0.0595
+  cpp2_yampe: 85000  # Year's Additional Maximum Pensionable Earnings
+  cpp2_rate: 0.0400
+
+  # EI parameters - 2026
+  ei_max_insurable: 68900
+  ei_rate: 0.0163
+
+calculations:
+  # Taxable income (for base case, same as gross)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # Federal income tax before credits
+  - id: federal_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$federal_tax_brackets"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Federal income tax before non-refundable credits"
+
+  # Basic Personal Amount calculation with phaseout
+  - id: bpa_reduction_base
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$taxable_income"
+          - "$bpa_phaseout_start"
+
+  - id: bpa_reduction_factor
+    type: min
+    values:
+      - 1
+      - type: div
+        values:
+          - "$bpa_reduction_base"
+          - type: sub
+            values:
+              - "$bpa_phaseout_end"
+              - "$bpa_phaseout_start"
+
+  - id: bpa_reduction_amount
+    type: mul
+    values:
+      - type: sub
+        values:
+          - "$bpa_max"
+          - "$bpa_min"
+      - "$bpa_reduction_factor"
+
+  - id: basic_personal_amount
+    type: sub
+    values:
+      - "$bpa_max"
+      - "$bpa_reduction_amount"
+
+  # Basic personal credit (BPA × lowest rate)
+  - id: basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$basic_personal_amount"
+        - "$federal_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Basic Personal Credit"
+    description: "Federal non-refundable tax credit for basic personal amount"
+
+  # Canada Employment Amount credit
+  - id: canada_employment_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - type: min
+          values:
+            - "$canada_employment_amount"
+            - "@gross_annual"
+        - "$federal_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Canada Employment Credit"
+    description: "Federal employment credit"
+
+  # CPP Base contribution (5.95% on earnings from $3,500 to $74,600)
+  - id: cpp_base_contributory_earnings
+    type: max
+    values:
+      - 0
+      - type: min
+        values:
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$cpp_exemption"
+          - type: sub
+            values:
+              - "$cpp_ympe"
+              - "$cpp_exemption"
+
+  - id: cpp_base_contribution
+    type: percent_of
+    base: "$cpp_base_contributory_earnings"
+    rate: "$cpp_rate"
+    category: contribution
+    label: "CPP Base Contribution"
+    description: "Canada Pension Plan base contribution (5.95%)"
+
+  # CPP2 contribution (4.00% on earnings from $74,600 to $85,000)
+  - id: cpp2_contributory_earnings
+    type: max
+    values:
+      - 0
+      - type: min
+        values:
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$cpp_ympe"
+          - type: sub
+            values:
+              - "$cpp2_yampe"
+              - "$cpp_ympe"
+
+  - id: cpp2_contribution
+    type: percent_of
+    base: "$cpp2_contributory_earnings"
+    rate: "$cpp2_rate"
+    category: contribution
+    label: "CPP2 Additional Contribution"
+    description: "Canada Pension Plan second additional contribution (4.00%)"
+
+  # Total CPP
+  - id: total_cpp
+    type: sum
+    values:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+
+  # EI contribution (1.63% up to $68,900)
+  - id: ei_insurable_earnings
+    type: min
+    values:
+      - "@gross_annual"
+      - "$ei_max_insurable"
+
+  - id: ei_contribution
+    type: percent_of
+    base: "$ei_insurable_earnings"
+    rate: "$ei_rate"
+    category: contribution
+    label: "EI Premium"
+    description: "Employment Insurance premium (1.63%)"
+
+  # Total federal credits
+  - id: total_federal_credits
+    type: sum
+    values:
+      - type: mul
+        values:
+          - "$basic_personal_amount"
+          - "$federal_lowest_rate"
+      - type: mul
+        values:
+          - type: min
+            values:
+              - "$canada_employment_amount"
+              - "@gross_annual"
+          - "$federal_lowest_rate"
+
+  # Federal tax after credits (cannot go negative)
+  - id: federal_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$federal_income_tax_before_credits"
+          - "$total_federal_credits"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Federal income tax after non-refundable credits"
+
+  # Total federal deductions (tax + CPP + EI)
+  - id: total_federal_deductions
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Net annual income (federal only - provincial tax not included!)
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_federal_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"

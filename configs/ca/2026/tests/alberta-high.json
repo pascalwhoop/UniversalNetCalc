@@ -1,0 +1,15 @@
+{
+  "name": "Alberta - High income (CAD 200,000)",
+  "variant": "alberta",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 136355.5, "effective_rate": 0.31822 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated from 2026 Alberta provincial rates",
+      "url": "https://www.taxtips.ca/taxrates/ab.htm",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

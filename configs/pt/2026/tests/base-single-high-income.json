@@ -1,0 +1,25 @@
+{
+  "name": "Single filer with high income (€80,000)",
+  "description": "High income single taxpayer in upper IRS brackets for 2026",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 43961.72,
+    "effective_rate": 0.45048,
+    "breakdown": {
+      "irs_total": 27238.28,
+      "social_security_employee": 8800.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2026 IRS brackets from Portuguese Tax Code Article 68 (OE2026)",
+      "url": "https://www.pwc.pt/en/pwcinforfisco/statebudget/pit-and-social-security.html",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRS: (0-8342): 1042.75; (8342-12587): 666.465; (12587-17838): 1113.212; (17838-23089): 1265.491; (23089-29397): 1961.788; (29397-43090): 13693*0.349=4778.857; (43090-46566): 3476*0.431=1498.156; (46566-80000): 33434*0.446=14911.564; Total IRS=27238.283; SS: 80000*0.11=8800; Net: 43961.717"
+    }
+  ]
+}

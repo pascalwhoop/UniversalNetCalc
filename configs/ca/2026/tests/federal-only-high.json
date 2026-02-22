@@ -1,0 +1,21 @@
+{
+  "name": "Federal only - High income (CAD 200,000)",
+  "description": "Federal taxes only, high income. Includes partial BPA phaseout and CPP2 contributions.",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 154373.69,
+    "effective_rate": 0.22813
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated from 2026 CRA federal rates",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/canadian-income-tax-rates-individuals-current-previous-years.html",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

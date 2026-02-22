@@ -1,0 +1,30 @@
+{
+  "name": "Single expatriate - Low income (30% flat-rate)",
+  "description": "Single expatriate earning €35,000 with 30% income tax exemption (Article 155B)",
+  "variant": "impatrie",
+  "inputs": {
+    "gross_annual": 35000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 25715,
+    "effective_rate": 0.2653,
+    "breakdown": {
+      "income_tax": 3394,
+      "csg_deductible": 2338,
+      "csg_nondeductible": 825,
+      "crds": 172,
+      "pension_contribution": 2555
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Verified against engine: 30% bonus exempt, social on full gross, tax on reduced taxable income",
+      "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
+      "date": "2026-02-22"
+    }
+  ]
+}
