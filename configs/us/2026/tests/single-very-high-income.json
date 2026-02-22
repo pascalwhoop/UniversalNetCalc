@@ -1,0 +1,30 @@
+{
+  "name": "Single filer - Very high income with additional Medicare tax",
+  "description": "Single person earning $500,000 annually in Texas - triggers additional Medicare tax and SS wage base cap",
+  "inputs": {
+    "gross_annual": 500000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 340477,
+    "effective_rate": 0.31905,
+    "breakdown": {
+      "federal_income_tax": 138134,
+      "state_income_tax": 0,
+      "social_security_tax": 11439,
+      "medicare_tax": 7250,
+      "additional_medicare_tax": 2700
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Calculated using 2026 IRS tax brackets (Rev. Proc. 2025-32) and FICA rates",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+      "date": "2026-02-22",
+      "notes": "Standard deduction: $16,100. Taxable income: $483,900. Federal tax: 10%*12400+12%*38000+22%*55300+24%*96075+32%*54450+35%*227675=$138,134.25. SS: $184,500*6.2%=$11,439. Medicare: $500,000*1.45%=$7,250. Additional Medicare: ($500,000-$200,000)*0.9%=$2,700. Net: $340,476.75."
+    }
+  ]
+}

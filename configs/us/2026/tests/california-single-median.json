@@ -1,0 +1,30 @@
+{
+  "name": "California - Single filer at median income",
+  "description": "Single person earning $70,000 annually in California with state income tax",
+  "inputs": {
+    "gross_annual": 70000,
+    "filing_status": "single",
+    "state": "california"
+  },
+  "expected": {
+    "net": 55458,
+    "effective_rate": 0.20774,
+    "breakdown": {
+      "federal_income_tax": 6570,
+      "state_income_tax": 2617,
+      "social_security_tax": 4340,
+      "medicare_tax": 1015,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 20,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using 2026 IRS tax brackets (Rev. Proc. 2025-32) and California 2025 tax brackets",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+      "date": "2026-02-22",
+      "notes": "Federal: std deduction $16,100, taxable $53,900, tax 10%*$12,400=$1,240+12%*$38,000=$4,560+22%*$3,500=$770=$6,570. CA: std deduction $5,540, CA taxable $64,460. CA tax: 1%*$10,756=$107.56+2%*$14,744=$294.88+4%*$14,746=$589.84+6%*$15,622=$937.32+8%*$8,592=$687.36=$2,616.96. SS: $70,000*6.2%=$4,340. Medicare: $70,000*1.45%=$1,015. Total deductions: $14,541.96. Net: $55,458.04."
+    }
+  ]
+}

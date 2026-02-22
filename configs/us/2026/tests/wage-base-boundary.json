@@ -1,0 +1,30 @@
+{
+  "name": "Single - Social Security wage base boundary",
+  "description": "Single person earning $200,000 in Texas - SS wage base ($184,500) is capped, exactly at additional Medicare threshold",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "single",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 148927,
+    "effective_rate": 0.25537,
+    "breakdown": {
+      "federal_income_tax": 36734,
+      "state_income_tax": 0,
+      "social_security_tax": 11439,
+      "medicare_tax": 2900,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Calculated using 2026 IRS tax brackets (Rev. Proc. 2025-32) - SS wage base capped at $184,500",
+      "url": "https://www.ssa.gov/oact/cola/cbb.html",
+      "date": "2026-02-22",
+      "notes": "Standard deduction: $16,100. Taxable income: $183,900. Federal tax: 10%*$12,400=$1,240+12%*$38,000=$4,560+22%*$55,300=$12,166+24%*$78,200=$18,768=$36,734. SS: $184,500*6.2%=$11,439 (wage base capped). Medicare: $200,000*1.45%=$2,900. Additional Medicare: ($200,000-$200,000)*0.9%=$0. Total deductions: $51,073. Net: $148,927."
+    }
+  ]
+}
