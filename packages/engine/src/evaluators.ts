@@ -351,12 +351,30 @@ function evaluateDeduction(
 ): number {
   let amount = resolveValue(node.amount, context, functions)
 
+  // Apply threshold if specified
+  if (node.threshold) {
+    const thresholdAmount = resolveValue(node.threshold.amount, context, functions)
+    if (node.threshold.mode === 'above') {
+      // Only amount above threshold is deductible
+      amount = Math.max(0, amount - thresholdAmount)
+    } else if (node.threshold.mode === 'below') {
+      // Only amount below threshold is deductible
+      amount = Math.min(amount, thresholdAmount)
+    }
+  }
+
+  // Apply cap if specified
   if (node.cap !== undefined) {
     const cap = resolveValue(node.cap, context, functions)
     amount = Math.min(amount, cap)
   }
 
-  return amount
+  // Apply phaseout if specified
+  if (node.phaseout) {
+    amount = applyPhaseout(amount, node.phaseout, context, functions)
+  }
+
+  return Math.max(0, amount) // Never negative
 }
 
 // Control flow evaluators

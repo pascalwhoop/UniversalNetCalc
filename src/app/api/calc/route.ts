@@ -13,9 +13,20 @@ interface CalcRequest {
   [key: string]: unknown // Allow additional inputs
 }
 
-// Singleton config loader
-// In Cloudflare Workers, use relative path since everything is bundled together
-// In local dev, use process.cwd()
+/**
+ * Singleton ConfigLoader instance
+ *
+ * This is intentional and safe:
+ * - In Cloudflare Workers: Each request runs in an isolate, but modules are shared
+ *   within that isolate. The cache is beneficial for performance when handling
+ *   multiple related requests within the same isolate lifecycle.
+ * - In local dev: Node.js module caching provides similar behavior.
+ * - The ConfigLoader's internal cache is purely for performance; configs are immutable
+ *   once loaded and validated.
+ *
+ * Security: Input validation is performed in ConfigLoader.loadConfig() to prevent
+ * path traversal attacks before any file operations occur.
+ */
 const isCloudflareWorkers = typeof caches !== 'undefined' && 'default' in caches
 const configsPath = isCloudflareWorkers ? "configs" : join(process.cwd(), "configs")
 const configLoader = new ConfigLoader(configsPath)
@@ -34,7 +45,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Load configuration
+    // Load configuration (input validation happens inside loadConfig)
     const config = await configLoader.loadConfig(
       body.country,
       body.year,
@@ -65,6 +76,19 @@ export async function POST(request: NextRequest) {
     console.error("Calculation error:", error)
 
     const err = error as { code?: string; name?: string; message?: string }
+
+    // Handle input validation errors (path traversal prevention)
+    if (err.message?.includes("Invalid country") ||
+        err.message?.includes("Invalid year") ||
+        err.message?.includes("Invalid variant")) {
+      return NextResponse.json(
+        {
+          error: "Invalid input",
+          details: err.message,
+        },
+        { status: 400 }
+      )
+    }
 
     if (err.code === "ENOENT") {
       return NextResponse.json(
@@ -198,6 +222,17 @@ export async function GET(request: NextRequest) {
   } catch (error: unknown) {
     console.error("API error:", error)
     const err = error as { message?: string }
+
+    // Handle input validation errors
+    if (err.message?.includes("Invalid country") ||
+        err.message?.includes("Invalid year") ||
+        err.message?.includes("Invalid variant")) {
+      return NextResponse.json(
+        { error: "Invalid input", details: err.message },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { error: "Internal server error", details: err.message },
       { status: 500 }

@@ -58,6 +58,38 @@ Gather from official government sources:
 
 Record all source URLs with retrieval dates.
 
+#### Deductions Research (always required)
+
+For every country, research user-claimable tax deductions — these are expenses the taxpayer optionally declares that reduce their tax burden. This is separate from statutory deductions (standard allowances built into the tax system automatically).
+
+For each potential deduction, gather:
+1. **What it is** — describe the expense category (e.g. mortgage interest, pension contributions, charitable donations, home office, healthcare, childcare, alimony)
+2. **How it works** — does it reduce taxable income (Box 1 style) or produce a direct tax credit?
+3. **Eligibility** — who qualifies? Primary residence only? Employer vs self-employed?
+4. **Cap / maximum** — is there an annual maximum amount deductible?
+5. **Threshold** — is there an income-dependent floor the expense must exceed before deduction applies? (e.g. NL healthcare: fixed €132 + 1.65% of income above €8,625)
+6. **Rate limit** — is the tax benefit capped at a specific rate even if the taxpayer's marginal rate is higher? (e.g. NL mortgage interest: benefit capped at 37.48% even for top-bracket 49.5% earners)
+7. **Time limit** — is there a maximum duration? (e.g. NL mortgage: 30-year limit)
+8. **Required secondary inputs** — does implementing this deduction require more than one user input? (e.g. NL mortgage needs both `mortgage_interest_paid` and `mortgage_start_year` for the 30-year check)
+9. **Interaction with other deductions** — do multiple deductions share a pool or cap?
+
+Common deduction categories to research for every country:
+- Mortgage / home loan interest
+- Pension / retirement savings contributions
+- Healthcare / medical expenses
+- Charitable donations
+- Home office / remote work expenses
+- Educational expenses / student loan interest
+- Alimony / maintenance payments
+- Union dues / professional membership fees
+- Business expenses (for employees in some countries)
+- Childcare costs
+
+Official sources to check:
+- National tax authority website (e.g. belastingdienst.nl, gov.uk/income-tax, irs.gov)
+- Look for "deductions", "allowances", "reliefs", or "abzüge" / "déductions" in the local language
+- Check if there is an official online tax calculator — use it to verify expected values
+
 If the country already has a year in it, consider searching for the same / similar sources to update for the new year requested. Chances are not much changed.
 
 
@@ -69,6 +101,59 @@ If the country already has a year in it, consider searching for the same / simil
 | Moderate | Progressive brackets + contributions (NL, AU, IE, UK) | Pure YAML                |
 | High     | Multi-level regions or special calculations (CH, US)  | YAML + lookups           |
 | Complex  | Income splitting, family quotient (DE, FR)            | Use `function` node      |
+
+#### Deduction Complexity Patterns
+
+| Deduction type | YAML pattern |
+|----------------|--------------|
+| Simple income reduction | `type: deduction`, `amount: "@input"` — reduces taxable income |
+| With maximum cap | Add `cap: "$param_or_value"` |
+| With income threshold (NL healthcare) | Add `threshold: { amount: "$threshold_node", mode: "above" }` |
+| With rate limit for top-bracket earners (NL mortgage) | Requires a surtax correction node — see below |
+| Time-limited (NL 30yr mortgage) | Use a `conditional` gate multiplied into the amount |
+| Compound (multiple inputs) | Define all inputs as `required: false, default: 0`; use `conditional` or `mul` to combine |
+
+**Important — Rate-Limited Deductions:**
+When a deduction's tax benefit is capped at a specific rate (e.g. NL mortgage at 37.48% even for 49.5% earners), the engine's standard `deduction` node is NOT sufficient — it just reduces taxable income at the taxpayer's actual marginal rate. You must add an explicit correction:
+
+```yaml
+# For each rate-capped deduction: add a surtax to recover the excess benefit
+# for top-bracket earners. Uses gross_annual to determine top-bracket exposure.
+- id: gross_above_top_bracket
+  type: max
+  values:
+    - 0
+    - type: sub
+      values: ["@gross_annual", "$top_bracket_threshold"]
+
+- id: deduction_in_top_bracket
+  type: min
+  values:
+    - "$the_deduction_amount"
+    - "$gross_above_top_bracket"
+
+- id: rate_cap_correction
+  type: mul
+  values:
+    - "$deduction_in_top_bracket"
+    - 0.1202  # top_rate (49.5%) - cap_rate (37.48%)
+  category: surtax
+  label: "Deduction Rate Cap Adjustment"
+  description: "Limits benefit to capped rate for top-bracket earners"
+```
+Then add `$rate_cap_correction` to `total_tax_before_credits` and `outputs.breakdown.surtaxes`.
+
+**All deduction inputs must be optional:**
+```yaml
+my_deduction_input:
+  type: number
+  required: false
+  min: 0
+  default: 0
+  label: "..."
+  description: "..."
+```
+This ensures existing test vectors (which don't supply deduction inputs) still pass without modification.
 
 ### Step 3: Create base.yaml
 
@@ -176,6 +261,12 @@ Test vector format:
 - Include `breakdown` expectations for major tax items to catch calculation errors early
 - Set reasonable `tolerance` (e.g., 50 for rounding differences, 0.0001 for rates)
 - Document source URLs so test vectors can be verified independently
+
+**Deduction test vectors must include:**
+- A **baseline test** (all deduction inputs = 0 or omitted) that matches the no-deduction result exactly — this verifies optional inputs don't break the base case
+- One test **per deduction type** at a realistic amount, with expected values verified against the official tax calculator
+- A **rate cap test**: for deductions with a benefit rate limit, include a test where the taxpayer is in the top bracket. The net saving must equal `deduction_amount × cap_rate`, NOT `deduction_amount × top_marginal_rate`. If the config uses a surtax correction node, this test will catch if it's missing.
+- **Edge case tests**: amount at cap, amount below threshold (should produce zero deduction), past time limit (30-year check should zero out)
 
 ### Step 5: Run Test Suite & Debug
 

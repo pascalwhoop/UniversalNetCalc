@@ -59,6 +59,7 @@ export interface NumberInput extends BaseInput {
   min?: number
   max?: number
   default?: number
+  group?: string // If set, this is a secondary field belonging to the named primary input's group
 }
 
 export interface EnumOption {
@@ -196,10 +197,17 @@ export interface CreditNode extends BaseNode {
   label?: string
 }
 
+export interface ThresholdConfig {
+  amount: string | number // Threshold value (can be reference or inline calc)
+  mode: 'above' | 'below' // Deduct only amount above or below threshold
+}
+
 export interface DeductionNode extends BaseNode {
   type: 'deduction'
-  amount: string | number
+  amount: string | number | InlineNode
   cap?: string | number
+  threshold?: ThresholdConfig // Only amounts above/below threshold are deductible
+  phaseout?: PhaseoutConfig // Reduce deduction based on income
   category?: NodeCategory
   label?: string
 }

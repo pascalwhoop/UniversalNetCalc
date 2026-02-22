@@ -21,6 +21,7 @@ import type { CalculationResult, BreakdownItem, CalcRequest } from "@/lib/api"
 import { formatCurrency } from "@/lib/formatters"
 import { ReportIssueDialog } from "./report-issue-dialog"
 import { useState } from "react"
+import type { CostOfLiving } from "@/lib/types"
 
 interface BreakdownLineProps {
   label: string
@@ -85,6 +86,7 @@ interface ResultBreakdownProps {
   error?: string | null
   comparisonDelta?: number
   calculationRequest?: CalcRequest
+  costOfLiving?: CostOfLiving
 }
 
 // Group breakdown items by category
@@ -117,6 +119,7 @@ export function ResultBreakdown({
   error = null,
   comparisonDelta,
   calculationRequest,
+  costOfLiving,
 }: ResultBreakdownProps) {
   const [reportDialogOpen, setReportDialogOpen] = useState(false)
   if (isLoading) {
@@ -160,19 +163,46 @@ export function ResultBreakdown({
   const marginalRatePercent = result.marginal_rate ? (result.marginal_rate * 100).toFixed(1) : null
   const monthlyNet = result.net / 12
 
+  const totalMonthlyCosts = costOfLiving
+    ? Object.values(costOfLiving).reduce((sum, v) => sum + v, 0)
+    : 0
+  const disposableIncome = result.net - totalMonthlyCosts * 12
+
   return (
     <div className="space-y-3">
       {/* Summary */}
       <div className="rounded-lg bg-muted/50 p-3">
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs text-muted-foreground">Net Annual</span>
-          <span
-            key={result.net}
-            className="text-xl font-bold text-primary animate-pulse-yellow"
-          >
-            {formatCurrency(result.net, currency)}
-          </span>
-        </div>
+        {totalMonthlyCosts > 0 ? (
+          <>
+            <div className="flex items-baseline justify-between">
+              <span className="text-xs text-muted-foreground">Disposable Income</span>
+              <span
+                key={disposableIncome}
+                className="text-xl font-bold text-primary animate-pulse-yellow"
+              >
+                {formatCurrency(disposableIncome, currency)}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between mt-1">
+              <span className="text-xs text-muted-foreground">Net salary</span>
+              <span className="text-sm text-muted-foreground">{formatCurrency(result.net, currency)}</span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-xs text-muted-foreground">Living costs</span>
+              <span className="text-sm text-muted-foreground">-{formatCurrency(totalMonthlyCosts * 12, currency)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs text-muted-foreground">Net Annual</span>
+            <span
+              key={result.net}
+              className="text-xl font-bold text-primary animate-pulse-yellow"
+            >
+              {formatCurrency(result.net, currency)}
+            </span>
+          </div>
+        )}
         {comparisonDelta !== undefined && comparisonDelta !== 0 && (
           <div className="mt-1 text-xs text-muted-foreground">
             {comparisonDelta < 0 ? (

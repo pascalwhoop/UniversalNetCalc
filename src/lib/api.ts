@@ -49,6 +49,7 @@ export interface InputDefinition {
   // For number inputs
   min?: number
   max?: number
+  group?: string // If set, this is a secondary field belonging to the named primary input's group
   // For enum inputs
   options?: Record<string, EnumOption>
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useCallback, useRef } from "react"
+import { useEffect, useCallback, useRef, useMemo } from "react"
 import { toast } from "sonner"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,8 +24,10 @@ import {
 import { ResultBreakdown } from "./result-breakdown"
 import { SalaryRangeChart } from "./salary-range-chart"
 import { NoticeIcon } from "./notices"
-import { getCountryName, getCurrencySymbol, type CalcRequest } from "@/lib/api"
-import { CountryColumnState } from "@/lib/types"
+import { getCountryName, getCurrencySymbol, type CalcRequest, type InputDefinition } from "@/lib/api"
+import { DeductionManager } from "./deduction-manager"
+import { CostOfLivingSection } from "./cost-of-living-section"
+import { CountryColumnState, CostOfLiving, DEFAULT_COST_OF_LIVING } from "@/lib/types"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { Crown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -58,6 +60,7 @@ export function CountryColumn({
   result,
   isCalculating,
   calculationError,
+  costOfLiving = DEFAULT_COST_OF_LIVING,
   onUpdate,
   onRemove,
   showRemove = true,
@@ -130,6 +133,30 @@ export function CountryColumn({
   }, [inputsData?.currency, country, year, variant])
   // Only run when country/year/variant changes, not on every formValues change
 
+  // Build the current calc request (shared by calculate() and DeductionManager)
+  const calcRequest: CalcRequest | null = useMemo(() => {
+    if (!country || !year || !gross_annual) return null
+    const grossNum = parseFloat(gross_annual)
+    if (isNaN(grossNum) || grossNum <= 0) return null
+
+    const request: CalcRequest = { country, year, gross_annual: grossNum }
+    if (variant) request.variant = variant
+
+    for (const [key, value] of Object.entries(formValues)) {
+      if (key === "gross_annual") continue
+      const inputDef = inputsData?.inputs[key] as InputDefinition | undefined
+      if (inputDef?.type === "boolean") {
+        request[key] = value === "true"
+      } else if (inputDef?.type === "number") {
+        const numValue = parseFloat(value || "0")
+        if (!isNaN(numValue)) request[key] = numValue
+      } else if (value) {
+        request[key] = value
+      }
+    }
+    return request
+  }, [country, year, gross_annual, variant, formValues, inputsData])
+
   // Trigger calculation when inputs change
   const calculate = useCallback(() => {
     if (!country || !year || !gross_annual) {
@@ -147,32 +174,11 @@ export function CountryColumn({
       return
     }
 
-    // Build request
-    const request: CalcRequest = {
-      country,
-      year,
-      gross_annual: grossNum,
-    }
-
-    if (variant) {
-      request.variant = variant
-    }
-
-    // Add form values
-    for (const [key, value] of Object.entries(formValues)) {
-      if (key !== "gross_annual" && value) {
-        const inputDef = inputsData?.inputs[key]
-        if (inputDef?.type === "boolean") {
-          request[key] = value === "true"
-        } else {
-          request[key] = value
-        }
-      }
-    }
+    if (!calcRequest) return
 
     onUpdate({ isCalculating: true })
 
-    calculateMutation.mutate(request, {
+    calculateMutation.mutate(calcRequest, {
       onSuccess: data => {
         onUpdate({
           result: data,
@@ -248,7 +254,8 @@ export function CountryColumn({
 
       <CardContent className="flex flex-col flex-1 space-y-3 px-4 pb-4 md:px-4 md:pb-4">
         <div className="space-y-3" style={{ minHeight: "320px" }}>
-          {/* Country & Year */}
+          {/* Section: Income Parameters */}
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Income Parameters</p>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label htmlFor={`country-${index}`} className="text-xs text-muted-foreground">
@@ -394,6 +401,29 @@ export function CountryColumn({
             </div>
           )}
 
+          {/* Section: Tax Deductions */}
+          <div className="pt-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Tax Deductions</p>
+            <DeductionManager
+              inputDefs={inputDefs}
+              formValues={formValues}
+              onUpdateFormValue={updateFormValue}
+              columnIndex={index}
+              result={result}
+              calcRequest={calcRequest}
+            />
+          </div>
+
+          {/* Section: Living Costs */}
+          <div className="pt-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Living Costs</p>
+            <CostOfLivingSection
+              value={costOfLiving}
+              currencySymbol={getCurrencySymbol(currency || "EUR")}
+              onChange={(col: CostOfLiving) => onUpdate({ costOfLiving: col })}
+            />
+          </div>
+
           {/* Variant Selection */}
           {variants.length > 0 && (
             <div className="space-y-1">
@@ -420,13 +450,15 @@ export function CountryColumn({
           )}
         </div>
 
-        {/* Results */}
+        {/* Section: Results */}
         <div className="flex-1 pt-2 border-t">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Results</p>
           <ResultBreakdown
             isLoading={isCalculating}
             result={result}
             error={calculationError}
             comparisonDelta={comparisonDelta}
+            costOfLiving={costOfLiving}
             calculationRequest={
               result
                 ? {
