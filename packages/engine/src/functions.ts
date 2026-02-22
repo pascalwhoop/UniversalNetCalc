@@ -59,7 +59,7 @@ function familyQuotientTax(
   inputs: Record<string, any>,
   context: CalculationContext
 ): number {
-  const { gross, family_units } = inputs as any
+  const { gross, family_units, brackets: bracketsRef } = inputs
 
   if (typeof gross !== 'number' || isNaN(gross)) {
     throw new Error(`Invalid gross income: ${gross} (type: ${typeof gross})`)
@@ -69,12 +69,14 @@ function familyQuotientTax(
     throw new Error(`Invalid family_units: ${family_units} (type: ${typeof family_units})`)
   }
 
-  // Get brackets from context parameters
-  // The brackets parameter name is expected to be 'income_tax_brackets' by convention
-  const brackets = context.parameters.income_tax_brackets as BracketEntry[]
+  if (!bracketsRef) {
+    throw new Error(`familyQuotientTax requires a brackets input reference`)
+  }
+
+  const brackets = getBrackets(bracketsRef, context)
 
   if (!Array.isArray(brackets) || brackets.length === 0) {
-    throw new Error(`income_tax_brackets not found in parameters or is empty`)
+    throw new Error(`brackets not found in parameters or is empty`)
   }
 
   if (!family_units || family_units === 1) {
@@ -132,9 +134,13 @@ function swissFederalTax(
 // Helper functions
 
 function getBrackets(
-  bracketsRef: string | number,
+  bracketsRef: any,
   context: CalculationContext
 ): BracketEntry[] {
+  if (Array.isArray(bracketsRef)) {
+    return bracketsRef as BracketEntry[]
+  }
+
   if (typeof bracketsRef === 'string') {
     const ref = bracketsRef.startsWith('$') ? bracketsRef.slice(1) : bracketsRef
     const brackets = context.parameters[ref]
@@ -146,12 +152,11 @@ function getBrackets(
     return brackets as BracketEntry[]
   }
 
-  throw new Error('Invalid brackets reference')
+  throw new Error(`Invalid brackets reference: ${JSON.stringify(bracketsRef)}`)
 }
 
 function computeBracketTax(income: number, brackets: BracketEntry[]): number {
-  // Use actual German tax formula for 2024
-  return computeGermanTax2024(income)
+  return computeProgressiveBracketTax(income, brackets)
 }
 
 /**
