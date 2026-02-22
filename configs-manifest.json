@@ -94,6 +94,11 @@
           "variants": [
             "portage-salarial"
           ]
+        },
+        "2026": {
+          "variants": [
+            "portage-salarial"
+          ]
         }
       }
     },

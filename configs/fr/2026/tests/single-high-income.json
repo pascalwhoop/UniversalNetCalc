@@ -1,0 +1,29 @@
+{
+  "name": "Single filer - High income",
+  "description": "Single person earning €100,000 annually, high earner spanning multiple brackets",
+  "inputs": {
+    "gross_annual": 100000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 58051,
+    "effective_rate": 0.419,
+    "breakdown": {
+      "income_tax": 28703,
+      "csg_deductible": 6681,
+      "csg_nondeductible": 2358,
+      "crds": 491,
+      "pension_contribution": 3716
+    }
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.05,
+  "sources": [
+    {
+      "description": "Calculated based on 2026 French tax brackets (0.9% revalorisation) and social contribution rates",
+      "url": "https://impots.dispofi.fr/bareme-impot",
+      "date": "2026-02-22"
+    }
+  ]
+}

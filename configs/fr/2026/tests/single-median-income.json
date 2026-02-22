@@ -1,0 +1,29 @@
+{
+  "name": "Single filer - Median income",
+  "description": "Single person earning €50,000 annually, typical middle-class salary",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single",
+    "children": 0
+  },
+  "expected": {
+    "net": 30096,
+    "effective_rate": 0.398,
+    "breakdown": {
+      "income_tax": 11623,
+      "csg_deductible": 3341,
+      "csg_nondeductible": 1179,
+      "crds": 246,
+      "pension_contribution": 3516
+    }
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.05,
+  "sources": [
+    {
+      "description": "Calculated based on 2026 French tax brackets (0.9% revalorisation) and social contribution rates",
+      "url": "https://impots.dispofi.fr/bareme-impot",
+      "date": "2026-02-22"
+    }
+  ]
+}
