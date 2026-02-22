@@ -299,6 +299,7 @@ calculations:
     inputs:
       gross: "$taxable_income_before_qf"
       family_units: "$total_parts"
+      brackets: "$income_tax_brackets"
     category: income_tax
     label: "Income Tax (Impôt sur le Revenu)"
     description: "Progressive tax with family quotient system"
