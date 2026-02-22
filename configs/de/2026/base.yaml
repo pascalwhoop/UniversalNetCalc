@@ -1,0 +1,480 @@
+meta:
+  country: "de"
+  year: 2026
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514"
+      description: "Beitragsbemessungsgrenzen 2026 - Bundesregierung"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.steuerberater-rauch.de/steuertarif-2026/"
+      description: "Steuertarif 2026 - Grundfreibetrag, Progressionsstufen, Solidaritätszuschlag"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.lohn-info.de/sozialversicherungsbeitraege2026.html"
+      description: "Sozialversicherungsbeiträge 2026 - Beitragssätze und Bemessungsgrenzen"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.finanz-tools.de/einkommensteuer/berechnung-formeln/2026"
+      description: "Einkommensteuer-Berechnung 2026 nach §32a EStG"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    Germany uses a complex tax system with:
+    - Progressive income tax with Ehegattensplitting (income splitting for married couples)
+    - Solidarity surcharge (Solidaritätszuschlag) with exemption thresholds
+    - Multiple social security contributions with separate caps
+    - Optional church tax (not included in this base config)
+    - Regional variations in care insurance contributions
+
+    Regional Notes:
+    - 15 standard states (BW, BY, BE, BB, HB, HH, HE, MV, NI, NW, RP, SL, ST, SH, TH):
+      Care insurance rates: 1.8% with children, 2.4% without
+    - Saxony (SN): Care insurance rates 2.3% with children, 2.9% without
+      (0.5% higher due to employer/employee split - extra "Buß- und Bettag" holiday)
+
+    Key changes from 2025:
+    - Basic allowance (Grundfreibetrag) raised to €12,348 (from €12,096)
+    - Tax bracket thresholds shifted: zone 2 ends at €17,799, zone 3 ends at €69,878
+    - Pension/unemployment cap raised to €101,400 (from €96,600)
+    - Health/care cap raised to €69,750 (from €66,150)
+    - Solidarity surcharge exemption threshold raised to €20,350 single / €40,700 joint
+
+notices:
+  - id: "gross_salary_info"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary (Bruttojahresgehalt) before any deductions.
+      This should include all regular compensation but exclude benefits in kind like company cars.
+    severity: "info"
+
+  - id: "filing_status_info"
+    title: "Filing Status (Steuerklasse)"
+    body: |
+      Germany has 6 tax classes (Steuerklassen). For salary calculation purposes:
+      - Single/Class 1: Unmarried individuals
+      - Married Joint/Class 3+5 or 4+4: Married couples filing jointly
+
+      This calculator uses the fundamental income splitting method (Ehegattensplitting)
+      for married couples, which provides tax benefits regardless of the specific
+      Steuerklasse chosen during the year.
+    severity: "info"
+
+  - id: "church_tax_notice"
+    title: "Church Tax Not Included"
+    body: |
+      This calculation does not include church tax (Kirchensteuer), which is 8-9%
+      of income tax for church members. If you pay church tax, your actual deductions
+      will be higher.
+    severity: "warning"
+
+  - id: "social_security_notice"
+    title: "Social Security Contributions"
+    body: |
+      Social security contributions are capped at different income levels:
+      - Pension & Unemployment: €101,400/year (€8,450/month)
+      - Health & Care: €69,750/year (€5,812.50/month)
+
+      Income above these thresholds is not subject to those specific contributions.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single (Steuerklasse 1)"
+        description: "Unmarried, divorced, or widowed"
+        splitting_factor: 1
+      married_joint:
+        label: "Married Filing Jointly (Ehegattensplitting)"
+        description: "Married or registered partnership, filing jointly"
+        splitting_factor: 2
+
+  has_children:
+    type: boolean
+    required: false
+    default: false
+    label: "Have Children Under 25"
+    description: "Parents receive reduced long-term care insurance rates"
+
+  region:
+    type: enum
+    required: false
+    default: "bw"
+    label: "Federal State (Bundesland)"
+    description: "Your German federal state (affects care insurance contribution split)"
+    options:
+      bw:
+        label: "Baden-Württemberg"
+        description: "Standard care insurance rates"
+      by:
+        label: "Bavaria (Bayern)"
+        description: "Standard care insurance rates"
+      be:
+        label: "Berlin"
+        description: "Standard care insurance rates"
+      bb:
+        label: "Brandenburg"
+        description: "Standard care insurance rates"
+      hb:
+        label: "Bremen"
+        description: "Standard care insurance rates"
+      hh:
+        label: "Hamburg"
+        description: "Standard care insurance rates"
+      he:
+        label: "Hesse (Hessen)"
+        description: "Standard care insurance rates"
+      mv:
+        label: "Mecklenburg-Vorpommern"
+        description: "Standard care insurance rates"
+      ni:
+        label: "Lower Saxony (Niedersachsen)"
+        description: "Standard care insurance rates"
+      nw:
+        label: "North Rhine-Westphalia (Nordrhein-Westfalen)"
+        description: "Standard care insurance rates"
+      rp:
+        label: "Rhineland-Palatinate (Rheinland-Pfalz)"
+        description: "Standard care insurance rates"
+      sl:
+        label: "Saarland"
+        description: "Standard care insurance rates"
+      sn:
+        label: "Saxony (Sachsen)"
+        description: "Higher employee care insurance split due to additional public holiday"
+      st:
+        label: "Saxony-Anhalt (Sachsen-Anhalt)"
+        description: "Standard care insurance rates"
+      sh:
+        label: "Schleswig-Holstein"
+        description: "Standard care insurance rates"
+      th:
+        label: "Thuringia (Thüringen)"
+        description: "Standard care insurance rates"
+
+  health_insurance_surcharge:
+    type: number
+    required: false
+    default: 2.9
+    min: 0
+    max: 10
+    label: "Health Insurance Supplementary Contribution (%)"
+    description: "Total additional contribution rate charged by your health insurance (you pay half). Average is 1.7-2.9%"
+
+parameters:
+  # Tax brackets and thresholds for 2026
+  basic_allowance: 12348  # Raised from 12,096 in 2025
+  basic_allowance_married: 24696  # Double the single amount
+
+  # Standard deductions
+  employee_lump_sum: 1230  # Arbeitnehmer-Pauschbetrag for work-related expenses (unchanged)
+  special_expenses_lump_sum_single: 36  # Sonderausgaben-Pauschbetrag
+  special_expenses_lump_sum_married: 72  # Sonderausgaben-Pauschbetrag for married couples
+
+  # Income tax brackets for reference (not used - using function with official formula instead)
+  income_tax_brackets_single:
+    - threshold: 0
+      rate: 0
+    - threshold: 12348
+      rate: 0.14
+    - threshold: 17799
+      rate: 0.2397
+    - threshold: 69878
+      rate: 0.42
+    - threshold: 277826
+      rate: 0.45
+
+  # Solidarity surcharge parameters for 2026
+  soli_rate: 0.055
+  soli_exemption_single: 20350  # Raised from 19,950 in 2025
+  soli_exemption_married: 40700  # Raised from 39,900 in 2025
+
+  # Social security contribution rates (employee portion) for 2026 (unchanged)
+  pension_rate: 0.093
+  health_base_rate: 0.073  # Base employee rate (7.3%)
+  unemployment_rate: 0.013
+
+  # Care insurance rates (employee portion) - unchanged from 2025
+  # 15 standard states: 1.8% with children, 2.4% childless
+  # (Baden-Württemberg, Bavaria, Berlin, Brandenburg, Bremen, Hamburg, Hesse,
+  #  Mecklenburg-Vorpommern, Lower Saxony, North Rhine-Westphalia,
+  #  Rhineland-Palatinate, Saarland, Saxony-Anhalt, Schleswig-Holstein, Thuringia)
+  care_rate_standard_with_children: 0.018
+  care_rate_standard_without_children: 0.024
+  # Saxony: 2.3% with children, 2.9% childless
+  # (0.5% higher due to different employer/employee split from extra public holiday "Buß- und Bettag")
+  care_rate_saxony_with_children: 0.023
+  care_rate_saxony_without_children: 0.029
+
+  # Social security caps for 2026
+  pension_unemployment_cap: 101400  # Raised from 96,600 in 2025
+  health_care_cap: 69750  # Raised from 66,150 in 2025
+
+calculations:
+  # Social security contributions must be calculated first
+  # as they are deductible from taxable income
+
+  # Pension contribution (Rentenversicherung)
+  - id: pension_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$pension_unemployment_cap"
+
+  - id: pension_contribution
+    type: percent_of
+    base: "$pension_base"
+    rate: "$pension_rate"
+    category: contribution
+    label: "Pension Insurance (Rentenversicherung)"
+    description: "Employee portion: 9.3% of income up to €101,400"
+
+  # Health insurance contribution (Krankenversicherung)
+  - id: health_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$health_care_cap"
+
+  # Calculate employee's portion of supplementary contribution (half of total)
+  - id: health_surcharge_employee
+    type: div
+    values:
+      - "@health_insurance_surcharge"
+      - 200  # Convert % to decimal and divide by 2 (employee pays half)
+
+  # Total employee health insurance rate = base + employee surcharge
+  - id: health_rate_total
+    type: sum
+    values:
+      - "$health_base_rate"
+      - "$health_surcharge_employee"
+
+  - id: health_contribution
+    type: percent_of
+    base: "$health_base"
+    rate: "$health_rate_total"
+    category: contribution
+    label: "Health Insurance (Krankenversicherung)"
+    description: "Employee portion: 7.3% base + half of supplementary contribution, up to €69,750"
+
+  # Unemployment insurance (Arbeitslosenversicherung)
+  - id: unemployment_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$pension_unemployment_cap"
+
+  - id: unemployment_contribution
+    type: percent_of
+    base: "$unemployment_base"
+    rate: "$unemployment_rate"
+    category: contribution
+    label: "Unemployment Insurance (Arbeitslosenversicherung)"
+    description: "Employee portion: 1.3% of income up to €101,400"
+
+  # Long-term care insurance (Pflegeversicherung)
+  - id: care_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$health_care_cap"
+
+  # Determine care insurance rate based on region and children status
+  # Saxony (sn) has higher rates; all other states use standard rates
+  - id: care_rate_with_children
+    type: switch
+    on: "@region"
+    cases:
+      sn: "$care_rate_saxony_with_children"
+      bw: "$care_rate_standard_with_children"
+      by: "$care_rate_standard_with_children"
+      be: "$care_rate_standard_with_children"
+      bb: "$care_rate_standard_with_children"
+      hb: "$care_rate_standard_with_children"
+      hh: "$care_rate_standard_with_children"
+      he: "$care_rate_standard_with_children"
+      mv: "$care_rate_standard_with_children"
+      ni: "$care_rate_standard_with_children"
+      nw: "$care_rate_standard_with_children"
+      rp: "$care_rate_standard_with_children"
+      sl: "$care_rate_standard_with_children"
+      st: "$care_rate_standard_with_children"
+      sh: "$care_rate_standard_with_children"
+      th: "$care_rate_standard_with_children"
+    default: "$care_rate_standard_with_children"
+
+  - id: care_rate_without_children
+    type: switch
+    on: "@region"
+    cases:
+      sn: "$care_rate_saxony_without_children"
+      bw: "$care_rate_standard_without_children"
+      by: "$care_rate_standard_without_children"
+      be: "$care_rate_standard_without_children"
+      bb: "$care_rate_standard_without_children"
+      hb: "$care_rate_standard_without_children"
+      hh: "$care_rate_standard_without_children"
+      he: "$care_rate_standard_without_children"
+      mv: "$care_rate_standard_without_children"
+      ni: "$care_rate_standard_without_children"
+      nw: "$care_rate_standard_without_children"
+      rp: "$care_rate_standard_without_children"
+      sl: "$care_rate_standard_without_children"
+      st: "$care_rate_standard_without_children"
+      sh: "$care_rate_standard_without_children"
+      th: "$care_rate_standard_without_children"
+    default: "$care_rate_standard_without_children"
+
+  - id: care_rate
+    type: switch
+    on: "@has_children"
+    cases:
+      true: "$care_rate_with_children"
+      false: "$care_rate_without_children"
+
+  - id: care_contribution
+    type: percent_of
+    base: "$care_base"
+    rate: "$care_rate"
+    category: contribution
+    label: "Long-Term Care Insurance (Pflegeversicherung)"
+    description: "Employee portion: 1.8% with children, 2.4% childless, up to €69,750"
+
+  # Total social contributions
+  - id: total_contributions
+    type: sum
+    values:
+      - "$pension_contribution"
+      - "$health_contribution"
+      - "$unemployment_contribution"
+      - "$care_contribution"
+
+  # Calculate taxable income by applying standard deductions
+  # German tax law requires deducting certain amounts before calculating tax
+
+  # Sonderausgaben-Pauschbetrag (special expenses lump sum)
+  - id: special_expenses_lump_sum
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$special_expenses_lump_sum_single"
+      married_joint: "$special_expenses_lump_sum_married"
+
+  # Vorsorgeaufwendungen: Pension, health, and care insurance are fully deductible for 2026
+  # This is the employee's share of these contributions
+  - id: deductible_insurance
+    type: sum
+    values:
+      - "$pension_contribution"
+      - "$health_contribution"
+      - "$care_contribution"
+
+  # Total deductions from gross income before tax calculation
+  - id: total_pre_tax_deductions
+    type: sum
+    values:
+      - "$employee_lump_sum"
+      - "$special_expenses_lump_sum"
+      - "$deductible_insurance"
+
+  # Taxable income after deductions
+  - id: taxable_income
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_pre_tax_deductions"
+
+  # Determine splitting factor for income splitting
+  - id: splitting_factor
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: 1
+      married_joint: 2
+
+  # Income tax calculated on taxable income (not gross)
+  - id: income_tax
+    type: function
+    name: "income_splitting_tax"
+    inputs:
+      taxable_income: "$taxable_income"
+      splitting_factor: "$splitting_factor"
+    category: income_tax
+    label: "Income Tax (Einkommensteuer)"
+    description: "Progressive income tax with Ehegattensplitting for married couples"
+
+  # Calculate solidarity surcharge
+  # Only applies if income tax exceeds threshold
+  - id: soli_exemption_threshold
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$soli_exemption_single"
+      married_joint: "$soli_exemption_married"
+
+  - id: solidarity_surcharge
+    type: conditional
+    condition:
+      type: gt
+      left: "$income_tax"
+      right: "$soli_exemption_threshold"
+    then:
+      type: percent_of
+      base: "$income_tax"
+      rate: "$soli_rate"
+    else: 0
+    category: surtax
+    label: "Solidarity Surcharge (Solidaritätszuschlag)"
+    description: "5.5% surcharge on income tax, exempt for 90% of taxpayers"
+
+  # Total tax
+  - id: total_tax
+    type: sum
+    values:
+      - "$income_tax"
+      - "$solidarity_surcharge"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_tax"
+      - "$total_contributions"
+
+  # Net income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$income_tax"
+      - "$solidarity_surcharge"
+    contributions:
+      - "$pension_contribution"
+      - "$health_contribution"
+      - "$unemployment_contribution"
+      - "$care_contribution"

@@ -1,0 +1,33 @@
+{
+  "name": "Single filer - High income",
+  "description": "High earner at €250,000 with capped social security contributions",
+  "inputs": {
+    "gross_annual": 250000,
+    "filing_status": "single",
+    "has_children": false,
+    "region": "sn",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 140441,
+    "effective_rate": 0.438,
+    "breakdown": {
+      "income_tax": 85958,
+      "solidarity_surcharge": 4727,
+      "pension_contribution": 9430,
+      "health_contribution": 6103,
+      "unemployment_contribution": 1318,
+      "care_contribution": 2023
+    }
+  },
+  "tolerance": 250,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated from 2026 official parameters. Social security capped at earnings ceilings.",
+      "url": "https://www.bundesregierung.de/breg-de/aktuelles/beitragsgemessungsgrenzen-2386514",
+      "date": "2026-02-22",
+      "notes": "Tax Class I, Saxony, no church tax, statutory insurance, 2.9% health surcharge. Social security capped at new 2026 ceilings."
+    }
+  ]
+}

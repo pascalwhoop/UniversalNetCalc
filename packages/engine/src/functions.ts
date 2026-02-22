@@ -31,7 +31,12 @@ function incomeSplittingTax(
   const taxYear = context.config?.meta?.year || 2024
 
   // Select appropriate tax function based on year
-  const computeTax = taxYear === 2025 ? computeGermanTax2025 : computeGermanTax2024
+  const computeTax =
+    taxYear === 2026
+      ? computeGermanTax2026
+      : taxYear === 2025
+        ? computeGermanTax2025
+        : computeGermanTax2024
 
   if (!splitting_factor || splitting_factor === 1) {
     // No splitting - compute normally
@@ -192,6 +197,47 @@ function computeProgressiveBracketTax(income: number, brackets: BracketEntry[]):
   }
 
   return Math.round(tax)
+}
+
+/**
+ * German tax formula for 2026
+ * Based on official BMF formula (§32a EStG) with continuous progression zones
+ * Source: https://www.finanz-tools.de/einkommensteuer/berechnung-formeln/2026
+ *
+ * Key changes from 2025:
+ * - Basic allowance raised to €12,348 (from €12,096)
+ * - Zone thresholds adjusted: €17,799 (zone 2 end), €69,878 (zone 3 end)
+ * - Solidarity surcharge exemption threshold increased to €20,350 (single)
+ */
+function computeGermanTax2026(taxableIncome: number): number {
+  const x = Math.floor(taxableIncome)
+
+  // Zone 1: Below basic allowance (€12,348)
+  if (x <= 12348) {
+    return 0
+  }
+
+  // Zone 2: Linear progression (€12,349 - €17,799)
+  // Formula: E = (914.51 · y + 1,400) · y where y = (income - 12,348) / 10,000
+  if (x <= 17799) {
+    const y = (x - 12348) / 10000
+    return Math.floor((914.51 * y + 1400) * y)
+  }
+
+  // Zone 3: Linear progression (€17,800 - €69,878)
+  // Formula: E = (173.20 · z + 2,397) · z + 1,034 where z = (income - 17,799) / 10,000
+  if (x <= 69878) {
+    const z = (x - 17799) / 10000
+    return Math.floor((173.20 * z + 2397) * z + 1034)
+  }
+
+  // Zone 4: Linear rate 42% (€69,879 - €277,825)
+  if (x <= 277825) {
+    return Math.floor(0.42 * x - 11136)
+  }
+
+  // Zone 5: Linear rate 45% (≥ €277,826)
+  return Math.floor(0.45 * x - 19471)
 }
 
 /**
