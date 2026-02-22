@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Globe, TrendingUp, Share2, Lock } from "lucide-react"
+import { LayoutTextFlip } from "@/components/ui/layout-text-flip"
 
 export function HeroSection() {
   return (
@@ -10,8 +11,15 @@ export function HeroSection() {
           <div className="inline-block mb-4 px-3 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">
             For Geographically Mobile Professionals
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight">
-            If I move to [country/city], how will I actually be standing financially?
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 mb-3">
+            <LayoutTextFlip
+              text="If I move to"
+              words={["Amsterdam", "Berlin", "Zurich", "London", "Barcelona", "Lisbon", "Paris", "Dubai", "Singapore", "Toronto", "Dublin", "Tallinn"]}
+              duration={2200}
+            />
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
+            how will I actually be standing financially?
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Tax-advisor-level accuracy for EU free movers, expats, remote workers, and consultants.
