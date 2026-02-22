@@ -81,6 +81,7 @@ jobs:
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git tag -a "$TAG" -m "Release $TAG"
 
+          git pull --rebase origin main
           git push origin main
           git push origin "$TAG"
 

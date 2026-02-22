@@ -292,8 +292,8 @@ export type CalculationNode =
 // ============================================================================
 
 export interface OutputDefinition {
-  gross: string | number
-  net: string | number
+  gross: string | number | InlineNode
+  net: string | number | InlineNode
   effective_rate: string | number | InlineNode
   breakdown: {
     taxes?: string[]
