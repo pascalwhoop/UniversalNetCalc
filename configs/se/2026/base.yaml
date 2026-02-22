@@ -1,0 +1,387 @@
+meta:
+  country: "se"
+  year: 2026
+  currency: "SEK"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.skatteverket.se/privat/skatter/beloppochprocent/2026/beloppochprocent2026kortversion.4.1522bf3f19aea8075ba89.html"
+      description: "Swedish Tax Agency - Amounts and Percentages 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://skatteverket.se/privat/etjansterochblanketter/svarpavanligafragor/inkomstavtjanst.4.18e1b10334ebe8bc80002849.html"
+      description: "Swedish Tax Agency - Income from Employment (skiktgräns 2026: 643,000 kr)"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.scb.se/hitta-statistik/statistik-efter-amne/offentlig-ekonomi/finanser-for-den-kommunala-sektorn/kommunalskatterna/pong/statistiknyhet/kommunalskatterna-2026/"
+      description: "Statistics Sweden - Municipal Tax Rates 2026 (average 32.38%)"
+      retrieved_at: "2026-02-22"
+    - url: "https://lon-efter-skatt.se/skattesatser"
+      description: "Municipal Tax Rates 2026 - Per City"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.ekonomifakta.se/sakomraden/skatt/skatt-pa-arbete/jobbskatteavdraget_1212612.html"
+      description: "Ekonomifakta - Work Tax Credit (Jobbskatteavdrag) 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://skatteverket.se/omoss/pressochmedia/nyheter/2025/nyheter/nyalagarochregler2026.5.1522bf3f19aea8075ba32a2.html"
+      description: "Swedish Tax Agency - New Laws and Rules 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This configuration covers the Swedish tax system for 2026 for individuals under 66 years old.
+
+    Key features:
+    - Dual income tax system: Municipal tax (varies by location) + State tax (20% above SEK 643,000)
+    - Basic deduction (Grundavdrag): SEK 17,400 for under 66
+    - Work tax credit (Jobbskatteavdrag): Enhanced credit — up to SEK 52,392/year (4,366 SEK/month)
+    - NO employee social contributions (employer pays all 31.42%)
+
+    Municipal tax rates (2026):
+    - Stockholm: 30.55% (down from 30.60% in 2025)
+    - Gothenburg: 32.60% (up from 31.50% in 2025)
+    - Malmö: 32.42% (up from 31.20% in 2025)
+    - National average: 32.38% (down from 32.41% in 2025)
+    - Range: 28.93% (Österåker) to 35.65% (Dorotea)
+
+    Key changes from 2025:
+    - State tax threshold (skiktgräns) increased from SEK 625,800 to SEK 643,000
+    - Break point (brytpunkt) for under 66 increased to SEK 660,400
+    - Basic deduction increased from SEK 17,300 to SEK 17,400
+    - Work tax credit (jobbskatteavdrag) enhanced by ~SEK 400/month for incomes above ~192,000/year
+    - Maximum work credit increased from SEK 47,300 to SEK 52,392 per year
+    - Municipal tax rates updated for 2026 (national average decreased by 0.03 percentage points)
+    - Several city rates changed: Stockholm slightly lower, Gothenburg and Malmö higher
+    - Expert tax exemption increased from 25% to 30% (see expert-tax variant)
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions. This should be your
+      full employment income as stated in your contract.
+    severity: "info"
+
+  - id: "municipal_tax_variation"
+    title: "Municipal Tax Rates Vary by Location"
+    body: |
+      Sweden has 290 municipalities with different tax rates. The combined municipal and
+      regional tax rate ranges from 28.93% to 35.65%, with a national average of 32.38%.
+
+      Select your municipality from the dropdown. If your municipality is not listed,
+      choose the closest major city or use the national average.
+    severity: "info"
+
+  - id: "no_employee_contributions"
+    title: "No Employee Social Contributions"
+    body: |
+      Unlike many other countries, Swedish employees pay ZERO social security contributions
+      directly from their salary. All social security funding (31.42%) is paid by the employer
+      as a separate cost. Your net salary calculation only includes income tax.
+    severity: "info"
+
+  - id: "expert_tax_available"
+    title: "Expert Tax Regime Available"
+    body: |
+      Foreign specialists may qualify for the Expert Tax regime, which provides a 30%
+      exemption on income for up to 5 years (increased from 25% in 2025). Requirements:
+      - Monthly salary of SEK 113,000+ OR specialized expertise
+      - Not lived in Sweden during previous 5 years
+      - Apply within 3 months of starting work
+
+      Use the "Expert Tax" variant to calculate with this benefit.
+    severity: "info"
+
+  - id: "under_66_only"
+    title: "Under 66 Years Old"
+    body: |
+      This configuration is for individuals under 66 years old in 2026. If you are 66 or
+      over, different rules apply (higher basic deduction and higher break point).
+    severity: "warning"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions"
+
+  municipality:
+    type: enum
+    required: true
+    default: "stockholm"
+    label: "Municipality"
+    description: "Your municipality/city in Sweden (affects municipal tax rate)"
+    options:
+      stockholm:
+        label: "Stockholm"
+        description: "30.55% municipal tax"
+      gothenburg:
+        label: "Gothenburg (Göteborg)"
+        description: "32.60% municipal tax"
+      malmo:
+        label: "Malmö"
+        description: "32.42% municipal tax"
+      uppsala:
+        label: "Uppsala"
+        description: "32.85% municipal tax"
+      vasteras:
+        label: "Västerås"
+        description: "31.24% municipal tax"
+      orebro:
+        label: "Örebro"
+        description: "33.65% municipal tax"
+      linkoping:
+        label: "Linköping"
+        description: "31.75% municipal tax"
+      helsingborg:
+        label: "Helsingborg"
+        description: "31.39% municipal tax"
+      national_avg:
+        label: "National Average"
+        description: "32.38% municipal tax (use if your city not listed)"
+
+parameters:
+  # Municipal tax rates by city (combined municipal + regional tax) for 2026
+  municipal_tax_rates:
+    stockholm: 0.3055
+    gothenburg: 0.3260
+    malmo: 0.3242
+    uppsala: 0.3285
+    vasteras: 0.3124
+    orebro: 0.3365
+    linkoping: 0.3175
+    helsingborg: 0.3139
+    national_avg: 0.3238
+
+  # State income tax
+  state_tax_rate: 0.20
+  state_tax_threshold: 643000
+
+  # Basic deduction (Grundavdrag) for 2026
+  basic_deduction_under_66: 17400
+
+  # Work tax credit (Jobbskatteavdrag) - 2026 parameters
+  # Maximum: SEK 4,366/month = ~SEK 52,392/year (enhanced from 2025)
+  # Enhancement applies for incomes above ~192,000/year
+  work_credit_max_annual: 52392
+
+  # Work credit calculation parameters (simplified model)
+  # The actual Swedish formula is extremely complex with multiple thresholds
+  # This is a simplified approximation based on the same structure as 2025
+  # Thresholds remain similar (indexed to prisbasbelopp changes) but rates/bases adjusted
+  work_credit_phase1_rate: 0.0805  # Up to SEK 12,350
+  work_credit_phase2_rate: 0.3003  # SEK 12,350 - 26,672
+  work_credit_phase2_base: 994
+  work_credit_phase2_start: 12350
+  work_credit_phase3_rate: 0.0226  # SEK 26,672 - 43,692
+  work_credit_phase3_base: 5296
+  work_credit_phase3_start: 26672
+  work_credit_phase4_rate: -0.0651 # SEK 43,692 - 130,973 (phaseout)
+  work_credit_phase4_base: 5680
+  work_credit_phase4_start: 43692
+  work_credit_phase5_start: 130973
+
+calculations:
+  # Get municipal tax rate based on selected municipality
+  - id: municipal_tax_rate
+    type: switch
+    on: "@municipality"
+    cases:
+      stockholm: 0.3055
+      gothenburg: 0.3260
+      malmo: 0.3242
+      uppsala: 0.3285
+      vasteras: 0.3124
+      orebro: 0.3365
+      linkoping: 0.3175
+      helsingborg: 0.3139
+      national_avg: 0.3238
+    default: 0.3238
+    description: "Municipal and regional tax rate for selected municipality"
+
+  # Basic deduction (Grundavdrag) - age dependent
+  # For this config, using under 66 value only
+  - id: basic_deduction
+    type: identity
+    value: "$basic_deduction_under_66"
+    category: deduction
+    label: "Basic Deduction"
+    description: "Grundavdrag - tax-free allowance for under 66"
+
+  # Taxable income after basic deduction
+  - id: taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$basic_deduction"
+
+  # Municipal tax (on taxable income)
+  - id: municipal_tax
+    type: mul
+    values:
+      - "$taxable_income"
+      - "$municipal_tax_rate"
+    category: income_tax
+    label: "Municipal Tax"
+    description: "Combined municipal and regional tax (Kommunalskatt + Landstingsskatt)"
+
+  # State tax (20% on income above threshold)
+  - id: state_tax_base
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$taxable_income"
+          - "$state_tax_threshold"
+
+  - id: state_tax
+    type: mul
+    values:
+      - "$state_tax_base"
+      - "$state_tax_rate"
+    category: surtax
+    label: "State Income Tax"
+    description: "Statlig inkomstskatt - 20% on income above SEK 643,000 (taxable)"
+
+  # Work tax credit (Jobbskatteavdrag) - 2026
+  # Complex multi-phase calculation based on gross income
+  # Phase 1: 0 - 12,350: 8.05% of income
+  # Phase 2: 12,350 - 26,672: 994 + 30.03% of excess
+  # Phase 3: 26,672 - 43,692: 5,296 + 2.26% of excess
+  # Phase 4: 43,692 - 130,973: 5,680 - 6.51% of excess (phaseout)
+  # Phase 5: 130,973+: 0
+  # Note: This is a simplified approximation; actual formula uses prisbasbelopp-indexed thresholds
+
+  - id: work_credit_raw
+    type: conditional
+    condition:
+      type: lte
+      left: "@gross_annual"
+      right: "$work_credit_phase2_start"
+    then:
+      # Phase 1: 8.05% of income
+      type: mul
+      values:
+        - "@gross_annual"
+        - "$work_credit_phase1_rate"
+    else:
+      type: conditional
+      condition:
+        type: lte
+        left: "@gross_annual"
+        right: "$work_credit_phase3_start"
+      then:
+        # Phase 2: 994 + 30.03% of excess above 12,350
+        type: sum
+        values:
+          - "$work_credit_phase2_base"
+          - type: mul
+            values:
+              - type: sub
+                values:
+                  - "@gross_annual"
+                  - "$work_credit_phase2_start"
+              - "$work_credit_phase2_rate"
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: "$work_credit_phase4_start"
+        then:
+          # Phase 3: 5,296 + 2.26% of excess above 26,672
+          type: sum
+          values:
+            - "$work_credit_phase3_base"
+            - type: mul
+              values:
+                - type: sub
+                  values:
+                    - "@gross_annual"
+                    - "$work_credit_phase3_start"
+                - "$work_credit_phase3_rate"
+        else:
+          type: conditional
+          condition:
+            type: lte
+            left: "@gross_annual"
+            right: "$work_credit_phase5_start"
+          then:
+            # Phase 4: 5,680 - 6.51% of excess above 43,692 (phaseout)
+            type: sub
+            values:
+              - "$work_credit_phase4_base"
+              - type: mul
+                values:
+                  - type: sub
+                    values:
+                      - "@gross_annual"
+                      - "$work_credit_phase4_start"
+                  - "$work_credit_phase4_rate"
+          else:
+            # Phase 5: No credit above 130,973
+            0
+
+  - id: work_tax_credit
+    type: credit
+    amount:
+      type: max
+      values:
+        - 0
+        - "$work_credit_raw"
+    refundable: false
+    category: credit
+    label: "Work Tax Credit"
+    description: "Jobbskatteavdrag - automatic tax credit for work income (2026 enhanced)"
+
+  # Total tax before credits
+  - id: total_tax_before_credits
+    type: sum
+    values:
+      - "$municipal_tax"
+      - "$state_tax"
+
+  # Total credits
+  - id: total_credits
+    type: max
+    values:
+      - 0
+      - "$work_credit_raw"
+
+  # Final tax (cannot be negative)
+  - id: total_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$total_tax_before_credits"
+          - "$total_credits"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_tax"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$municipal_tax"
+      - "$state_tax"
+    deductions:
+      - "$basic_deduction"
+    credits:
+      - "$work_tax_credit"

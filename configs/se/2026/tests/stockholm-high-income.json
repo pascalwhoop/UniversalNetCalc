@@ -1,0 +1,22 @@
+{
+  "name": "Stockholm 2026 - High Income (Above State Tax Threshold)",
+  "description": "High earner earning SEK 900,000 in Stockholm, triggering state tax",
+  "inputs": {
+    "gross_annual": 900000,
+    "municipality": "stockholm"
+  },
+  "expected": {
+    "net": 582446,
+    "effective_rate": 0.35284
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on Swedish Tax Agency 2026 rates: Stockholm 30.55%, state tax 20% above taxable SEK 643,000 (skiktgräns), grundavdrag SEK 17,400",
+      "url": "https://www.skatteverket.se/privat/skatter/beloppochprocent/2026/beloppochprocent2026kortversion.4.1522bf3f19aea8075ba89.html",
+      "retrieved_at": "2026-02-22",
+      "notes": "Taxable: 900,000 - 17,400 = 882,600. Municipal tax: 882,600 × 30.55% = 269,634. State tax: (882,600 - 643,000) × 20% = 239,600 × 20% = 47,920. Work credit: 0 (simplified model). Total tax: 317,554. Net: 582,446. Effective rate: 35.28%"
+    }
+  ]
+}

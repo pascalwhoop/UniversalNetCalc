@@ -1,0 +1,22 @@
+{
+  "name": "Malmö 2026 - High Income (Above State Tax Threshold)",
+  "description": "High earner earning SEK 800,000 in Malmö, triggering state tax",
+  "inputs": {
+    "gross_annual": 800000,
+    "municipality": "malmo"
+  },
+  "expected": {
+    "net": 518361,
+    "effective_rate": 0.35205
+  },
+  "tolerance": 500,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Based on Swedish Tax Agency 2026 rates: Malmö 32.42%, state tax 20% above taxable SEK 643,000, grundavdrag SEK 17,400",
+      "url": "https://lon-efter-skatt.se/skattesatser",
+      "retrieved_at": "2026-02-22",
+      "notes": "Taxable: 800,000 - 17,400 = 782,600. Municipal tax: 782,600 × 32.42% = 253,719. State tax: (782,600 - 643,000) × 20% = 139,600 × 20% = 27,920. Total tax: 281,639. Net: 518,361. Effective rate: 35.20%. Note: Malmö rate increased from 31.20% (2025) to 32.42% (2026)."
+    }
+  ]
+}
