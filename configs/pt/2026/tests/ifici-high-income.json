@@ -1,0 +1,26 @@
+{
+  "name": "IFICI variant - high income (€80,000)",
+  "description": "IFICI regime (20% flat rate) for high income taxpayer in 2026, demonstrating tax savings vs standard regime",
+  "variant": "ifici",
+  "inputs": {
+    "gross_annual": 80000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 55200.00,
+    "effective_rate": 0.31000,
+    "breakdown": {
+      "irs_total": 16000.00,
+      "social_security_employee": 8800.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "IFICI flat 20% rate applied to gross salary. Social security unchanged at 11%.",
+      "url": "https://rme-legal.com/ifici-portugal-2026/",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRS (IFICI): 80000*0.20=16000; SS: 80000*0.11=8800; Total deductions: 24800; Net: 55200; Effective rate: 24800/80000=0.31. Compare to standard regime where effective rate would be ~45%."
+    }
+  ]
+}
