@@ -1,12 +1,20 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import { Plus, Save } from "lucide-react"
+import { Pin, Plus, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { CountryColumn } from "./country-column"
 import { ComparisonSummary } from "./comparison-summary"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Toggle } from "@/components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ShareButton } from "./share-button"
 import { SaveDialog } from "./save-dialog"
@@ -69,6 +77,7 @@ export function ComparisonGrid() {
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
+  const [pinSalaryDialogOpen, setPinSalaryDialogOpen] = useState(false)
   const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [salaryModeSynced, setSalaryModeSynced] = useState(true)
 
@@ -404,70 +413,55 @@ export function ComparisonGrid() {
     <div className="flex flex-col h-full">
       {/* Desktop Header */}
       {!isMobile && (
-        <div className="flex items-center justify-between pb-4">
+        <div className="flex items-start justify-between gap-4 pb-4">
           <div>
             <h2 className="text-lg font-semibold">Compare Destinations</h2>
             <p className="text-sm text-muted-foreground">
               Add up to {MAX_COUNTRIES} destinations to compare side by side
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Salary mode toggle */}
+          <div className="flex shrink-0 items-center gap-2">
             <TooltipProvider delayDuration={300}>
-              <Tabs
-                value={salaryModeSynced ? "synced" : "independent"}
-                onValueChange={v => handleSalaryModeChange(v === "synced")}
-              >
-                <TabsList>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <TabsTrigger value="synced">Same salary</TabsTrigger>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-[200px]">
-                        One gross salary applied to all destinations — compare nets across tax
-                        systems.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <TabsTrigger value="independent">Local salaries</TabsTrigger>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-[200px]">
-                        Each destination has its own gross — for comparing real market-rate offers.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TabsList>
-              </Tabs>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Toggle
+                      variant="outline"
+                      size="sm"
+                      pressed={salaryModeSynced}
+                      onPressedChange={handleSalaryModeChange}
+                      aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
+                    >
+                      <Pin className="h-3.5 w-3.5" />
+                      Pin salary
+                    </Toggle>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[200px]">
+                  <p><strong>Pinned:</strong> One gross for all.</p>
+                  <p className="mt-1"><strong>Unpinned:</strong> One gross per country.</p>
+                </TooltipContent>
+              </Tooltip>
             </TooltipProvider>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setSaveDialogOpen(true)}
-                disabled={countryResults.size === 0}
-                variant="outline"
-                size="sm"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </Button>
-              <ShareButton disabled={countries.length === 0} />
-              <Button
-                onClick={addCountry}
-                disabled={countries.length >= MAX_COUNTRIES}
-                variant="outline"
-                size="sm"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Destination
-              </Button>
-            </div>
+            <Button
+              onClick={() => setSaveDialogOpen(true)}
+              disabled={countryResults.size === 0}
+              variant="outline"
+              size="sm"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Save
+            </Button>
+            <ShareButton disabled={countries.length === 0} />
+            <Button
+              onClick={addCountry}
+              disabled={countries.length >= MAX_COUNTRIES}
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Destination
+            </Button>
           </div>
         </div>
       )}
@@ -475,9 +469,19 @@ export function ComparisonGrid() {
       {/* Mobile Header */}
       {isMobile && (
         <div className="pb-3">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="text-base font-semibold">Compare Destinations</h2>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPinSalaryDialogOpen(true)}
+                className={salaryModeSynced ? "bg-accent text-accent-foreground" : ""}
+                aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
+              >
+                <Pin className="h-3.5 w-3.5 mr-1.5" />
+                Pin salary
+              </Button>
               <Button
                 onClick={() => setSaveDialogOpen(true)}
                 disabled={countryResults.size === 0}
@@ -489,17 +493,45 @@ export function ComparisonGrid() {
               <ShareButton disabled={countries.length === 0} />
             </div>
           </div>
-          <Tabs
-            value={salaryModeSynced ? "synced" : "independent"}
-            onValueChange={v => handleSalaryModeChange(v === "synced")}
-          >
-            <TabsList>
-              <TabsTrigger value="synced">Same salary</TabsTrigger>
-              <TabsTrigger value="independent">Local salaries</TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
       )}
+
+      {/* Mobile: Pin salary dialog (opened by Pin salary button) */}
+      <Dialog open={pinSalaryDialogOpen} onOpenChange={setPinSalaryDialogOpen}>
+        <DialogContent className="sm:max-w-[280px]">
+          <DialogHeader>
+            <DialogTitle>Pin salary</DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-2 pt-1 text-left text-sm">
+                <p><strong>Pinned:</strong> One gross for all.</p>
+                <p><strong>Unpinned:</strong> One gross per country.</p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant={salaryModeSynced ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                handleSalaryModeChange(true)
+                setPinSalaryDialogOpen(false)
+              }}
+            >
+              Same salary
+            </Button>
+            <Button
+              variant={!salaryModeSynced ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                handleSalaryModeChange(false)
+                setPinSalaryDialogOpen(false)
+              }}
+            >
+              Local salaries
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Mobile Country Tabs */}
       {isMobile && countries.length > 0 && (
