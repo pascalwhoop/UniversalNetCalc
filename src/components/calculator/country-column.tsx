@@ -26,7 +26,8 @@ import { SalaryRangeChart } from "./salary-range-chart"
 import { NoticeIcon } from "./notices"
 import { getCountryName, getCurrencySymbol, type CalcRequest, type InputDefinition } from "@/lib/api"
 import { DeductionManager } from "./deduction-manager"
-import { CountryColumnState } from "@/lib/types"
+import { CostOfLivingSection } from "./cost-of-living-section"
+import { CountryColumnState, CostOfLiving, DEFAULT_COST_OF_LIVING } from "@/lib/types"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { Crown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -59,6 +60,7 @@ export function CountryColumn({
   result,
   isCalculating,
   calculationError,
+  costOfLiving = DEFAULT_COST_OF_LIVING,
   onUpdate,
   onRemove,
   showRemove = true,
@@ -409,6 +411,13 @@ export function CountryColumn({
             columnIndex={index}
           />
 
+          {/* Cost of Living */}
+          <CostOfLivingSection
+            value={costOfLiving}
+            currencySymbol={getCurrencySymbol(currency || "EUR")}
+            onChange={(col: CostOfLiving) => onUpdate({ costOfLiving: col })}
+          />
+
           {/* Variant Selection */}
           {variants.length > 0 && (
             <div className="space-y-1">
@@ -442,6 +451,7 @@ export function CountryColumn({
             result={result}
             error={calculationError}
             comparisonDelta={comparisonDelta}
+            costOfLiving={costOfLiving}
             calculationRequest={
               result
                 ? {
