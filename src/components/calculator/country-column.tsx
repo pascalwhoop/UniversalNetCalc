@@ -254,7 +254,8 @@ export function CountryColumn({
 
       <CardContent className="flex flex-col flex-1 space-y-3 px-4 pb-4 md:px-4 md:pb-4">
         <div className="space-y-3" style={{ minHeight: "320px" }}>
-          {/* Country & Year */}
+          {/* Section: Income Parameters */}
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Income Parameters</p>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label htmlFor={`country-${index}`} className="text-xs text-muted-foreground">
@@ -413,9 +414,9 @@ export function CountryColumn({
             />
           </div>
 
-          {/* Section: Monthly Living Costs */}
+          {/* Section: Living Costs */}
           <div className="pt-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Monthly Living Costs</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Living Costs</p>
             <CostOfLivingSection
               value={costOfLiving}
               currencySymbol={getCurrencySymbol(currency || "EUR")}
@@ -449,8 +450,9 @@ export function CountryColumn({
           )}
         </div>
 
-        {/* Results */}
+        {/* Section: Results */}
         <div className="flex-1 pt-2 border-t">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Results</p>
           <ResultBreakdown
             isLoading={isCalculating}
             result={result}

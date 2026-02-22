@@ -59,6 +59,7 @@ export interface NumberInput extends BaseInput {
   min?: number
   max?: number
   default?: number
+  group?: string // If set, this is a secondary field belonging to the named primary input's group
 }
 
 export interface EnumOption {

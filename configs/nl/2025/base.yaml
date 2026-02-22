@@ -87,6 +87,7 @@ inputs:
   mortgage_start_year:
     type: number
     required: false
+    group: mortgage_interest_paid
     min: 1990
     max: 2025
     default: 2025
@@ -104,6 +105,7 @@ inputs:
   jaarruimte_available:
     type: number
     required: false
+    group: pension_contributions
     min: 0
     default: 0
     label: "Available Jaarruimte (Optional)"
@@ -160,6 +162,7 @@ parameters:
   # Deduction parameters
   mortgage_max_years: 30
   current_year: 2025
+  top_bracket_threshold: 76817  # Box 1 top bracket starts here (2025)
 
   # Healthcare threshold parameters (simplified approximation)
   healthcare_threshold_fixed: 132
@@ -288,7 +291,7 @@ calculations:
       - type: sub
         values:
           - "@gross_annual"
-          - 76817  # Top bracket threshold (2025)
+          - "$top_bracket_threshold"
 
   - id: mortgage_in_top_bracket
     type: min

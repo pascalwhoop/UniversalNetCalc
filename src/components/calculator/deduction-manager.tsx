@@ -31,12 +31,6 @@ interface DeductionManagerProps {
   calcRequest: CalcRequest | null
 }
 
-// Fields that belong to a compound deduction group (primary key → all field keys)
-const COMPOUND_DEDUCTIONS: Record<string, string[]> = {
-  mortgage_interest_paid: ["mortgage_interest_paid", "mortgage_start_year"],
-  pension_contributions: ["pension_contributions", "jaarruimte_available"],
-}
-
 interface DeductionInput {
   key: string
   def: InputDefinition
@@ -92,8 +86,12 @@ function DeductionDialog({
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     debounceRef.current = setTimeout(async () => {
-      // Build a request identical to the current one but with this deduction's fields zeroed
-      const zeroedFields = COMPOUND_DEDUCTIONS[selectedDeduction] || [selectedDeduction]
+      // Build a request identical to the current one but with this deduction's fields zeroed.
+      // Zero the primary key plus any secondary fields (those with group === selectedDeduction).
+      const secondaryKeys = Object.entries(inputDefs)
+        .filter(([, def]) => def.group === selectedDeduction)
+        .map(([key]) => key)
+      const zeroedFields = [selectedDeduction, ...secondaryKeys]
       const baselineRequest: CalcRequest = { ...calcRequest }
       for (const field of zeroedFields) {
         baselineRequest[field] = 0
@@ -109,9 +107,9 @@ function DeductionDialog({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [open, selectedDeduction, formValues, calcRequest])
+  }, [open, selectedDeduction, formValues, calcRequest, inputDefs])
 
-  const currency = result?.currency ?? calcRequest?.country ?? "EUR"
+  const currency = result?.currency ?? "EUR"
   const currencySymbol = getCurrencySymbol(currency)
 
   // Exact saving = net with deduction (current result) minus net without (baseline)
@@ -173,7 +171,10 @@ function DeductionDialog({
                 )}
               </div>
 
-              {(COMPOUND_DEDUCTIONS[selectedDeduction] || [selectedDeduction]).map(fieldKey => {
+              {[selectedDeduction, ...Object.entries(inputDefs)
+                .filter(([, def]) => def.group === selectedDeduction)
+                .map(([key]) => key)
+              ].map(fieldKey => {
                 const fieldDef = inputDefs[fieldKey]
                 if (!fieldDef) return null
 
@@ -248,20 +249,19 @@ export function DeductionManager({
     .filter(([key, def]) => def.type === "number" && key !== "gross_annual")
     .map(([key, def]) => ({ key, def }))
 
-  const primaryDeductionKeys = new Set(Object.keys(COMPOUND_DEDUCTIONS))
+  // Primary deductions are those not tagged as secondary fields (def.group means secondary)
+  const primaryDeductions = deductionInputs.filter(({ def }) => !def.group)
 
-  const primaryDeductions = deductionInputs.filter(({ key }) => {
-    if (primaryDeductionKeys.has(key)) return true
-    const isSecondaryField = Object.values(COMPOUND_DEDUCTIONS).some(
-      fields => fields.includes(key) && fields[0] !== key
-    )
-    return !isSecondaryField
-  })
-
-  const isDeductionActive = (primaryKey: string): boolean => {
-    const relatedFields = COMPOUND_DEDUCTIONS[primaryKey] || [primaryKey]
-    return relatedFields.every(field => parseFloat(formValues[field] || "0") > 0)
+  // Returns the primary key plus all secondary keys whose group === primaryKey
+  const getRelatedFields = (primaryKey: string): string[] => {
+    const secondaryKeys = deductionInputs
+      .filter(({ def }) => def.group === primaryKey)
+      .map(({ key }) => key)
+    return [primaryKey, ...secondaryKeys]
   }
+
+  const isDeductionActive = (primaryKey: string): boolean =>
+    parseFloat(formValues[primaryKey] || "0") > 0
 
   const activeDeductions = primaryDeductions.filter(({ key }) => isDeductionActive(key))
   const availableDeductions = primaryDeductions.filter(({ key }) => !isDeductionActive(key))
@@ -282,8 +282,7 @@ export function DeductionManager({
   }
 
   const handleRemoveDeduction = (key: string) => {
-    const relatedFields = COMPOUND_DEDUCTIONS[key] || [key]
-    relatedFields.forEach(field => onUpdateFormValue(field, "0"))
+    getRelatedFields(key).forEach(field => onUpdateFormValue(field, "0"))
   }
 
   if (deductionInputs.length === 0) return null
@@ -292,9 +291,7 @@ export function DeductionManager({
     <div className="space-y-2">
       {/* Active Deductions List */}
       {activeDeductions.length > 0 && (
-        <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Tax Deductions</Label>
-          <div className="space-y-1.5">
+        <div className="space-y-1.5">
             {activeDeductions.map(({ key, def }) => {
               const value = parseFloat(formValues[key] || "0")
               return (
@@ -329,7 +326,6 @@ export function DeductionManager({
                 </div>
               )
             })}
-          </div>
         </div>
       )}
 

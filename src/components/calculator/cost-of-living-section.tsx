@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { CostOfLiving } from "@/lib/types"
@@ -21,7 +21,7 @@ const FIELDS: { key: keyof CostOfLiving; label: string }[] = [
 ]
 
 export function CostOfLivingSection({ value, currencySymbol, onChange }: CostOfLivingSectionProps) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
 
   const handleChange = (key: keyof CostOfLiving, raw: string) => {
     const num = parseFloat(raw)
@@ -30,22 +30,23 @@ export function CostOfLivingSection({ value, currencySymbol, onChange }: CostOfL
 
   const totalMonthly = Object.values(value).reduce((sum, v) => sum + v, 0)
 
+  const label =
+    totalMonthly > 0
+      ? `${currencySymbol}${Math.round(totalMonthly).toLocaleString()}/mo`
+      : "Add monthly costs"
+
   return (
     <div className="space-y-1">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
-        className="h-7 px-2 w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground"
+        className="w-full flex items-center justify-between"
         onClick={() => setOpen(v => !v)}
         type="button"
       >
-        <span>
-          Living costs
-          {totalMonthly > 0 && (
-            <span className="ml-1 font-medium text-foreground">
-              ({currencySymbol}{Math.round(totalMonthly).toLocaleString()}/mo)
-            </span>
-          )}
+        <span className="flex items-center gap-2">
+          {totalMonthly === 0 && <Plus className="h-4 w-4" />}
+          {label}
         </span>
         {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
       </Button>
