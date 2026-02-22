@@ -1,0 +1,2174 @@
+meta:
+  country: "us"
+  year: 2026
+  currency: "USD"
+  version: "1.0.0"
+  sources:
+    - url: "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill"
+      description: "IRS - Official 2026 tax inflation adjustments (Rev. Proc. 2025-32), including OBBBA amendments"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+      description: "IRS Revenue Procedure 2025-32 - Complete 2026 inflation-adjusted tax items"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.ssa.gov/oact/cola/cbb.html"
+      description: "SSA - 2026 Social Security wage base ($184,500)"
+      retrieved_at: "2026-02-22"
+    - url: "https://taxfoundation.org/data/all/federal/2026-tax-brackets/"
+      description: "Tax Foundation - 2026 federal income tax brackets and rates"
+      retrieved_at: "2026-02-22"
+    - url: "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+      description: "Tax Foundation - 2026 state income tax rates and brackets"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This configuration covers federal AND state taxation for the United States in 2026.
+
+    Key components:
+    - Progressive federal income tax with 7 brackets (10% to 37%) per Rev. Proc. 2025-32
+    - State income tax for all 50 states + DC (0% to 13.3%)
+    - Standard deduction varies by filing status (increased by OBBBA for 2026)
+    - Social Security tax (6.2%) capped at $184,500 wage base (up from $176,100 in 2025)
+    - Medicare tax (1.45%) with no wage cap
+    - Additional Medicare tax (0.9%) for high earners over threshold
+
+    Federal brackets updated per IRS Rev. Proc. 2025-32 (One Big Beautiful Bill Act adjustments).
+    State tax rates carried forward from 2025 where 2026 state-specific data is not yet available.
+    Local taxes are NOT included in this configuration.
+
+notices:
+  - id: "state_tax_included"
+    title: "Federal and State Taxes Included"
+    body: |
+      This calculator includes FEDERAL income tax, state income tax, and FICA (Social Security + Medicare).
+      It does NOT include local taxes, state disability insurance (CA, NY), or city taxes (NYC, etc.).
+      Your actual take-home pay may vary based on local taxes and other deductions.
+    severity: "info"
+
+  - id: "gross_salary_info"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary before any deductions. This is your W-2 Box 1
+      wages (or equivalent for self-employed). Include all regular compensation but exclude
+      pre-tax deductions like 401(k) contributions or health insurance premiums.
+    severity: "info"
+
+  - id: "filing_status_info"
+    title: "Filing Status"
+    body: |
+      Your filing status affects both your standard deduction and tax brackets:
+      - Single: Unmarried individuals
+      - Married Filing Jointly: Married couples filing one return (usually most beneficial)
+      - Married Filing Separately: Married couples filing separate returns
+      - Head of Household: Unmarried with qualifying dependents
+    severity: "info"
+
+  - id: "additional_medicare_tax"
+    title: "Additional Medicare Tax"
+    body: |
+      High-income earners pay an additional 0.9% Medicare tax on wages exceeding:
+      - $200,000 (Single, Head of Household)
+      - $250,000 (Married Filing Jointly)
+      - $125,000 (Married Filing Separately)
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Filing Status"
+    options:
+      single:
+        label: "Single"
+        description: "Unmarried, divorced, or legally separated"
+        standard_deduction: 16100
+        additional_medicare_threshold: 200000
+      married_joint:
+        label: "Married Filing Jointly"
+        description: "Married couple filing one combined return"
+        standard_deduction: 32200
+        additional_medicare_threshold: 250000
+      married_separate:
+        label: "Married Filing Separately"
+        description: "Married couple filing separate returns"
+        standard_deduction: 16100
+        additional_medicare_threshold: 125000
+      head_of_household:
+        label: "Head of Household"
+        description: "Unmarried with qualifying dependents"
+        standard_deduction: 24150
+        additional_medicare_threshold: 200000
+
+  state:
+    type: enum
+    required: true
+    default: "california"
+    label: "State of Residence"
+    description: "Select your state of residence for state income tax calculation"
+    options:
+      alabama:
+        label: "Alabama (AL)"
+        description: "Progressive tax: 2% to 5%"
+      alaska:
+        label: "Alaska (AK)"
+        description: "No state income tax"
+      arizona:
+        label: "Arizona (AZ)"
+        description: "Flat tax: 2.5%"
+      arkansas:
+        label: "Arkansas (AR)"
+        description: "Progressive tax: 0% to 3.9%"
+      california:
+        label: "California (CA)"
+        description: "Progressive tax: 1% to 13.3%"
+      colorado:
+        label: "Colorado (CO)"
+        description: "Flat tax: 4.4%"
+      connecticut:
+        label: "Connecticut (CT)"
+        description: "Progressive tax: 2% to 6.99%"
+      delaware:
+        label: "Delaware (DE)"
+        description: "Progressive tax: 0% to 6.6%"
+      florida:
+        label: "Florida (FL)"
+        description: "No state income tax"
+      georgia:
+        label: "Georgia (GA)"
+        description: "Flat tax: 5.19%"
+      hawaii:
+        label: "Hawaii (HI)"
+        description: "Progressive tax: 1.4% to 11%"
+      idaho:
+        label: "Idaho (ID)"
+        description: "Flat tax: 5.3%"
+      illinois:
+        label: "Illinois (IL)"
+        description: "Flat tax: 4.95%"
+      indiana:
+        label: "Indiana (IN)"
+        description: "Flat tax: 3%"
+      iowa:
+        label: "Iowa (IA)"
+        description: "Flat tax: 3.8%"
+      kansas:
+        label: "Kansas (KS)"
+        description: "Progressive tax: 5.2% to 5.58%"
+      kentucky:
+        label: "Kentucky (KY)"
+        description: "Flat tax: 4%"
+      louisiana:
+        label: "Louisiana (LA)"
+        description: "Flat tax: 3%"
+      maine:
+        label: "Maine (ME)"
+        description: "Progressive tax: 5.8% to 7.15%"
+      maryland:
+        label: "Maryland (MD)"
+        description: "Progressive tax: 2% to 6.5%"
+      massachusetts:
+        label: "Massachusetts (MA)"
+        description: "Flat tax: 5%"
+      michigan:
+        label: "Michigan (MI)"
+        description: "Flat tax: 4.25%"
+      minnesota:
+        label: "Minnesota (MN)"
+        description: "Progressive tax: 5.35% to 9.85%"
+      mississippi:
+        label: "Mississippi (MS)"
+        description: "Flat tax: 4.4%"
+      missouri:
+        label: "Missouri (MO)"
+        description: "Progressive tax: 1.5% to 4.7%"
+      montana:
+        label: "Montana (MT)"
+        description: "Progressive tax: 4.7% to 5.9%"
+      nebraska:
+        label: "Nebraska (NE)"
+        description: "Progressive tax: 2.46% to 5.2%"
+      nevada:
+        label: "Nevada (NV)"
+        description: "No state income tax"
+      new_hampshire:
+        label: "New Hampshire (NH)"
+        description: "No state income tax"
+      new_jersey:
+        label: "New Jersey (NJ)"
+        description: "Progressive tax: 1.4% to 10.9%"
+      new_mexico:
+        label: "New Mexico (NM)"
+        description: "Progressive tax: 1.5% to 5.9%"
+      new_york:
+        label: "New York (NY)"
+        description: "Progressive tax: 4% to 10.3%"
+      north_carolina:
+        label: "North Carolina (NC)"
+        description: "Flat tax: 4.25%"
+      north_dakota:
+        label: "North Dakota (ND)"
+        description: "Progressive tax: 0% to 2.5%"
+      ohio:
+        label: "Ohio (OH)"
+        description: "Progressive tax: 1.5% to 5.75%"
+      oklahoma:
+        label: "Oklahoma (OK)"
+        description: "Progressive tax: 0.25% to 4.75%"
+      oregon:
+        label: "Oregon (OR)"
+        description: "Progressive tax: 4.75% to 9.9%"
+      pennsylvania:
+        label: "Pennsylvania (PA)"
+        description: "Flat tax: 3.07%"
+      rhode_island:
+        label: "Rhode Island (RI)"
+        description: "Progressive tax: 3.75% to 5.99%"
+      south_carolina:
+        label: "South Carolina (SC)"
+        description: "Progressive tax: 0% to 6.2%"
+      south_dakota:
+        label: "South Dakota (SD)"
+        description: "No state income tax"
+      tennessee:
+        label: "Tennessee (TN)"
+        description: "No state income tax"
+      texas:
+        label: "Texas (TX)"
+        description: "No state income tax"
+      utah:
+        label: "Utah (UT)"
+        description: "Flat tax: 4.5%"
+      vermont:
+        label: "Vermont (VT)"
+        description: "Progressive tax: 0% to 8.75%"
+      virginia:
+        label: "Virginia (VA)"
+        description: "Progressive tax: 2% to 5.75%"
+      washington:
+        label: "Washington (WA)"
+        description: "No state income tax"
+      west_virginia:
+        label: "West Virginia (WV)"
+        description: "Progressive tax: 2.22% to 4.82%"
+      wisconsin:
+        label: "Wisconsin (WI)"
+        description: "Progressive tax: 3.5% to 7.65%"
+      wyoming:
+        label: "Wyoming (WY)"
+        description: "No state income tax"
+      district_of_columbia:
+        label: "District of Columbia (DC)"
+        description: "Progressive tax: 4% to 10.75%"
+
+parameters:
+  # Standard deductions by filing status (2026) - per IRS Rev. Proc. 2025-32
+  standard_deduction_single: 16100
+  standard_deduction_married_joint: 32200
+  standard_deduction_married_separate: 16100
+  standard_deduction_head_of_household: 24150
+
+  # Federal income tax brackets for 2026 (Single) - per IRS Rev. Proc. 2025-32
+  income_tax_brackets_single:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 12400
+      rate: 0.12
+    - threshold: 50400
+      rate: 0.22
+    - threshold: 105700
+      rate: 0.24
+    - threshold: 201775
+      rate: 0.32
+    - threshold: 256225
+      rate: 0.35
+    - threshold: 640600
+      rate: 0.37
+
+  # Federal income tax brackets for 2026 (Married Filing Jointly) - per IRS Rev. Proc. 2025-32
+  income_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 24800
+      rate: 0.12
+    - threshold: 100800
+      rate: 0.22
+    - threshold: 211400
+      rate: 0.24
+    - threshold: 403550
+      rate: 0.32
+    - threshold: 512450
+      rate: 0.35
+    - threshold: 768700
+      rate: 0.37
+
+  # Federal income tax brackets for 2026 (Married Filing Separately) - per IRS Rev. Proc. 2025-32
+  income_tax_brackets_married_separate:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 12400
+      rate: 0.12
+    - threshold: 50400
+      rate: 0.22
+    - threshold: 105700
+      rate: 0.24
+    - threshold: 201775
+      rate: 0.32
+    - threshold: 256225
+      rate: 0.35
+    - threshold: 384350
+      rate: 0.37
+
+  # Federal income tax brackets for 2026 (Head of Household) - per IRS Rev. Proc. 2025-32
+  income_tax_brackets_head_of_household:
+    - threshold: 0
+      rate: 0.10
+    - threshold: 17700
+      rate: 0.12
+    - threshold: 67450
+      rate: 0.22
+    - threshold: 105700
+      rate: 0.24
+    - threshold: 201775
+      rate: 0.32
+    - threshold: 256200
+      rate: 0.35
+    - threshold: 640600
+      rate: 0.37
+
+  # FICA (Social Security + Medicare) parameters
+  social_security_rate: 0.062
+  social_security_wage_base: 184500
+  medicare_rate: 0.0145
+  additional_medicare_rate: 0.009
+  additional_medicare_threshold_single: 200000
+  additional_medicare_threshold_married_joint: 250000
+  additional_medicare_threshold_married_separate: 125000
+  additional_medicare_threshold_head_of_household: 200000
+
+  # STATE TAX RATES AND BRACKETS
+
+  # Alabama - Progressive
+  al_tax_brackets_single:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 500
+      rate: 0.04
+    - threshold: 3000
+      rate: 0.05
+  al_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 1000
+      rate: 0.04
+    - threshold: 6000
+      rate: 0.05
+  al_standard_deduction_single: 4500
+  al_standard_deduction_married_joint: 11500
+
+  # Alaska - No income tax (0%)
+
+  # Arizona - Flat tax
+  az_tax_rate: 0.025
+
+  # Arkansas - Progressive
+  ar_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 5500
+      rate: 0.02
+    - threshold: 10600
+      rate: 0.03
+    - threshold: 15100
+      rate: 0.034
+    - threshold: 25000
+      rate: 0.039
+  ar_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 5500
+      rate: 0.02
+    - threshold: 10600
+      rate: 0.03
+    - threshold: 15100
+      rate: 0.034
+    - threshold: 25700
+      rate: 0.039
+  ar_standard_deduction_single: 2410
+  ar_standard_deduction_married_joint: 4820
+
+  # California - Progressive
+  ca_standard_deduction_single: 5540
+  ca_standard_deduction_married_joint: 11080
+  ca_standard_deduction_married_separate: 5540
+  ca_standard_deduction_head_of_household: 11080
+  ca_tax_brackets_single:
+    - threshold: 0
+      rate: 0.01
+    - threshold: 10756
+      rate: 0.02
+    - threshold: 25500
+      rate: 0.04
+    - threshold: 40246
+      rate: 0.06
+    - threshold: 55868
+      rate: 0.08
+    - threshold: 70610
+      rate: 0.093
+    - threshold: 360660
+      rate: 0.103
+    - threshold: 432792
+      rate: 0.113
+    - threshold: 721320
+      rate: 0.123
+    - threshold: 1000000
+      rate: 0.133
+  ca_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.01
+    - threshold: 21512
+      rate: 0.02
+    - threshold: 51000
+      rate: 0.04
+    - threshold: 80492
+      rate: 0.06
+    - threshold: 111736
+      rate: 0.08
+    - threshold: 141220
+      rate: 0.093
+    - threshold: 721320
+      rate: 0.103
+    - threshold: 865584
+      rate: 0.113
+    - threshold: 1442640
+      rate: 0.123
+    - threshold: 1000000
+      rate: 0.133
+
+  # Colorado - Flat tax
+  co_tax_rate: 0.044
+
+  # Connecticut - Progressive
+  ct_tax_brackets_single:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 21600
+      rate: 0.045
+    - threshold: 54900
+      rate: 0.06
+    - threshold: 115000
+      rate: 0.0699
+  ct_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 43200
+      rate: 0.045
+    - threshold: 109800
+      rate: 0.06
+    - threshold: 230000
+      rate: 0.0699
+  ct_standard_deduction_single: 15000
+  ct_standard_deduction_married_joint: 24000
+
+  # Delaware - Progressive
+  de_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 2000
+      rate: 0.022
+    - threshold: 5000
+      rate: 0.039
+    - threshold: 10000
+      rate: 0.048
+    - threshold: 20000
+      rate: 0.052
+    - threshold: 25000
+      rate: 0.0555
+    - threshold: 60000
+      rate: 0.066
+  de_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 2000
+      rate: 0.022
+    - threshold: 5000
+      rate: 0.039
+    - threshold: 10000
+      rate: 0.048
+    - threshold: 20000
+      rate: 0.052
+    - threshold: 25000
+      rate: 0.0555
+    - threshold: 60000
+      rate: 0.066
+  de_standard_deduction_single: 5700
+  de_standard_deduction_married_joint: 11400
+
+  # Florida - No income tax (0%)
+
+  # Georgia - Flat tax
+  ga_tax_rate: 0.0519
+  ga_standard_deduction_single: 12000
+  ga_standard_deduction_married_joint: 24000
+
+  # Hawaii - Progressive
+  hi_tax_brackets_single:
+    - threshold: 0
+      rate: 0.014
+    - threshold: 9600
+      rate: 0.032
+    - threshold: 24600
+      rate: 0.055
+    - threshold: 36000
+      rate: 0.064
+    - threshold: 48000
+      rate: 0.068
+    - threshold: 100000
+      rate: 0.072
+    - threshold: 150000
+      rate: 0.076
+    - threshold: 325000
+      rate: 0.11
+  hi_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.014
+    - threshold: 19200
+      rate: 0.032
+    - threshold: 49200
+      rate: 0.055
+    - threshold: 72000
+      rate: 0.064
+    - threshold: 96000
+      rate: 0.068
+    - threshold: 200000
+      rate: 0.072
+    - threshold: 300000
+      rate: 0.076
+    - threshold: 650000
+      rate: 0.11
+  hi_standard_deduction_single: 5000
+  hi_standard_deduction_married_joint: 10000
+
+  # Idaho - Flat tax
+  id_tax_rate: 0.053
+  id_standard_deduction_single: 15000
+  id_standard_deduction_married_joint: 30000
+
+  # Illinois - Flat tax
+  il_tax_rate: 0.0495
+
+  # Indiana - Flat tax
+  in_tax_rate: 0.03
+
+  # Iowa - Flat tax
+  ia_tax_rate: 0.038
+
+  # Kansas - Progressive
+  ks_tax_brackets_single:
+    - threshold: 0
+      rate: 0.052
+    - threshold: 15000
+      rate: 0.0558
+  ks_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.052
+    - threshold: 30000
+      rate: 0.0558
+  ks_standard_deduction_single: 3605
+
+  # Kentucky - Flat tax
+  ky_tax_rate: 0.04
+  ky_standard_deduction_single: 3270
+  ky_standard_deduction_married_joint: 6540
+
+  # Louisiana - Flat tax
+  la_tax_rate: 0.03
+  la_standard_deduction_single: 12500
+
+  # Maine - Progressive
+  me_tax_brackets_single:
+    - threshold: 0
+      rate: 0.058
+    - threshold: 23000
+      rate: 0.0675
+    - threshold: 58050
+      rate: 0.0715
+  me_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.058
+    - threshold: 46000
+      rate: 0.0675
+    - threshold: 116100
+      rate: 0.0715
+  me_standard_deduction_single: 15750
+  me_standard_deduction_married_joint: 31500
+
+  # Maryland - Progressive
+  md_tax_brackets_single:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 1000
+      rate: 0.03
+    - threshold: 2000
+      rate: 0.04
+    - threshold: 3200
+      rate: 0.045
+    - threshold: 5500
+      rate: 0.0525
+    - threshold: 250000
+      rate: 0.0575
+    - threshold: 500000
+      rate: 0.0625
+    - threshold: 1000000
+      rate: 0.065
+  md_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 1000
+      rate: 0.03
+    - threshold: 2000
+      rate: 0.04
+    - threshold: 3200
+      rate: 0.045
+    - threshold: 8300
+      rate: 0.0525
+    - threshold: 300000
+      rate: 0.0575
+    - threshold: 600000
+      rate: 0.0625
+    - threshold: 1200000
+      rate: 0.065
+  md_standard_deduction_single: 3350
+  md_standard_deduction_married_joint: 6700
+
+  # Massachusetts - Flat tax
+  ma_tax_rate: 0.05
+
+  # Michigan - Flat tax
+  mi_tax_rate: 0.0425
+
+  # Minnesota - Progressive
+  mn_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0535
+    - threshold: 28600
+      rate: 0.068
+    - threshold: 73760
+      rate: 0.0785
+    - threshold: 193470
+      rate: 0.0985
+  mn_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0535
+    - threshold: 47360
+      rate: 0.068
+    - threshold: 121890
+      rate: 0.0785
+    - threshold: 318570
+      rate: 0.0985
+  mn_standard_deduction_single: 14950
+  mn_standard_deduction_married_joint: 29900
+
+  # Mississippi - Flat tax
+  ms_tax_rate: 0.044
+
+  # Missouri - Progressive
+  mo_tax_brackets_single:
+    - threshold: 0
+      rate: 0.015
+    - threshold: 1159
+      rate: 0.02
+    - threshold: 2319
+      rate: 0.025
+    - threshold: 3477
+      rate: 0.03
+    - threshold: 4636
+      rate: 0.035
+    - threshold: 5796
+      rate: 0.047
+  mo_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.015
+    - threshold: 1938
+      rate: 0.02
+    - threshold: 3876
+      rate: 0.025
+    - threshold: 5814
+      rate: 0.03
+    - threshold: 7752
+      rate: 0.035
+    - threshold: 9691
+      rate: 0.047
+
+  # Montana - Progressive
+  mt_tax_brackets_single:
+    - threshold: 0
+      rate: 0.047
+    - threshold: 21100
+      rate: 0.059
+  mt_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.047
+    - threshold: 42200
+      rate: 0.059
+
+  # Nebraska - Progressive
+  ne_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0246
+    - threshold: 3660
+      rate: 0.0351
+    - threshold: 9180
+      rate: 0.0446
+    - threshold: 38870
+      rate: 0.052
+  ne_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0246
+    - threshold: 7310
+      rate: 0.0351
+    - threshold: 18320
+      rate: 0.0446
+    - threshold: 77730
+      rate: 0.052
+  ne_standard_deduction_single: 7900
+  ne_standard_deduction_married_joint: 15800
+
+  # Nevada - No income tax (0%)
+
+  # New Hampshire - No income tax (0%)
+
+  # New Jersey - Progressive
+  nj_tax_brackets_single:
+    - threshold: 0
+      rate: 0.014
+    - threshold: 20000
+      rate: 0.0175
+    - threshold: 35000
+      rate: 0.0262
+    - threshold: 40000
+      rate: 0.0353
+    - threshold: 75000
+      rate: 0.0502
+    - threshold: 125000
+      rate: 0.0573
+    - threshold: 250000
+      rate: 0.0623
+    - threshold: 500000
+      rate: 0.0714
+    - threshold: 1000000
+      rate: 0.109
+  nj_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.014
+    - threshold: 20000
+      rate: 0.0175
+    - threshold: 50000
+      rate: 0.0262
+    - threshold: 70000
+      rate: 0.0353
+    - threshold: 130000
+      rate: 0.0502
+    - threshold: 200000
+      rate: 0.0573
+    - threshold: 500000
+      rate: 0.0623
+    - threshold: 1000000
+      rate: 0.0714
+    - threshold: 2000000
+      rate: 0.109
+  nj_standard_deduction_single: 14750
+  nj_standard_deduction_married_joint: 29500
+
+  # New Mexico - Progressive
+  nm_tax_brackets_single:
+    - threshold: 0
+      rate: 0.015
+    - threshold: 5500
+      rate: 0.032
+    - threshold: 11000
+      rate: 0.04
+    - threshold: 16500
+      rate: 0.043
+    - threshold: 33500
+      rate: 0.047
+    - threshold: 48000
+      rate: 0.059
+  nm_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.015
+    - threshold: 8000
+      rate: 0.032
+    - threshold: 16000
+      rate: 0.04
+    - threshold: 24000
+      rate: 0.043
+    - threshold: 50000
+      rate: 0.047
+    - threshold: 70000
+      rate: 0.059
+  nm_standard_deduction_single: 15750
+  nm_standard_deduction_married_joint: 31500
+
+  # New York - Progressive
+  ny_standard_deduction_single: 8000
+  ny_standard_deduction_married_joint: 16050
+  ny_standard_deduction_married_separate: 8000
+  ny_standard_deduction_head_of_household: 11200
+  ny_tax_brackets_single:
+    - threshold: 0
+      rate: 0.04
+    - threshold: 8500
+      rate: 0.045
+    - threshold: 11700
+      rate: 0.0525
+    - threshold: 13900
+      rate: 0.055
+    - threshold: 80650
+      rate: 0.06
+    - threshold: 215400
+      rate: 0.0685
+    - threshold: 1077550
+      rate: 0.0965
+    - threshold: 5000000
+      rate: 0.103
+    - threshold: 25000000
+      rate: 0.109
+  ny_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.04
+    - threshold: 17150
+      rate: 0.045
+    - threshold: 23600
+      rate: 0.0525
+    - threshold: 27900
+      rate: 0.055
+    - threshold: 161550
+      rate: 0.06
+    - threshold: 323200
+      rate: 0.0685
+    - threshold: 2155350
+      rate: 0.0965
+    - threshold: 5000000
+      rate: 0.103
+    - threshold: 25000000
+      rate: 0.109
+
+  # North Carolina - Flat tax
+  nc_tax_rate: 0.0425
+
+  # North Dakota - Progressive
+  nd_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 48475
+      rate: 0.0195
+    - threshold: 244825
+      rate: 0.025
+    - threshold: 335000
+      rate: 0.025
+  nd_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 96950
+      rate: 0.0195
+    - threshold: 489650
+      rate: 0.025
+    - threshold: 670000
+      rate: 0.025
+  nd_standard_deduction_single: 15000
+  nd_standard_deduction_married_joint: 30000
+
+  # Ohio - Progressive
+  oh_tax_brackets_single:
+    - threshold: 0
+      rate: 0.015
+    - threshold: 25000
+      rate: 0.03
+    - threshold: 50000
+      rate: 0.04
+    - threshold: 100000
+      rate: 0.05
+    - threshold: 200000
+      rate: 0.055
+    - threshold: 500000
+      rate: 0.0575
+  oh_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.015
+    - threshold: 50000
+      rate: 0.03
+    - threshold: 100000
+      rate: 0.04
+    - threshold: 150000
+      rate: 0.05
+    - threshold: 250000
+      rate: 0.055
+    - threshold: 500000
+      rate: 0.0575
+
+  # Oklahoma - Progressive
+  ok_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0025
+    - threshold: 1000
+      rate: 0.0075
+    - threshold: 2500
+      rate: 0.0175
+    - threshold: 3750
+      rate: 0.0275
+    - threshold: 4900
+      rate: 0.0375
+    - threshold: 7200
+      rate: 0.0475
+  ok_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0025
+    - threshold: 2000
+      rate: 0.0075
+    - threshold: 5000
+      rate: 0.0175
+    - threshold: 7500
+      rate: 0.0275
+    - threshold: 9800
+      rate: 0.0375
+    - threshold: 14400
+      rate: 0.0475
+  ok_standard_deduction_single: 7350
+  ok_standard_deduction_married_joint: 14700
+
+  # Oregon - Progressive
+  or_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0475
+    - threshold: 4400
+      rate: 0.0675
+    - threshold: 11050
+      rate: 0.0875
+    - threshold: 125000
+      rate: 0.099
+  or_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0475
+    - threshold: 8800
+      rate: 0.0675
+    - threshold: 22100
+      rate: 0.0875
+    - threshold: 250000
+      rate: 0.099
+  or_standard_deduction_single: 2835
+  or_standard_deduction_married_joint: 5670
+
+  # Pennsylvania - Flat tax
+  pa_tax_rate: 0.0307
+
+  # Rhode Island - Progressive
+  ri_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0375
+    - threshold: 79900
+      rate: 0.0475
+    - threshold: 181650
+      rate: 0.0599
+  ri_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0375
+    - threshold: 159800
+      rate: 0.0475
+    - threshold: 363300
+      rate: 0.0599
+  ri_standard_deduction_single: 10900
+  ri_standard_deduction_married_joint: 21800
+
+  # South Carolina - Progressive
+  sc_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 3560
+      rate: 0.03
+    - threshold: 17830
+      rate: 0.062
+  sc_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 5950
+      rate: 0.03
+    - threshold: 29750
+      rate: 0.062
+
+  # South Dakota - No income tax (0%)
+
+  # Tennessee - No income tax (0%)
+
+  # Texas - No income tax (0%)
+
+  # Utah - Flat tax
+  ut_tax_rate: 0.045
+
+  # Vermont - Progressive
+  vt_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 3825
+      rate: 0.0335
+    - threshold: 53225
+      rate: 0.066
+    - threshold: 123525
+      rate: 0.076
+    - threshold: 253525
+      rate: 0.0875
+  vt_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0
+    - threshold: 6300
+      rate: 0.0335
+    - threshold: 85900
+      rate: 0.066
+    - threshold: 200400
+      rate: 0.076
+    - threshold: 425450
+      rate: 0.0875
+  vt_standard_deduction_single: 12000
+  vt_standard_deduction_married_joint: 25000
+
+  # Virginia - Progressive
+  va_tax_brackets_single:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 3000
+      rate: 0.03
+    - threshold: 5000
+      rate: 0.05
+    - threshold: 17000
+      rate: 0.0575
+  va_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.02
+    - threshold: 6000
+      rate: 0.03
+    - threshold: 10000
+      rate: 0.05
+    - threshold: 17000
+      rate: 0.0575
+  va_standard_deduction_single: 8750
+  va_standard_deduction_married_joint: 17500
+
+  # Washington - No income tax (0%)
+
+  # West Virginia - Progressive
+  wv_tax_brackets_single:
+    - threshold: 0
+      rate: 0.0222
+    - threshold: 10000
+      rate: 0.0296
+    - threshold: 25000
+      rate: 0.0333
+    - threshold: 40000
+      rate: 0.0444
+    - threshold: 60000
+      rate: 0.0482
+  wv_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.0222
+    - threshold: 10000
+      rate: 0.0296
+    - threshold: 25000
+      rate: 0.0333
+    - threshold: 40000
+      rate: 0.0444
+    - threshold: 60000
+      rate: 0.0482
+  wv_standard_deduction_single: 2000
+  wv_standard_deduction_married_joint: 4000
+
+  # Wisconsin - Progressive
+  wi_tax_brackets_single:
+    - threshold: 0
+      rate: 0.035
+    - threshold: 14320
+      rate: 0.044
+    - threshold: 33990
+      rate: 0.053
+    - threshold: 370090
+      rate: 0.0765
+  wi_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.035
+    - threshold: 19090
+      rate: 0.044
+    - threshold: 38190
+      rate: 0.053
+    - threshold: 420420
+      rate: 0.0765
+  wi_standard_deduction_single: 14260
+  wi_standard_deduction_married_joint: 26510
+
+  # Wyoming - No income tax (0%)
+
+  # District of Columbia - Progressive
+  dc_tax_brackets_single:
+    - threshold: 0
+      rate: 0.04
+    - threshold: 10000
+      rate: 0.06
+    - threshold: 30000
+      rate: 0.065
+    - threshold: 60000
+      rate: 0.085
+    - threshold: 350000
+      rate: 0.099
+    - threshold: 1000000
+      rate: 0.1075
+  dc_tax_brackets_married_joint:
+    - threshold: 0
+      rate: 0.04
+    - threshold: 10000
+      rate: 0.06
+    - threshold: 30000
+      rate: 0.065
+    - threshold: 60000
+      rate: 0.085
+    - threshold: 350000
+      rate: 0.099
+    - threshold: 1000000
+      rate: 0.1075
+  dc_standard_deduction_single: 15000
+  dc_standard_deduction_married_joint: 30000
+
+calculations:
+  # Determine standard deduction based on filing status
+  - id: standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$standard_deduction_single"
+      married_joint: "$standard_deduction_married_joint"
+      married_separate: "$standard_deduction_married_separate"
+      head_of_household: "$standard_deduction_head_of_household"
+
+  # Calculate taxable income (gross minus standard deduction, cannot be negative)
+  - id: taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$standard_deduction"
+
+  # Select appropriate tax brackets based on filing status
+  - id: income_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$income_tax_brackets_single"
+      married_joint: "$income_tax_brackets_married_joint"
+      married_separate: "$income_tax_brackets_married_separate"
+      head_of_household: "$income_tax_brackets_head_of_household"
+
+  # Calculate federal income tax using bracket system
+  - id: federal_income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$income_tax_brackets"
+    category: income_tax
+    label: "Federal Income Tax"
+    description: "Progressive federal income tax based on taxable income"
+
+  # STATE TAX CALCULATIONS - All 51 states
+
+  # Alabama
+  - id: al_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$al_tax_brackets_single"
+      married_joint: "$al_tax_brackets_married_joint"
+      married_separate: "$al_tax_brackets_single"
+      head_of_household: "$al_tax_brackets_single"
+  - id: al_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$al_standard_deduction_single"
+      married_joint: "$al_standard_deduction_married_joint"
+      married_separate: "$al_standard_deduction_single"
+      head_of_household: "$al_standard_deduction_single"
+  - id: al_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$al_standard_deduction"
+  - id: al_income_tax
+    type: bracket_tax
+    base: "$al_taxable_income"
+    brackets: "$al_tax_brackets"
+
+  # Arizona
+  - id: az_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$az_tax_rate"
+
+  # Arkansas
+  - id: ar_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ar_tax_brackets_single"
+      married_joint: "$ar_tax_brackets_married_joint"
+      married_separate: "$ar_tax_brackets_single"
+      head_of_household: "$ar_tax_brackets_single"
+  - id: ar_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ar_standard_deduction_single"
+      married_joint: "$ar_standard_deduction_married_joint"
+      married_separate: "$ar_standard_deduction_single"
+      head_of_household: "$ar_standard_deduction_single"
+  - id: ar_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ar_standard_deduction"
+  - id: ar_income_tax
+    type: bracket_tax
+    base: "$ar_taxable_income"
+    brackets: "$ar_tax_brackets"
+
+  # California
+  - id: ca_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ca_standard_deduction_single"
+      married_joint: "$ca_standard_deduction_married_joint"
+      married_separate: "$ca_standard_deduction_married_separate"
+      head_of_household: "$ca_standard_deduction_head_of_household"
+  - id: ca_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ca_standard_deduction"
+  - id: ca_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ca_tax_brackets_single"
+      married_joint: "$ca_tax_brackets_married_joint"
+      married_separate: "$ca_tax_brackets_single"
+      head_of_household: "$ca_tax_brackets_single"
+  - id: ca_income_tax
+    type: bracket_tax
+    base: "$ca_taxable_income"
+    brackets: "$ca_tax_brackets"
+
+  # Colorado
+  - id: co_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$co_tax_rate"
+
+  # Connecticut
+  - id: ct_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ct_tax_brackets_single"
+      married_joint: "$ct_tax_brackets_married_joint"
+      married_separate: "$ct_tax_brackets_single"
+      head_of_household: "$ct_tax_brackets_single"
+  - id: ct_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ct_standard_deduction_single"
+      married_joint: "$ct_standard_deduction_married_joint"
+      married_separate: "$ct_standard_deduction_single"
+      head_of_household: "$ct_standard_deduction_single"
+  - id: ct_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ct_standard_deduction"
+  - id: ct_income_tax
+    type: bracket_tax
+    base: "$ct_taxable_income"
+    brackets: "$ct_tax_brackets"
+
+  # Delaware
+  - id: de_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$de_tax_brackets_single"
+      married_joint: "$de_tax_brackets_married_joint"
+      married_separate: "$de_tax_brackets_single"
+      head_of_household: "$de_tax_brackets_single"
+  - id: de_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$de_standard_deduction_single"
+      married_joint: "$de_standard_deduction_married_joint"
+      married_separate: "$de_standard_deduction_single"
+      head_of_household: "$de_standard_deduction_single"
+  - id: de_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$de_standard_deduction"
+  - id: de_income_tax
+    type: bracket_tax
+    base: "$de_taxable_income"
+    brackets: "$de_tax_brackets"
+
+  # Georgia
+  - id: ga_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ga_tax_rate"
+
+  # Hawaii
+  - id: hi_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$hi_tax_brackets_single"
+      married_joint: "$hi_tax_brackets_married_joint"
+      married_separate: "$hi_tax_brackets_single"
+      head_of_household: "$hi_tax_brackets_single"
+  - id: hi_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$hi_standard_deduction_single"
+      married_joint: "$hi_standard_deduction_married_joint"
+      married_separate: "$hi_standard_deduction_single"
+      head_of_household: "$hi_standard_deduction_single"
+  - id: hi_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$hi_standard_deduction"
+  - id: hi_income_tax
+    type: bracket_tax
+    base: "$hi_taxable_income"
+    brackets: "$hi_tax_brackets"
+
+  # Idaho
+  - id: id_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$id_tax_rate"
+
+  # Illinois
+  - id: il_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$il_tax_rate"
+
+  # Indiana
+  - id: in_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$in_tax_rate"
+
+  # Iowa
+  - id: ia_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ia_tax_rate"
+
+  # Kansas
+  - id: ks_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ks_tax_brackets_single"
+      married_joint: "$ks_tax_brackets_married_joint"
+      married_separate: "$ks_tax_brackets_single"
+      head_of_household: "$ks_tax_brackets_single"
+  - id: ks_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ks_standard_deduction_single"
+      married_joint: "$ks_standard_deduction_single"
+      married_separate: "$ks_standard_deduction_single"
+      head_of_household: "$ks_standard_deduction_single"
+  - id: ks_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ks_standard_deduction"
+  - id: ks_income_tax
+    type: bracket_tax
+    base: "$ks_taxable_income"
+    brackets: "$ks_tax_brackets"
+
+  # Kentucky
+  - id: ky_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ky_tax_rate"
+
+  # Louisiana
+  - id: la_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$la_tax_rate"
+
+  # Maine
+  - id: me_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$me_tax_brackets_single"
+      married_joint: "$me_tax_brackets_married_joint"
+      married_separate: "$me_tax_brackets_single"
+      head_of_household: "$me_tax_brackets_single"
+  - id: me_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$me_standard_deduction_single"
+      married_joint: "$me_standard_deduction_married_joint"
+      married_separate: "$me_standard_deduction_single"
+      head_of_household: "$me_standard_deduction_single"
+  - id: me_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$me_standard_deduction"
+  - id: me_income_tax
+    type: bracket_tax
+    base: "$me_taxable_income"
+    brackets: "$me_tax_brackets"
+
+  # Maryland
+  - id: md_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$md_tax_brackets_single"
+      married_joint: "$md_tax_brackets_married_joint"
+      married_separate: "$md_tax_brackets_single"
+      head_of_household: "$md_tax_brackets_single"
+  - id: md_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$md_standard_deduction_single"
+      married_joint: "$md_standard_deduction_married_joint"
+      married_separate: "$md_standard_deduction_single"
+      head_of_household: "$md_standard_deduction_single"
+  - id: md_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$md_standard_deduction"
+  - id: md_income_tax
+    type: bracket_tax
+    base: "$md_taxable_income"
+    brackets: "$md_tax_brackets"
+
+  # Massachusetts
+  - id: ma_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ma_tax_rate"
+
+  # Michigan
+  - id: mi_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$mi_tax_rate"
+
+  # Minnesota
+  - id: mn_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$mn_tax_brackets_single"
+      married_joint: "$mn_tax_brackets_married_joint"
+      married_separate: "$mn_tax_brackets_single"
+      head_of_household: "$mn_tax_brackets_single"
+  - id: mn_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$mn_standard_deduction_single"
+      married_joint: "$mn_standard_deduction_married_joint"
+      married_separate: "$mn_standard_deduction_single"
+      head_of_household: "$mn_standard_deduction_single"
+  - id: mn_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$mn_standard_deduction"
+  - id: mn_income_tax
+    type: bracket_tax
+    base: "$mn_taxable_income"
+    brackets: "$mn_tax_brackets"
+
+  # Mississippi
+  - id: ms_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ms_tax_rate"
+
+  # Missouri
+  - id: mo_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$mo_tax_brackets_single"
+      married_joint: "$mo_tax_brackets_married_joint"
+      married_separate: "$mo_tax_brackets_single"
+      head_of_household: "$mo_tax_brackets_single"
+  - id: mo_income_tax
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$mo_tax_brackets"
+
+  # Montana
+  - id: mt_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$mt_tax_brackets_single"
+      married_joint: "$mt_tax_brackets_married_joint"
+      married_separate: "$mt_tax_brackets_single"
+      head_of_household: "$mt_tax_brackets_single"
+  - id: mt_income_tax
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$mt_tax_brackets"
+
+  # Nebraska
+  - id: ne_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ne_tax_brackets_single"
+      married_joint: "$ne_tax_brackets_married_joint"
+      married_separate: "$ne_tax_brackets_single"
+      head_of_household: "$ne_tax_brackets_single"
+  - id: ne_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ne_standard_deduction_single"
+      married_joint: "$ne_standard_deduction_married_joint"
+      married_separate: "$ne_standard_deduction_single"
+      head_of_household: "$ne_standard_deduction_single"
+  - id: ne_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ne_standard_deduction"
+  - id: ne_income_tax
+    type: bracket_tax
+    base: "$ne_taxable_income"
+    brackets: "$ne_tax_brackets"
+
+  # New Jersey
+  - id: nj_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nj_tax_brackets_single"
+      married_joint: "$nj_tax_brackets_married_joint"
+      married_separate: "$nj_tax_brackets_single"
+      head_of_household: "$nj_tax_brackets_single"
+  - id: nj_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nj_standard_deduction_single"
+      married_joint: "$nj_standard_deduction_married_joint"
+      married_separate: "$nj_standard_deduction_single"
+      head_of_household: "$nj_standard_deduction_single"
+  - id: nj_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$nj_standard_deduction"
+  - id: nj_income_tax
+    type: bracket_tax
+    base: "$nj_taxable_income"
+    brackets: "$nj_tax_brackets"
+
+  # New Mexico
+  - id: nm_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nm_tax_brackets_single"
+      married_joint: "$nm_tax_brackets_married_joint"
+      married_separate: "$nm_tax_brackets_single"
+      head_of_household: "$nm_tax_brackets_single"
+  - id: nm_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nm_standard_deduction_single"
+      married_joint: "$nm_standard_deduction_married_joint"
+      married_separate: "$nm_standard_deduction_single"
+      head_of_household: "$nm_standard_deduction_single"
+  - id: nm_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$nm_standard_deduction"
+  - id: nm_income_tax
+    type: bracket_tax
+    base: "$nm_taxable_income"
+    brackets: "$nm_tax_brackets"
+
+  # New York
+  - id: ny_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ny_standard_deduction_single"
+      married_joint: "$ny_standard_deduction_married_joint"
+      married_separate: "$ny_standard_deduction_married_separate"
+      head_of_household: "$ny_standard_deduction_head_of_household"
+  - id: ny_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ny_standard_deduction"
+  - id: ny_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ny_tax_brackets_single"
+      married_joint: "$ny_tax_brackets_married_joint"
+      married_separate: "$ny_tax_brackets_single"
+      head_of_household: "$ny_tax_brackets_single"
+  - id: ny_income_tax
+    type: bracket_tax
+    base: "$ny_taxable_income"
+    brackets: "$ny_tax_brackets"
+
+  # North Carolina
+  - id: nc_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$nc_tax_rate"
+
+  # North Dakota
+  - id: nd_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nd_tax_brackets_single"
+      married_joint: "$nd_tax_brackets_married_joint"
+      married_separate: "$nd_tax_brackets_single"
+      head_of_household: "$nd_tax_brackets_single"
+  - id: nd_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$nd_standard_deduction_single"
+      married_joint: "$nd_standard_deduction_married_joint"
+      married_separate: "$nd_standard_deduction_single"
+      head_of_household: "$nd_standard_deduction_single"
+  - id: nd_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$nd_standard_deduction"
+  - id: nd_income_tax
+    type: bracket_tax
+    base: "$nd_taxable_income"
+    brackets: "$nd_tax_brackets"
+
+  # Ohio
+  - id: oh_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$oh_tax_brackets_single"
+      married_joint: "$oh_tax_brackets_married_joint"
+      married_separate: "$oh_tax_brackets_single"
+      head_of_household: "$oh_tax_brackets_single"
+  - id: oh_income_tax
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$oh_tax_brackets"
+
+  # Oklahoma
+  - id: ok_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ok_tax_brackets_single"
+      married_joint: "$ok_tax_brackets_married_joint"
+      married_separate: "$ok_tax_brackets_single"
+      head_of_household: "$ok_tax_brackets_single"
+  - id: ok_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ok_standard_deduction_single"
+      married_joint: "$ok_standard_deduction_married_joint"
+      married_separate: "$ok_standard_deduction_single"
+      head_of_household: "$ok_standard_deduction_single"
+  - id: ok_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ok_standard_deduction"
+  - id: ok_income_tax
+    type: bracket_tax
+    base: "$ok_taxable_income"
+    brackets: "$ok_tax_brackets"
+
+  # Oregon
+  - id: or_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$or_tax_brackets_single"
+      married_joint: "$or_tax_brackets_married_joint"
+      married_separate: "$or_tax_brackets_single"
+      head_of_household: "$or_tax_brackets_single"
+  - id: or_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$or_standard_deduction_single"
+      married_joint: "$or_standard_deduction_married_joint"
+      married_separate: "$or_standard_deduction_single"
+      head_of_household: "$or_standard_deduction_single"
+  - id: or_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$or_standard_deduction"
+  - id: or_income_tax
+    type: bracket_tax
+    base: "$or_taxable_income"
+    brackets: "$or_tax_brackets"
+
+  # Pennsylvania
+  - id: pa_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$pa_tax_rate"
+
+  # Rhode Island
+  - id: ri_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ri_tax_brackets_single"
+      married_joint: "$ri_tax_brackets_married_joint"
+      married_separate: "$ri_tax_brackets_single"
+      head_of_household: "$ri_tax_brackets_single"
+  - id: ri_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$ri_standard_deduction_single"
+      married_joint: "$ri_standard_deduction_married_joint"
+      married_separate: "$ri_standard_deduction_single"
+      head_of_household: "$ri_standard_deduction_single"
+  - id: ri_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$ri_standard_deduction"
+  - id: ri_income_tax
+    type: bracket_tax
+    base: "$ri_taxable_income"
+    brackets: "$ri_tax_brackets"
+
+  # South Carolina
+  - id: sc_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$sc_tax_brackets_single"
+      married_joint: "$sc_tax_brackets_married_joint"
+      married_separate: "$sc_tax_brackets_single"
+      head_of_household: "$sc_tax_brackets_single"
+  - id: sc_income_tax
+    type: bracket_tax
+    base: "@gross_annual"
+    brackets: "$sc_tax_brackets"
+
+  # Utah
+  - id: ut_income_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$ut_tax_rate"
+
+  # Vermont
+  - id: vt_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$vt_tax_brackets_single"
+      married_joint: "$vt_tax_brackets_married_joint"
+      married_separate: "$vt_tax_brackets_single"
+      head_of_household: "$vt_tax_brackets_single"
+  - id: vt_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$vt_standard_deduction_single"
+      married_joint: "$vt_standard_deduction_married_joint"
+      married_separate: "$vt_standard_deduction_single"
+      head_of_household: "$vt_standard_deduction_single"
+  - id: vt_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$vt_standard_deduction"
+  - id: vt_income_tax
+    type: bracket_tax
+    base: "$vt_taxable_income"
+    brackets: "$vt_tax_brackets"
+
+  # Virginia
+  - id: va_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$va_tax_brackets_single"
+      married_joint: "$va_tax_brackets_married_joint"
+      married_separate: "$va_tax_brackets_single"
+      head_of_household: "$va_tax_brackets_single"
+  - id: va_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$va_standard_deduction_single"
+      married_joint: "$va_standard_deduction_married_joint"
+      married_separate: "$va_standard_deduction_single"
+      head_of_household: "$va_standard_deduction_single"
+  - id: va_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$va_standard_deduction"
+  - id: va_income_tax
+    type: bracket_tax
+    base: "$va_taxable_income"
+    brackets: "$va_tax_brackets"
+
+  # West Virginia
+  - id: wv_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$wv_tax_brackets_single"
+      married_joint: "$wv_tax_brackets_married_joint"
+      married_separate: "$wv_tax_brackets_single"
+      head_of_household: "$wv_tax_brackets_single"
+  - id: wv_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$wv_standard_deduction_single"
+      married_joint: "$wv_standard_deduction_married_joint"
+      married_separate: "$wv_standard_deduction_single"
+      head_of_household: "$wv_standard_deduction_single"
+  - id: wv_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$wv_standard_deduction"
+  - id: wv_income_tax
+    type: bracket_tax
+    base: "$wv_taxable_income"
+    brackets: "$wv_tax_brackets"
+
+  # Wisconsin
+  - id: wi_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$wi_tax_brackets_single"
+      married_joint: "$wi_tax_brackets_married_joint"
+      married_separate: "$wi_tax_brackets_single"
+      head_of_household: "$wi_tax_brackets_single"
+  - id: wi_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$wi_standard_deduction_single"
+      married_joint: "$wi_standard_deduction_married_joint"
+      married_separate: "$wi_standard_deduction_single"
+      head_of_household: "$wi_standard_deduction_single"
+  - id: wi_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$wi_standard_deduction"
+  - id: wi_income_tax
+    type: bracket_tax
+    base: "$wi_taxable_income"
+    brackets: "$wi_tax_brackets"
+
+  # District of Columbia
+  - id: dc_tax_brackets
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$dc_tax_brackets_single"
+      married_joint: "$dc_tax_brackets_married_joint"
+      married_separate: "$dc_tax_brackets_single"
+      head_of_household: "$dc_tax_brackets_single"
+  - id: dc_standard_deduction
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$dc_standard_deduction_single"
+      married_joint: "$dc_standard_deduction_married_joint"
+      married_separate: "$dc_standard_deduction_single"
+      head_of_household: "$dc_standard_deduction_single"
+  - id: dc_taxable_income
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$dc_standard_deduction"
+  - id: dc_income_tax
+    type: bracket_tax
+    base: "$dc_taxable_income"
+    brackets: "$dc_tax_brackets"
+
+  # Select state tax based on state input
+  - id: state_income_tax
+    type: switch
+    on: "@state"
+    cases:
+      alabama: "$al_income_tax"
+      alaska: 0
+      arizona: "$az_income_tax"
+      arkansas: "$ar_income_tax"
+      california: "$ca_income_tax"
+      colorado: "$co_income_tax"
+      connecticut: "$ct_income_tax"
+      delaware: "$de_income_tax"
+      florida: 0
+      georgia: "$ga_income_tax"
+      hawaii: "$hi_income_tax"
+      idaho: "$id_income_tax"
+      illinois: "$il_income_tax"
+      indiana: "$in_income_tax"
+      iowa: "$ia_income_tax"
+      kansas: "$ks_income_tax"
+      kentucky: "$ky_income_tax"
+      louisiana: "$la_income_tax"
+      maine: "$me_income_tax"
+      maryland: "$md_income_tax"
+      massachusetts: "$ma_income_tax"
+      michigan: "$mi_income_tax"
+      minnesota: "$mn_income_tax"
+      mississippi: "$ms_income_tax"
+      missouri: "$mo_income_tax"
+      montana: "$mt_income_tax"
+      nebraska: "$ne_income_tax"
+      nevada: 0
+      new_hampshire: 0
+      new_jersey: "$nj_income_tax"
+      new_mexico: "$nm_income_tax"
+      new_york: "$ny_income_tax"
+      north_carolina: "$nc_income_tax"
+      north_dakota: "$nd_income_tax"
+      ohio: "$oh_income_tax"
+      oklahoma: "$ok_income_tax"
+      oregon: "$or_income_tax"
+      pennsylvania: "$pa_income_tax"
+      rhode_island: "$ri_income_tax"
+      south_carolina: "$sc_income_tax"
+      south_dakota: 0
+      tennessee: 0
+      texas: 0
+      utah: "$ut_income_tax"
+      vermont: "$vt_income_tax"
+      virginia: "$va_income_tax"
+      washington: 0
+      west_virginia: "$wv_income_tax"
+      wisconsin: "$wi_income_tax"
+      wyoming: 0
+      district_of_columbia: "$dc_income_tax"
+    category: income_tax
+    label: "State Income Tax"
+    description: "State income tax based on state of residence"
+
+  # Social Security tax (6.2% up to wage base of $176,100)
+  - id: social_security_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$social_security_wage_base"
+
+  - id: social_security_tax
+    type: percent_of
+    base: "$social_security_base"
+    rate: "$social_security_rate"
+    category: contribution
+    label: "Social Security Tax (OASDI)"
+    description: "6.2% on wages up to $184,500"
+
+  # Medicare tax (1.45% on all wages, no cap)
+  - id: medicare_tax
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$medicare_rate"
+    category: contribution
+    label: "Medicare Tax"
+    description: "1.45% on all wages"
+
+  # Additional Medicare tax threshold based on filing status
+  - id: additional_medicare_threshold
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$additional_medicare_threshold_single"
+      married_joint: "$additional_medicare_threshold_married_joint"
+      married_separate: "$additional_medicare_threshold_married_separate"
+      head_of_household: "$additional_medicare_threshold_head_of_household"
+
+  # Additional Medicare tax (0.9% on wages above threshold)
+  - id: additional_medicare_base
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$additional_medicare_threshold"
+
+  - id: additional_medicare_tax
+    type: percent_of
+    base: "$additional_medicare_base"
+    rate: "$additional_medicare_rate"
+    category: contribution
+    label: "Additional Medicare Tax"
+    description: "0.9% on wages exceeding threshold"
+
+  # Total FICA (Social Security + Medicare + Additional Medicare)
+  - id: total_fica
+    type: sum
+    values:
+      - "$social_security_tax"
+      - "$medicare_tax"
+      - "$additional_medicare_tax"
+
+  # Total taxes and deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$state_income_tax"
+      - "$total_fica"
+
+  # Net annual income
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$state_income_tax"
+    contributions:
+      - "$social_security_tax"
+      - "$medicare_tax"
+      - "$additional_medicare_tax"

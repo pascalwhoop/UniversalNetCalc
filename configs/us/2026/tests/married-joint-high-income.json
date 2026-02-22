@@ -1,0 +1,30 @@
+{
+  "name": "Married filing jointly - High income",
+  "description": "Married couple earning $200,000 annually combined in Texas (no state tax)",
+  "inputs": {
+    "gross_annual": 200000,
+    "filing_status": "married_joint",
+    "state": "texas"
+  },
+  "expected": {
+    "net": 159321,
+    "effective_rate": 0.20340,
+    "breakdown": {
+      "federal_income_tax": 26340,
+      "state_income_tax": 0,
+      "social_security_tax": 11439,
+      "medicare_tax": 2900,
+      "additional_medicare_tax": 0
+    }
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.001,
+  "sources": [
+    {
+      "description": "Calculated using 2026 IRS tax brackets (Rev. Proc. 2025-32) and FICA rates",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026-including-amendments-from-the-one-big-beautiful-bill",
+      "date": "2026-02-22",
+      "notes": "Standard deduction: $32,200. Taxable income: $167,800. Tax: 10%*$24,800=$2,480 + 12%*$76,000=$9,120 + 22%*$67,000=$14,740 = $26,340. SS: min($200,000,$184,500)*6.2%=$184,500*6.2%=$11,439. Medicare: $200,000*1.45%=$2,900. No additional Medicare (under $250k for MFJ). Total deductions: $40,679. Net: $159,321."
+    }
+  ]
+}
