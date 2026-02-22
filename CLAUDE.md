@@ -295,39 +295,34 @@ If you need a calculation primitive not covered by existing node types:
 
 ## CI/CD System
 
-This project uses GitHub Actions for tag-based releases and PR previews:
+Deployments are handled by **Cloudflare Workers Builds** (native CI). GitHub Actions handles testing and versioning only.
 
 ### Deployment Workflow
 
-**PR Preview (Automatic):**
-- Triggered automatically on PR open/update
-- Uses `wrangler versions upload` to create a staged version with a preview URL
-- Preview URL is posted as a comment on the PR
-- Preview URLs follow the pattern: `https://<hash>-universal-net-calc.reconnct.workers.dev`
+**PR Preview (Cloudflare native):**
+- Cloudflare automatically runs `wrangler versions upload` on every PR branch push
+- Preview URL is posted in the Cloudflare dashboard and follows the pattern:
+  `https://<hash>-universal-net-calc.reconnct.workers.dev`
 
-**Production Release (Tag-Based):**
-- Create a release locally with `make release`
-- Automatically:
-  - Validates tests pass
-  - Builds for Cloudflare
-  - Deploys to production
-  - Creates GitHub release with changelog
-  - Available at: `https://universal-net-calc.reconnct.workers.dev`
+**Production (Cloudflare native):**
+- Cloudflare automatically runs `wrangler deploy` on every push to `main`
+- Available at: `https://universal-net-calc.reconnct.workers.dev`
 
-**PR Validation (Automatic):**
+**PR Validation (GitHub Actions):**
 - Runs on all pull requests
 - Code quality checks (ESLint + TypeScript)
 - Unit tests (Vitest) + config tests
 - Build validation
 
+**Release tagging (GitHub Actions):**
+- On push to `main`: bumps patch version, creates git tag, creates GitHub release
+
 ### Documentation
 
 - **Complete guide:** `docs/ci-cd.md` - Workflows, setup, troubleshooting
 - **Workflow files:** `.github/workflows/`
-  - `pr.yml` - PR validation
-  - `pr-preview.yml` - PR preview deployment (comment-triggered)
-  - `release.yml` - Production release (tag-triggered)
-  - `deploy.yml` - Reusable deployment workflow
+  - `pr.yml` - PR validation (lint, tests, build)
+  - `release.yml` - Version bump and GitHub release (tag-triggered)
 
 ### Release Management
 
