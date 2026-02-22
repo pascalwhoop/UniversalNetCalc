@@ -9,7 +9,7 @@ jobs:
   project-manager:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # Needed to commit pm/ updates directly to main
       pull-requests: write
       issues: write
       id-token: write
@@ -20,14 +20,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          # Use the default GITHUB_TOKEN which has contents: write above
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Project Manager Agent
+      - name: Run Product Manager Agent
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: '--max-turns 30'
+          claude_args: '--max-turns 40'
           prompt: |
             /project-manager
 
-            You are the project manager agent for this repository. Follow your project-manager
-            skill instructions to scan and coordinate all open issues right now.
+            You are the product manager agent for this repository. Follow your project-manager
+            skill instructions fully, including reading pm/vision.md and pm/roadmap.md first,
+            then running your full research and coordination pass, then writing a timestamped
+            update to pm/updates/ and committing it directly to main.
+
+            Current UTC time for your update filename and header: ${{ github.run_id }} — use
+            the actual current UTC datetime from the system (run `date -u +"%Y-%m-%d-%H%M"` to get it).
