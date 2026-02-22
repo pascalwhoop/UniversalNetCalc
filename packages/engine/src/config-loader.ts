@@ -30,11 +30,49 @@ export class ConfigLoader {
     this.useBundle = configBundle !== null
   }
 
+  /**
+   * Validate country code format (2-letter lowercase ISO 3166-1 alpha-2)
+   * Prevents path traversal attacks
+   */
+  private validateCountry(country: string): void {
+    if (!/^[a-z]{2}$/.test(country)) {
+      throw new Error(`Invalid country code: ${country}`)
+    }
+  }
+
+  /**
+   * Validate year format (4-digit number)
+   * Prevents path traversal attacks
+   */
+  private validateYear(year: string | number): void {
+    const yearStr = year.toString()
+    if (!/^\d{4}$/.test(yearStr)) {
+      throw new Error(`Invalid year: ${year}`)
+    }
+  }
+
+  /**
+   * Validate variant format (alphanumeric + hyphens only)
+   * Prevents path traversal attacks
+   */
+  private validateVariant(variant: string): void {
+    if (!/^[a-z0-9-]+$/.test(variant)) {
+      throw new Error(`Invalid variant: ${variant}`)
+    }
+  }
+
   async loadConfig(
     country: string,
     year: string | number,
     variant?: string
   ): Promise<TaxConfig> {
+    // Validate inputs to prevent path traversal attacks
+    this.validateCountry(country)
+    this.validateYear(year)
+    if (variant) {
+      this.validateVariant(variant)
+    }
+
     const cacheKey = `${country}-${year}${variant ? `-${variant}` : ''}`
 
     if (this.cache.has(cacheKey)) {
@@ -198,6 +236,9 @@ export class ConfigLoader {
   }
 
   async listYears(country: string): Promise<string[]> {
+    // Validate input to prevent path traversal
+    this.validateCountry(country)
+
     // Use manifest if available (Cloudflare Workers)
     if (manifest && manifest.countries?.[country]?.years) {
       return Object.keys(manifest.countries[country].years)
@@ -216,6 +257,10 @@ export class ConfigLoader {
   }
 
   async listVariants(country: string, year: string): Promise<string[]> {
+    // Validate inputs to prevent path traversal
+    this.validateCountry(country)
+    this.validateYear(year)
+
     // Use manifest if available (Cloudflare Workers)
     if (manifest && manifest.countries?.[country]?.years?.[year]?.variants) {
       return manifest.countries[country].years[year].variants
