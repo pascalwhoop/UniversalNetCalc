@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at median income",
+  "description": "Median professional earner at €50,000 in Spain",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 33603,
+    "effective_rate": 0.3279
+  },
+  "tolerance": 30,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Spanish national IRPF rates and Social Security contributions",
+      "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRPF: 19%/24%/30%/37% brackets. Personal allowance €5,550. SS: 6.50%. Max SS base: €61,214.40. Income below SS max so no solidarity contribution."
+    }
+  ]
+}

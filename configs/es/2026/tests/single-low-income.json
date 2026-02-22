@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at low income",
+  "description": "Low earner at €30,000 in Spain - below Social Security max base",
+  "inputs": {
+    "gross_annual": 30000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 21939,
+    "effective_rate": 0.2687
+  },
+  "tolerance": 30,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Spanish national IRPF rates and Social Security contributions",
+      "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRPF: 19%/24%/30% brackets. Personal allowance €5,550. SS: 6.50% (comunes 4.70% + desempleo 1.55% + FP 0.10% + MEI 0.15%). Max SS base: €61,214.40."
+    }
+  ]
+}

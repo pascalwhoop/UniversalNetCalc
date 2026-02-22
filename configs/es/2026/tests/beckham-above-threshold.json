@@ -1,0 +1,23 @@
+{
+  "name": "Beckham Law above threshold at €800,000",
+  "description": "Very high earner under Beckham Law - mixed rate (24% + 47%)",
+  "variant": "beckham-law",
+  "inputs": {
+    "gross_annual": 800000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 556258,
+    "effective_rate": 0.3047
+  },
+  "tolerance": 300,
+  "tolerance_percent": 0.015,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Beckham Law mixed rates: 24% to €600k, 47% above",
+      "url": "https://www.lawants.com/en/beckham-law/",
+      "retrieved_at": "2026-02-22",
+      "notes": "Beckham tax: 24% of €600,000 (€144,000) + 47% of €200,000 (€94,000) = €238,000. SS: €3,978.94. Solidarity on €738,785.60: ~€1,762.68."
+    }
+  ]
+}
