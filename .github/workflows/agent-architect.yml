@@ -58,7 +58,7 @@ jobs:
           CLOUD_ML_REGION: "global"
         with:
           use_vertex: true
-          claude_args: '--max-turns 30'
+          claude_args: '--max-turns 100'
           prompt: |
             /architect
 

@@ -63,4 +63,4 @@ jobs:
           additional_permissions: |
             actions: read
           allowed_tools: 'Bash,Edit,MultiEdit,Glob,Grep,LS,Read,Write,mcp__github_comment__update_claude_comment'
-          claude_args: '--max-turns 40'
+          claude_args: '--max-turns 100'
