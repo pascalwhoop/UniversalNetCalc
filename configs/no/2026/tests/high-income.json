@@ -1,0 +1,11 @@
+{
+  "name": "High income - NOK 1,500,000",
+  "inputs": {
+    "gross_annual": 1500000
+  },
+  "expected": {
+    "net": 969376,
+    "effective_rate": 0.35375
+  },
+  "tolerance": 10
+}
