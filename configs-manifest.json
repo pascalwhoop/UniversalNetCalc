@@ -47,6 +47,23 @@
             "saskatchewan",
             "yukon"
           ]
+        },
+        "2026": {
+          "variants": [
+            "alberta",
+            "bc",
+            "manitoba",
+            "new-brunswick",
+            "newfoundland",
+            "nova-scotia",
+            "nunavut",
+            "nwt",
+            "ontario",
+            "pei",
+            "quebec",
+            "saskatchewan",
+            "yukon"
+          ]
         }
       }
     },
@@ -57,6 +74,9 @@
         },
         "2025": {
           "variants": []
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
@@ -64,12 +84,20 @@
       "years": {
         "2025": {
           "variants": []
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
     "dk": {
       "years": {
         "2025": {
+          "variants": [
+            "researcher"
+          ]
+        },
+        "2026": {
           "variants": [
             "researcher"
           ]
@@ -82,12 +110,22 @@
           "variants": [
             "beckham-law"
           ]
+        },
+        "2026": {
+          "variants": [
+            "beckham-law"
+          ]
         }
       }
     },
     "fr": {
       "years": {
         "2025": {
+          "variants": [
+            "portage-salarial"
+          ]
+        },
+        "2026": {
           "variants": [
             "portage-salarial"
           ]
@@ -104,6 +142,11 @@
     "ie": {
       "years": {
         "2025": {
+          "variants": [
+            "sarp"
+          ]
+        },
+        "2026": {
           "variants": [
             "sarp"
           ]
@@ -137,6 +180,11 @@
           "variants": [
             "flat-tax"
           ]
+        },
+        "2026": {
+          "variants": [
+            "flat-tax"
+          ]
         }
       }
     },
@@ -160,6 +208,9 @@
           "variants": [
             "paye"
           ]
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
@@ -176,12 +227,22 @@
           "variants": [
             "ifici"
           ]
+        },
+        "2026": {
+          "variants": [
+            "ifici"
+          ]
         }
       }
     },
     "se": {
       "years": {
         "2025": {
+          "variants": [
+            "expert-tax"
+          ]
+        },
+        "2026": {
           "variants": [
             "expert-tax"
           ]
@@ -192,12 +253,18 @@
       "years": {
         "2025": {
           "variants": []
+        },
+        "2026": {
+          "variants": []
         }
       }
     },
     "us": {
       "years": {
         "2025": {
+          "variants": []
+        },
+        "2026": {
           "variants": []
         }
       }
