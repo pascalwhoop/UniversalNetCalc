@@ -1,0 +1,7 @@
+{
+  "name": "New Brunswick - Low income (CAD 30,000)",
+  "variant": "new-brunswick",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 25000, "effective_rate": 0.167 },
+  "tolerance": 300, "tolerance_percent": 0.015
+}

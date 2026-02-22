@@ -1,0 +1,7 @@
+{
+  "name": "Yukon - Low income (CAD 30,000)",
+  "variant": "yukon",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 25700, "effective_rate": 0.143 },
+  "tolerance": 300, "tolerance_percent": 0.015
+}

@@ -1,0 +1,8 @@
+{
+  "name": "BC - Median income (CAD 60,000)",
+  "variant": "bc",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 46855.24, "effective_rate": 0.21908 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

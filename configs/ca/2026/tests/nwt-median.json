@@ -1,0 +1,8 @@
+{
+  "name": "NWT - Median income (CAD 60,000)",
+  "variant": "nwt",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 47022.29, "effective_rate": 0.21629 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

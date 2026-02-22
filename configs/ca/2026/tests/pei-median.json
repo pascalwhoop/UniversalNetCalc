@@ -1,0 +1,8 @@
+{
+  "name": "PEI - Median income (CAD 60,000)",
+  "variant": "pei",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 44367.47, "effective_rate": 0.26054 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

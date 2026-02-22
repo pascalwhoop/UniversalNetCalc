@@ -1,0 +1,7 @@
+{
+  "name": "Manitoba - Low income (CAD 30,000)",
+  "variant": "manitoba",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 24400, "effective_rate": 0.187 },
+  "tolerance": 300, "tolerance_percent": 0.015
+}

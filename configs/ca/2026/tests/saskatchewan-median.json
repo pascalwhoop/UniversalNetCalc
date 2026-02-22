@@ -1,0 +1,8 @@
+{
+  "name": "Saskatchewan - Median income (CAD 60,000)",
+  "variant": "saskatchewan",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 45408.17, "effective_rate": 0.24320 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

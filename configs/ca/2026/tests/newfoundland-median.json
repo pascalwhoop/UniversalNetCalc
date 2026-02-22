@@ -1,0 +1,8 @@
+{
+  "name": "Newfoundland - Median income (CAD 60,000)",
+  "variant": "newfoundland",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 44542.21, "effective_rate": 0.25763 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Nova Scotia - Median income (CAD 60,000)",
+  "variant": "nova-scotia",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 43665.64, "effective_rate": 0.27224 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,8 @@
+{
+  "name": "BC - Low income (CAD 30,000)",
+  "variant": "bc",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 25307.63, "effective_rate": 0.15641 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

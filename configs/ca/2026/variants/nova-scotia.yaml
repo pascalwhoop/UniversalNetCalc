@@ -1,0 +1,119 @@
+meta:
+  variant: "nova-scotia"
+  label: "Nova Scotia"
+  description: "Nova Scotia provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/ns.htm"
+      description: "Nova Scotia tax rates for 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This variant adds Nova Scotia provincial income tax to the federal base configuration.
+
+    Nova Scotia features for 2026 (indexation factor 1.6%):
+    - 5 provincial tax brackets (8.79% to 21%)
+    - Basic Personal Amount of $11,932 (up from $11,744 in 2025)
+    - No provincial surtaxes or health premiums
+    - Highest top marginal rate among provinces (~54% combined)
+
+parameters:
+  # Nova Scotia provincial tax brackets - 2026
+  nova_scotia_tax_brackets:
+    - threshold: 0
+      rate: 0.0879
+    - threshold: 30995
+      rate: 0.1495
+    - threshold: 61991
+      rate: 0.1667
+    - threshold: 97417
+      rate: 0.1750
+    - threshold: 157124
+      rate: 0.2100
+
+  # Nova Scotia Basic Personal Amount - 2026
+  nova_scotia_bpa: 11932
+  nova_scotia_lowest_rate: 0.0879
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # Nova Scotia provincial income tax before credits
+  - id: nova_scotia_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$nova_scotia_tax_brackets"
+    category: income_tax
+    label: "Nova Scotia Income Tax"
+    description: "Nova Scotia provincial income tax before credits"
+
+  # Nova Scotia basic personal credit
+  - id: nova_scotia_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$nova_scotia_bpa"
+        - "$nova_scotia_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Nova Scotia Basic Personal Credit"
+    description: "Nova Scotia non-refundable tax credit for basic personal amount"
+
+  # Nova Scotia tax after credits
+  - id: nova_scotia_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$nova_scotia_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$nova_scotia_bpa"
+              - "$nova_scotia_lowest_rate"
+    category: income_tax
+    label: "Nova Scotia Income Tax (After Credits)"
+    description: "Nova Scotia provincial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_nova_scotia
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$nova_scotia_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_nova_scotia"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$nova_scotia_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$nova_scotia_basic_personal_credit"

@@ -1,0 +1,8 @@
+{
+  "name": "Nova Scotia - High income (CAD 200,000)",
+  "variant": "nova-scotia",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 122705.95, "effective_rate": 0.38647 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

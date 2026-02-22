@@ -1,0 +1,8 @@
+{
+  "name": "Quebec - High income (CAD 200,000)",
+  "variant": "quebec",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 122568.88, "effective_rate": 0.38716 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

@@ -1,0 +1,115 @@
+meta:
+  variant: "manitoba"
+  label: "Manitoba"
+  description: "Manitoba provincial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/mb.htm"
+      description: "Manitoba tax rates for 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This variant adds Manitoba provincial income tax to the federal base configuration.
+
+    Manitoba features for 2026:
+    - 3 provincial tax brackets (10.8% to 17.4%)
+    - Basic Personal Amount of $15,780 (frozen - same as 2025, indexation frozen)
+    - No provincial surtaxes or health premiums
+    - BPA phases out for incomes between $200,000 and $400,000
+
+parameters:
+  # Manitoba provincial tax brackets - 2026 (same as 2025, indexation frozen)
+  manitoba_tax_brackets:
+    - threshold: 0
+      rate: 0.1080
+    - threshold: 47000
+      rate: 0.1275
+    - threshold: 100000
+      rate: 0.1740
+
+  # Manitoba Basic Personal Amount - 2026 (frozen at 2025 level)
+  manitoba_bpa: 15780
+  manitoba_lowest_rate: 0.1080
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # Manitoba provincial income tax before credits
+  - id: manitoba_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$manitoba_tax_brackets"
+    category: income_tax
+    label: "Manitoba Income Tax"
+    description: "Manitoba provincial income tax before credits"
+
+  # Manitoba basic personal credit
+  - id: manitoba_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$manitoba_bpa"
+        - "$manitoba_lowest_rate"
+    refundable: false
+    category: credit
+    label: "Manitoba Basic Personal Credit"
+    description: "Manitoba non-refundable tax credit for basic personal amount"
+
+  # Manitoba tax after credits
+  - id: manitoba_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$manitoba_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$manitoba_bpa"
+              - "$manitoba_lowest_rate"
+    category: income_tax
+    label: "Manitoba Income Tax (After Credits)"
+    description: "Manitoba provincial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_manitoba
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$manitoba_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_manitoba"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$manitoba_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$manitoba_basic_personal_credit"

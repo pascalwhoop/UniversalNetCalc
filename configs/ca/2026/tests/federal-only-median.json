@@ -1,0 +1,29 @@
+{
+  "name": "Federal only - Median income (CAD 60,000)",
+  "description": "Federal taxes only, median income. Federal tax before credits = 58523*14% + (60000-58523)*20.5% = 8193.22 + 302.79 = 8496.01. BPA credit = 16452*14% = 2303.28. Employment credit = 1500*14% = 210. Tax = 8496.01 - 2513.28 = 5982.73. CPP = (60000-3500)*5.95% = 56500*5.95% = 3361.75. EI = 60000*1.63% = 978.",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 49677.52,
+    "effective_rate": 0.17204,
+    "breakdown": {
+      "federal_income_tax": 5982.73,
+      "cpp_base_contribution": 3361.75,
+      "cpp2_contribution": 0,
+      "ei_contribution": 978.00,
+      "basic_personal_credit": 2303.28,
+      "canada_employment_credit": 210.00
+    }
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated from 2026 CRA federal rates",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/frequently-asked-questions-individuals/canadian-income-tax-rates-individuals-current-previous-years.html",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

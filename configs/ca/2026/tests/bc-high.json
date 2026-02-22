@@ -1,0 +1,8 @@
+{
+  "name": "BC - High income (CAD 200,000)",
+  "variant": "bc",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 134844.76, "effective_rate": 0.32578 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

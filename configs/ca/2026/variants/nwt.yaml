@@ -1,0 +1,117 @@
+meta:
+  variant: "nwt"
+  label: "Northwest Territories"
+  description: "Northwest Territories territorial tax rates"
+  base: "../base.yaml"
+  sources:
+    - url: "https://www.taxtips.ca/taxrates/nt.htm"
+      description: "Northwest Territories tax rates for 2026"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This variant adds Northwest Territories territorial income tax to the federal base configuration.
+
+    NWT features for 2026 (indexation factor 2.0%):
+    - 4 territorial tax brackets (5.9% to 14.05%)
+    - Basic Personal Amount of $18,198 (up from $17,842 in 2025)
+    - No territorial surtaxes or health premiums
+    - Uses federal indexation factor for adjustments
+
+parameters:
+  # NWT territorial tax brackets - 2026
+  nwt_tax_brackets:
+    - threshold: 0
+      rate: 0.0590
+    - threshold: 53003
+      rate: 0.0860
+    - threshold: 106009
+      rate: 0.1220
+    - threshold: 172346
+      rate: 0.1405
+
+  # NWT Basic Personal Amount - 2026
+  nwt_bpa: 18198
+  nwt_lowest_rate: 0.0590
+
+calculations:
+  # Delete base net_annual so we can redefine it at the end
+  - id: net_annual
+    $delete: true
+
+  # NWT territorial income tax before credits
+  - id: nwt_income_tax_before_credits
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$nwt_tax_brackets"
+    category: income_tax
+    label: "NWT Income Tax"
+    description: "Northwest Territories territorial income tax before credits"
+
+  # NWT basic personal credit
+  - id: nwt_basic_personal_credit
+    type: credit
+    amount:
+      type: mul
+      values:
+        - "$nwt_bpa"
+        - "$nwt_lowest_rate"
+    refundable: false
+    category: credit
+    label: "NWT Basic Personal Credit"
+    description: "NWT non-refundable tax credit for basic personal amount"
+
+  # NWT tax after credits
+  - id: nwt_income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$nwt_income_tax_before_credits"
+          - type: mul
+            values:
+              - "$nwt_bpa"
+              - "$nwt_lowest_rate"
+    category: income_tax
+    label: "NWT Income Tax (After Credits)"
+    description: "NWT territorial tax after basic personal credit"
+
+  # Total deductions
+  - id: total_deductions_nwt
+    type: sum
+    values:
+      - "$federal_income_tax"
+      - "$nwt_income_tax"
+      - "$total_cpp"
+      - "$ei_contribution"
+
+  # Override net_annual
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions_nwt"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$federal_income_tax"
+      - "$nwt_income_tax"
+    contributions:
+      - "$cpp_base_contribution"
+      - "$cpp2_contribution"
+      - "$ei_contribution"
+    credits:
+      - "$basic_personal_credit"
+      - "$canada_employment_credit"
+      - "$nwt_basic_personal_credit"
