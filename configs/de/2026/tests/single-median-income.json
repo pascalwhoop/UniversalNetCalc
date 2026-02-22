@@ -1,0 +1,33 @@
+{
+  "name": "Single filer - Median income",
+  "description": "Single person earning €75,000 annually in Berlin",
+  "inputs": {
+    "gross_annual": 75000,
+    "filing_status": "single",
+    "has_children": false,
+    "region": "be",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 45437,
+    "effective_rate": 0.394,
+    "breakdown": {
+      "income_tax": 13836,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 6975,
+      "health_contribution": 6103,
+      "unemployment_contribution": 975,
+      "care_contribution": 1674
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated from 2026 official parameters: Grundfreibetrag €12,348, caps raised, Soli threshold €20,350",
+      "url": "https://www.steuerberater-rauch.de/steuertarif-2026/",
+      "date": "2026-02-22",
+      "notes": "Tax Class I, Berlin, no church tax, statutory insurance, 2.9% health surcharge"
+    }
+  ]
+}

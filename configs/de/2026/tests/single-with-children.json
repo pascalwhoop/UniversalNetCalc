@@ -1,0 +1,33 @@
+{
+  "name": "Single parent with children",
+  "description": "Single person with children earning €50,000 - reduced care insurance rate",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single",
+    "has_children": true,
+    "region": "sn",
+    "health_insurance_surcharge": 2.9
+  },
+  "expected": {
+    "net": 32419,
+    "effective_rate": 0.352,
+    "breakdown": {
+      "income_tax": 6756,
+      "solidarity_surcharge": 0,
+      "pension_contribution": 4650,
+      "health_contribution": 4375,
+      "unemployment_contribution": 650,
+      "care_contribution": 1150
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Calculated from 2026 official parameters with reduced care insurance for parents",
+      "url": "https://www.lohn-info.de/sozialversicherungsbeitraege2026.html",
+      "date": "2026-02-22",
+      "notes": "Tax Class I, Saxony, no church tax, statutory insurance, 2.9% health surcharge, reduced care insurance rate for parents"
+    }
+  ]
+}
