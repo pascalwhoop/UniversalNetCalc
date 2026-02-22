@@ -1,0 +1,21 @@
+{
+  "name": "Single filer at low income",
+  "description": "Standard case for single person earning €25,000 in the Netherlands 2026",
+  "inputs": {
+    "gross_annual": 25000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 24216,
+    "effective_rate": 0.03137
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using official 2026 Dutch tax rates. Tax: 35.75% × €25,000 = €8,938. General credit: €3,115 (full, income < €29,736). Labour credit: €996 + 31.009% × (€25,000 - €11,965) = €5,038. Total credits: €8,153. Tax after credits: €784.",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

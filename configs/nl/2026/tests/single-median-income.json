@@ -1,0 +1,21 @@
+{
+  "name": "Single filer at median income",
+  "description": "Standard case for single person earning €50,000 in the Netherlands 2026",
+  "inputs": {
+    "gross_annual": 50000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 39140,
+    "effective_rate": 0.21719
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using official 2026 Dutch tax rates. Tax: 35.75% × €38,883 + 37.56% × €11,117 = €18,076. General credit: €3,115 - 6.398% × (€50,000 - €29,736) = €1,819. Labour credit: €5,685 - 6.510% × (€50,000 - €45,592) = €5,398. Total credits: €7,217. Tax after credits: €10,859.",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/inkomstenbelasting/heffingskortingen_boxen_tarieven/boxen_en_tarieven/box_1/box_1",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

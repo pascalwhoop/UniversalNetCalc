@@ -1,0 +1,26 @@
+{
+  "name": "Healthcare cost deduction",
+  "description": "€60,000 gross with €2,000 healthcare expenses. Threshold ≈ €980 (€132 + 1.65% × (€60,000 - €8,625)), deductible amount ≈ €1,020.",
+  "inputs": {
+    "gross_annual": 60000,
+    "filing_status": "single",
+    "mortgage_interest_paid": 0,
+    "mortgage_start_year": 0,
+    "pension_contributions": 0,
+    "jaarruimte_available": 0,
+    "healthcare_expenses": 2000
+  },
+  "expected": {
+    "net": 44542,
+    "effective_rate": 0.25763
+  },
+  "tolerance": 15,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/fisin/fisin2026/aftrek_specifieke_zorgkosten",
+      "description": "Healthcare cost deduction rules 2026 (specifieke zorgkosten)",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}

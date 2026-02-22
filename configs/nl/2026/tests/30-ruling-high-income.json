@@ -1,0 +1,22 @@
+{
+  "name": "30% ruling at high expat income",
+  "description": "Single expat with 30% ruling earning €90,000 gross in the Netherlands 2026. Taxable income = €63,000 (70%). Salary meets minimum threshold (€48,013 taxable required; €63,000 > threshold).",
+  "variant": "30-ruling",
+  "inputs": {
+    "gross_annual": 90000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 70822,
+    "effective_rate": 0.21309
+  },
+  "tolerance": 10,
+  "tolerance_percent": 0.005,
+  "sources": [
+    {
+      "description": "Calculated using official 2026 Dutch tax rates with 30% ruling. Taxable income: €63,000. Tax: 35.75% × €38,883 + 37.56% × €24,117 = €22,959. General credit: €3,115 - 6.398% × (€63,000 - €29,736) = €987. Labour credit (on full gross €90,000): €5,685 - 6.510% × (€90,000 - €45,592) = €2,794. Tax after credits: €19,178.",
+      "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/buitenland/content/ik-kom-in-nederland-werken-30-procent-regeling-aanvragen",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}
