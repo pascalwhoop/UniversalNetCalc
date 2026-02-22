@@ -26,8 +26,10 @@ export class ConfigLoader {
   constructor(configsPath: string = 'configs') {
     this.configsPath = configsPath
     this.cache = new Map()
-    // Use bundle if available (production), otherwise use filesystem (dev)
-    this.useBundle = configBundle !== null
+    // Use bundle if available (production), otherwise use filesystem (dev/test)
+    // Never use the bundle in Vitest — tests must read live YAML files so that
+    // config changes are reflected immediately without a manual bundle rebuild.
+    this.useBundle = configBundle !== null && !process.env.VITEST
   }
 
   /**
