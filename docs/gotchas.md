@@ -216,3 +216,26 @@ const config = parse(yaml)
 **Related:**
 - [Cloudflare Workers Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)
 - [OpenNext Cloudflare documentation](https://opennext.js.org/cloudflare)
+
+## Stale Config Bundle Causes Tests to Ignore YAML Changes
+
+**Problem:** `npm run test:configs` (and the running dev server) use `.generated/config-bundle.ts` when it exists, completely bypassing the YAML files on disk. Editing a YAML config without regenerating the bundle will cause tests to silently test the old config.
+
+**Symptoms:**
+- You edit `configs/<country>/<year>/base.yaml` but tests still fail or pass as before
+- New parameters or node inputs added to YAML are not visible at runtime
+- The error appears unrelated to your change (e.g., "required input not found")
+
+**Solution:** After any YAML config change, regenerate the bundle before running tests:
+
+```bash
+node scripts/bundle-configs.mjs
+npm run test:configs
+```
+
+**Or use the full build pipeline:**
+```bash
+npm run build:configs && npm run test:configs
+```
+
+**Root cause:** `config-loader.ts` checks for `.generated/config-bundle.ts` on startup. If the file exists (it's generated during `npm run build`), it uses the bundle for all config reads, including in tests. This is intentional for production (Workers can't use filesystem), but means local edits require a bundle regeneration step.

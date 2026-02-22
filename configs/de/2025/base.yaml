@@ -177,18 +177,46 @@ parameters:
   special_expenses_lump_sum_single: 36  # Sonderausgaben-Pauschbetrag
   special_expenses_lump_sum_married: 72  # Sonderausgaben-Pauschbetrag for married couples
 
-  # Income tax brackets (not used - using function with official formula instead)
-  income_tax_brackets_single:
-    - threshold: 0
-      rate: 0
+  # Income tax polynomial zones for 2025 (§32a EStG)
+  # Used by incomeSplittingTax function — encodes the official BMF continuous-progression formula.
+  # Sources:
+  #   https://www.finanz-tools.de/einkommensteuer/berechnung-formeln/2025
+  #   https://taxrep.us/tax_guide/german-income-tax-guide/german-income-tax-rates-brackets/
+  #
+  # Zone types:
+  #   zero:      tax = 0
+  #   quadratic: tax = floor((a * y + b) * y + c)  where y = (x - offset) / scale
+  #   linear:    tax = floor(rate * x - constant)
+  income_tax_zones:
+    # Zone 1: Below basic allowance (€12,096)
     - threshold: 12096
-      rate: 0.14
+      type: zero
+    # Zone 2: €12,097 – €17,443  → E = (932.30·y + 1,400)·y  where y = (x−12,096)/10,000
     - threshold: 17443
-      rate: 0.2397
+      type: quadratic
+      a: 932.30
+      b: 1400
+      c: 0
+      offset: 12096
+      scale: 10000
+    # Zone 3: €17,444 – €68,480  → E = (177.23·z + 2,397)·z + 1,025.84  where z = (x−17,443)/10,000
     - threshold: 68480
+      type: quadratic
+      a: 177.23
+      b: 2397
+      c: 1025.84
+      offset: 17443
+      scale: 10000
+    # Zone 4: €68,481 – €277,825  → E = 0.42·x − 10,911.92
+    - threshold: 277825
+      type: linear
       rate: 0.42
-    - threshold: 277826
+      constant: 10911.92
+    # Zone 5: ≥ €277,826  → E = 0.45·x − 19,246.67
+    - threshold: .inf
+      type: linear
       rate: 0.45
+      constant: 19246.67
 
   # Solidarity surcharge parameters for 2025
   soli_rate: 0.055
@@ -406,6 +434,7 @@ calculations:
     inputs:
       taxable_income: "$taxable_income"
       splitting_factor: "$splitting_factor"
+      zones: "$income_tax_zones"
     category: income_tax
     label: "Income Tax (Einkommensteuer)"
     description: "Progressive income tax with Ehegattensplitting for married couples"

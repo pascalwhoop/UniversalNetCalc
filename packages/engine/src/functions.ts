@@ -16,35 +16,36 @@ export function resolveFunctions(): Map<string, Function> {
 }
 
 /**
- * German Ehegattensplitting (income splitting)
- * Used for married couples filing jointly
+ * Polynomial zone income splitting tax (e.g. German Ehegattensplitting)
+ * Used for married couples filing jointly where the tax formula uses
+ * polynomial progression zones rather than simple brackets.
  *
- * Splits taxable income in half, computes tax, then doubles the result
+ * The zones parameter must reference a parameter defined in the config YAML.
+ * Each zone entry describes a progression zone with its upper threshold and
+ * formula type ('zero', 'quadratic', or 'linear').
+ *
+ * Quadratic zone: tax = floor((a * y + b) * y + c)  where y = (x - offset) / scale
+ * Linear zone:    tax = floor(rate * x - constant)
+ * Zero zone:      tax = 0
  */
 function incomeSplittingTax(
-  inputs: Record<string, number>,
+  inputs: Record<string, unknown>,
   context: CalculationContext
 ): number {
-  const { taxable_income, splitting_factor } = inputs as any
+  const { taxable_income, splitting_factor, zones: zonesRef } = inputs as any
 
-  // Detect tax year from config metadata
-  const taxYear = context.config?.meta?.year || 2024
-
-  // Select appropriate tax function based on year
-  const computeTax = taxYear === 2025 ? computeGermanTax2025 : computeGermanTax2024
-
-  if (!splitting_factor || splitting_factor === 1) {
-    // No splitting - compute normally
-    return computeTax(taxable_income)
+  if (!zonesRef) {
+    throw new Error('incomeSplittingTax requires a zones input reference')
   }
 
-  // Split taxable income
+  const zones = getZones(zonesRef, context)
+
+  if (!splitting_factor || splitting_factor === 1) {
+    return computePolynomialZoneTax(taxable_income, zones)
+  }
+
   const splitIncome = taxable_income / splitting_factor
-
-  // Compute tax on split income
-  const splitTax = computeTax(splitIncome)
-
-  // Multiply result by splitting factor
+  const splitTax = computePolynomialZoneTax(splitIncome, zones)
   return splitTax * splitting_factor
 }
 
@@ -133,6 +134,66 @@ function swissFederalTax(
 
 // Helper functions
 
+export interface PolynomialZone {
+  threshold: number
+  type: 'zero' | 'quadratic' | 'linear'
+  // Quadratic: tax = floor((a * y + b) * y + c)  where y = (x - offset) / scale
+  a?: number
+  b?: number
+  c?: number
+  offset?: number
+  scale?: number
+  // Linear: tax = floor(rate * x - constant)
+  rate?: number
+  constant?: number
+}
+
+function getZones(zonesRef: unknown, context: CalculationContext): PolynomialZone[] {
+  if (Array.isArray(zonesRef)) return zonesRef as PolynomialZone[]
+
+  if (typeof zonesRef === 'string') {
+    const key = zonesRef.startsWith('$') ? zonesRef.slice(1) : zonesRef
+    const zones = context.parameters[key]
+    if (!Array.isArray(zones)) throw new Error(`Zones not found in parameters: ${key}`)
+    return zones as PolynomialZone[]
+  }
+
+  throw new Error(`Invalid zones reference: ${JSON.stringify(zonesRef)}`)
+}
+
+function computePolynomialZoneTax(income: number, zones: PolynomialZone[]): number {
+  const x = Math.floor(income)
+  if (x <= 0) return 0
+
+  for (const zone of zones) {
+    if (x > zone.threshold) continue
+
+    if (zone.type === 'zero') return 0
+
+    if (zone.type === 'quadratic') {
+      const { a = 0, b = 0, c = 0, offset = 0, scale = 10000 } = zone
+      const y = (x - offset) / scale
+      return Math.floor((a * y + b) * y + c)
+    }
+
+    if (zone.type === 'linear') {
+      const { rate = 0, constant = 0 } = zone
+      return Math.floor(rate * x - constant)
+    }
+
+    throw new Error(`Unknown zone type: ${(zone as any).type}`)
+  }
+
+  // Income exceeds all zone thresholds — apply last zone
+  const last = zones[zones.length - 1]
+  if (last.type === 'linear') {
+    const { rate = 0, constant = 0 } = last
+    return Math.floor(rate * x - constant)
+  }
+
+  throw new Error('Income exceeds all polynomial zones and last zone is not linear')
+}
+
 function getBrackets(
   bracketsRef: any,
   context: CalculationContext
@@ -194,79 +255,3 @@ function computeProgressiveBracketTax(income: number, brackets: BracketEntry[]):
   return Math.round(tax)
 }
 
-/**
- * German tax formula for 2024
- * Based on official BMF formula (§32a EStG) with continuous progression zones
- * Source: https://www.finanz-tools.de/einkommensteuer/berechnung-formeln/2024
- *
- * The basic allowance was retroactively raised to €11,784 for 2024
- */
-function computeGermanTax2024(taxableIncome: number): number {
-  const x = Math.floor(taxableIncome)
-
-  // Zone 1: Below basic allowance (€11,784 - retroactively raised)
-  if (x <= 11784) {
-    return 0
-  }
-
-  // Zone 2: Linear progression (€11,785 - €17,005)
-  if (x <= 17005) {
-    const y = (x - 11784) / 10000
-    return Math.floor((954.80 * y + 1400) * y)
-  }
-
-  // Zone 3: Linear progression (€17,006 - €66,760)
-  if (x <= 66760) {
-    const z = (x - 17005) / 10000
-    return Math.floor((181.19 * z + 2397) * z + 991.21)
-  }
-
-  // Zone 4: Linear rate 42% (€66,761 - €277,825)
-  if (x <= 277825) {
-    return Math.floor(0.42 * x - 10636.31)
-  }
-
-  // Zone 5: Linear rate 45% (≥ €277,826)
-  return Math.floor(0.45 * x - 18971.06)
-}
-
-/**
- * German tax formula for 2025
- * Based on official BMF formula (§32a EStG) with continuous progression zones
- * Source: https://taxrep.us/tax_guide/german-income-tax-guide/german-income-tax-rates-brackets/
- *
- * Key changes from 2024:
- * - Basic allowance raised to €12,096
- * - Zone thresholds adjusted: €17,443 (zone 2), €68,480 (zone 3)
- * - Solidarity surcharge exemption threshold increased to €19,950 (single)
- */
-function computeGermanTax2025(taxableIncome: number): number {
-  const x = Math.floor(taxableIncome)
-
-  // Zone 1: Below basic allowance (€12,096)
-  if (x <= 12096) {
-    return 0
-  }
-
-  // Zone 2: Linear progression (€12,097 - €17,443)
-  // Formula: E = (932.30 · y + 1,400) · y where y = (income - 12,096) / 10,000
-  if (x <= 17443) {
-    const y = (x - 12096) / 10000
-    return Math.floor((932.30 * y + 1400) * y)
-  }
-
-  // Zone 3: Linear progression (€17,444 - €68,480)
-  // Formula: E = (177.23 · z + 2,397) · z + 1,025.84 where z = (income - 17,443) / 10,000
-  if (x <= 68480) {
-    const z = (x - 17443) / 10000
-    return Math.floor((177.23 * z + 2397) * z + 1025.84)
-  }
-
-  // Zone 4: Linear rate 42% (€68,481 - €277,825)
-  if (x <= 277825) {
-    return Math.floor(0.42 * x - 10911.92)
-  }
-
-  // Zone 5: Linear rate 45% (≥ €277,826)
-  return Math.floor(0.45 * x - 19246.67)
-}
