@@ -65,6 +65,11 @@ If approved:
 gh pr review <number> --approve --body "LGTM. <brief note>"
 ```
 
+After approving, trigger a preview deployment so it's ready for human review:
+```bash
+gh issue comment <PR_number> --body "/release-preview"
+```
+
 ## After requesting changes
 
 If you requested changes, post a follow-up **comment** (not review) to trigger the developer:
