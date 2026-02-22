@@ -67,3 +67,5 @@ bundle-analysis*.html
 
 # convx history
 history/
+
+.worktrees/
