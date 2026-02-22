@@ -1,0 +1,13 @@
+{
+  "name": "Researcher Scheme - High Income (DKK 700,000)",
+  "variant": "researcher",
+  "inputs": {
+    "gross_annual": 700000
+  },
+  "expected": {
+    "net": 455000,
+    "effective_rate": 0.35
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

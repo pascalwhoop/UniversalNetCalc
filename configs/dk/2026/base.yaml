@@ -1,0 +1,214 @@
+meta:
+  country: "dk"
+  label: "Denmark"
+  currency: "DKK"
+  year: 2026
+  sources:
+    - "https://skat.dk/hjaelp/bundskat-mellemskat-topskat-og-toptopskat"
+    - "https://skm.dk/tal-og-metode/satser/regulering-af-beloebsgraenser/beloebsgraenser-i-skattelovgivningen-der-reguleres-efter-personskattelovens-20-2025-2026"
+    - "https://skm.dk/tal-og-metode/satser/statistik-i-kommunerne/kommuneskatteaendringer-i-2026"
+    - "https://taxsummaries.pwc.com/denmark/individual/taxes-on-personal-income"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total annual gross salary before any deductions"
+
+  municipality:
+    type: enum
+    required: true
+    default: "copenhagen"
+    label: "Municipality"
+    description: "Select your municipality (affects municipal tax rate)"
+    options:
+      copenhagen:
+        label: "Copenhagen (23.39%)"
+      aarhus:
+        label: "Aarhus (24.52%)"
+
+parameters:
+  # Personal allowance (Personfradrag)
+  personal_allowance_amount: 54100
+
+  # Employment deduction (Beskæftigelsesfradrag)
+  employment_deduction_rate: 0.1275
+  employment_deduction_max: 63300
+
+  # Bottom tax (Bundskat)
+  bottom_tax_rate: 0.1201
+
+  # Middle tax (Mellemskat) - new from 2026, replaces old topskat
+  middle_tax_rate: 0.075
+  middle_tax_threshold: 641200  # Applied to income after AM-bidrag
+
+  # Top tax (Topskat) - new threshold from 2026
+  top_tax_rate: 0.075
+  top_tax_threshold: 777900  # Applied to income after AM-bidrag
+
+  # Top-top tax (Toptopskat) - new from 2026
+  top_top_tax_rate: 0.05
+  top_top_tax_threshold: 2592700  # Applied to income after AM-bidrag
+
+calculations:
+  # Step 1: Calculate AM-bidrag (8% of gross income)
+  - id: am_bidrag
+    label: "Labour Market Contribution (AM-bidrag)"
+    type: mul
+    values: ["@gross_annual", 0.08]
+    category: contribution
+
+  # Income after AM-bidrag (used for all subsequent calculations)
+  - id: income_after_am
+    label: "Income after AM-bidrag"
+    type: sub
+    values: ["@gross_annual", "$am_bidrag"]
+
+  # Step 2: Calculate deductions
+  - id: personal_allowance
+    label: "Personal Allowance (Personfradrag)"
+    type: identity
+    value: "$personal_allowance_amount"
+    category: deduction
+
+  - id: employment_deduction_calculated
+    label: "Employment Deduction Calculated"
+    type: mul
+    values: ["@gross_annual", "$employment_deduction_rate"]
+
+  - id: employment_deduction
+    label: "Employment Deduction (Beskæftigelsesfradrag)"
+    type: min
+    values: ["$employment_deduction_calculated", "$employment_deduction_max"]
+    category: deduction
+
+  # Step 3: Calculate taxable income (income after AM minus deductions)
+  - id: taxable_income_before_clamp
+    label: "Taxable Income Before Clamp"
+    type: sub
+    values: ["$income_after_am", "$personal_allowance", "$employment_deduction"]
+
+  - id: taxable_income
+    label: "Taxable Income"
+    type: max
+    values: ["$taxable_income_before_clamp", 0]
+
+  # Step 4: Calculate taxes
+  - id: bottom_tax
+    label: "Bottom Tax (Bundskat)"
+    type: mul
+    values: ["$taxable_income", "$bottom_tax_rate"]
+    category: income_tax
+
+  - id: municipal_tax_rate
+    label: "Municipal Tax Rate"
+    type: switch
+    on: "@municipality"
+    cases:
+      copenhagen: 0.2339
+      aarhus: 0.2452
+      _: 0.2339
+
+  - id: municipal_tax
+    label: "Municipal Tax (Kommuneskat)"
+    type: mul
+    values: ["$taxable_income", "$municipal_tax_rate"]
+    category: income_tax
+
+  # Middle tax (Mellemskat) - applies to income after AM-bidrag above 641,200 DKK
+  - id: income_above_middle_threshold
+    label: "Income Above Middle Tax Threshold"
+    type: sub
+    values: ["$income_after_am", "$middle_tax_threshold"]
+
+  - id: income_above_middle_threshold_clamped
+    label: "Income Above Middle Tax Threshold (Clamped)"
+    type: max
+    values: ["$income_above_middle_threshold", 0]
+
+  - id: middle_tax
+    label: "Middle Tax (Mellemskat)"
+    type: mul
+    values: ["$income_above_middle_threshold_clamped", "$middle_tax_rate"]
+    category: income_tax
+
+  # Top tax (Topskat) - applies to income after AM-bidrag above 777,900 DKK
+  - id: income_above_top_threshold
+    label: "Income Above Top Tax Threshold"
+    type: sub
+    values: ["$income_after_am", "$top_tax_threshold"]
+
+  - id: income_above_top_threshold_clamped
+    label: "Income Above Top Tax Threshold (Clamped)"
+    type: max
+    values: ["$income_above_top_threshold", 0]
+
+  - id: top_tax
+    label: "Top Tax (Topskat)"
+    type: mul
+    values: ["$income_above_top_threshold_clamped", "$top_tax_rate"]
+    category: income_tax
+
+  # Top-top tax (Toptopskat) - applies to income after AM-bidrag above 2,592,700 DKK
+  - id: income_above_top_top_threshold
+    label: "Income Above Top-Top Tax Threshold"
+    type: sub
+    values: ["$income_after_am", "$top_top_tax_threshold"]
+
+  - id: income_above_top_top_threshold_clamped
+    label: "Income Above Top-Top Tax Threshold (Clamped)"
+    type: max
+    values: ["$income_above_top_top_threshold", 0]
+
+  - id: top_top_tax
+    label: "Top-Top Tax (Toptopskat)"
+    type: mul
+    values: ["$income_above_top_top_threshold_clamped", "$top_top_tax_rate"]
+    category: income_tax
+
+  # Total tax
+  - id: total_tax
+    label: "Total Tax"
+    type: sum
+    values: ["$am_bidrag", "$bottom_tax", "$municipal_tax", "$middle_tax", "$top_tax", "$top_top_tax"]
+
+  # Net income
+  - id: net
+    label: "Net Annual Salary"
+    type: sub
+    values: ["@gross_annual", "$total_tax"]
+
+  # Effective tax rate
+  - id: effective_rate
+    label: "Effective Tax Rate"
+    type: div
+    values: ["$total_tax", "@gross_annual"]
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net"
+  effective_rate: "$effective_rate"
+  breakdown:
+    contributions:
+      - "$am_bidrag"
+    taxes:
+      - "$bottom_tax"
+      - "$municipal_tax"
+      - "$middle_tax"
+      - "$top_tax"
+      - "$top_top_tax"
+    deductions:
+      - "$personal_allowance"
+      - "$employment_deduction"
+
+notices:
+  - type: info
+    message: "Denmark has one of the highest tax rates in the world, but this includes comprehensive healthcare, education, and social benefits at no additional cost."
+  - type: info
+    message: "From 2026, the tax system has four brackets: bundskat (12.01%), mellemskat (7.5% above 641,200 DKK), topskat (7.5% above 777,900 DKK), and toptopskat (5% above 2,592,700 DKK) - all applied on income after AM-bidrag."
+  - type: info
+    message: "This calculation does not include ATP (Labour Market Supplementary Pension) contributions, which are approximately DKK 1,100-1,200 per year."
+  - type: info
+    message: "Municipal tax rates vary by municipality. Copenhagen (23.39%) reduced its rate in 2026 to become the lowest in Denmark."

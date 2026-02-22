@@ -1,0 +1,13 @@
+{
+  "name": "Copenhagen - High Income (DKK 700,000) - Above Mellemskat Threshold",
+  "inputs": {
+    "gross_annual": 700000,
+    "municipality": "copenhagen"
+  },
+  "expected": {
+    "net": 457373,
+    "effective_rate": 0.34661
+  },
+  "tolerance": 50,
+  "tolerance_percent": 0.005
+}

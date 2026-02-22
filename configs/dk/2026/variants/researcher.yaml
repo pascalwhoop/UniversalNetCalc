@@ -1,0 +1,104 @@
+meta:
+  variant: "researcher"
+  label: "Researcher Tax Scheme (Forskerordningen)"
+  description: "Flat 27% tax rate plus 8% AM-bidrag for foreign researchers and highly-paid employees. From 2026, the minimum monthly salary threshold is reduced to DKK 65,400/month."
+  base: "base.yaml"
+  sources:
+    - "https://skat.dk/en-us/businesses/employees-and-pay/non-danish-labour/tax-scheme-for-researchers"
+    - "https://info.skat.dk/data.aspx?oid=1977289"
+    - "https://www.azets.com/da-dk/indsigt/blog/forskerskatteordningen-2026"
+
+# Remove inputs that are not needed for the flat rate scheme
+inputs:
+  municipality:
+    $delete: true
+
+calculations:
+  # Keep AM-bidrag calculation (same as base)
+  # Keep income_after_am calculation (needed by base)
+
+  # Delete all deduction calculations
+  - id: personal_allowance
+    $delete: true
+
+  - id: employment_deduction_calculated
+    $delete: true
+
+  - id: employment_deduction
+    $delete: true
+
+  - id: taxable_income_before_clamp
+    $delete: true
+
+  - id: taxable_income
+    $delete: true
+
+  # Replace bottom_tax with the flat tax calculation
+  - id: bottom_tax
+    label: "Researcher Scheme Flat Tax (27%)"
+    type: mul
+    values: ["@gross_annual", 0.27]
+    category: income_tax
+
+  # Delete municipal tax calculations
+  - id: municipal_tax_rate
+    $delete: true
+
+  - id: municipal_tax
+    $delete: true
+
+  # Delete middle tax calculations
+  - id: income_above_middle_threshold
+    $delete: true
+
+  - id: income_above_middle_threshold_clamped
+    $delete: true
+
+  - id: middle_tax
+    $delete: true
+
+  # Delete top tax calculations
+  - id: income_above_top_threshold
+    $delete: true
+
+  - id: income_above_top_threshold_clamped
+    $delete: true
+
+  - id: top_tax
+    $delete: true
+
+  # Delete top-top tax calculations
+  - id: income_above_top_top_threshold
+    $delete: true
+
+  - id: income_above_top_top_threshold_clamped
+    $delete: true
+
+  - id: top_top_tax
+    $delete: true
+
+  # Replace total tax calculation to only include AM-bidrag and the flat tax
+  - id: total_tax
+    label: "Total Tax"
+    type: sum
+    values: ["$am_bidrag", "$bottom_tax"]
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net"
+  effective_rate: "$effective_rate"
+  breakdown:
+    contributions:
+      - "$am_bidrag"
+    taxes:
+      - "$bottom_tax"
+
+notices:
+  - type: info
+    message: "This calculation uses the Researcher Tax Scheme (Forskerordningen): 27% flat tax + 8% AM-bidrag = 35% total effective rate (32.84% after rounding)."
+  - type: warning
+    message: "Eligibility requirements: (1) Minimum monthly salary of DKK 65,400 (2026) - reduced from 78,000 in 2025, (2) Not a Danish tax resident in the previous 10 years, (3) Must apply within 1 month of employment start."
+  - type: info
+    message: "The scheme can be used for up to 7 years total (can be split across multiple employment periods) and can only be used once in a lifetime."
+  - type: info
+    message: "This scheme is available to both researchers with PhD-level education and highly-paid key employees meeting the salary threshold."
