@@ -1,0 +1,25 @@
+{
+  "name": "Single filer with median income (€35,000)",
+  "description": "Median income single taxpayer, verified against 2026 IRS brackets (OE2026)",
+  "inputs": {
+    "gross_annual": 35000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 23144.85,
+    "effective_rate": 0.33872,
+    "breakdown": {
+      "irs_total": 8005.15,
+      "social_security_employee": 3850.00
+    }
+  },
+  "tolerance": 1,
+  "sources": [
+    {
+      "description": "Manual calculation using 2026 IRS brackets from Portuguese Tax Code Article 68 (OE2026)",
+      "url": "https://www.pwc.pt/en/pwcinforfisco/statebudget/pit-and-social-security.html",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRS: (0-8342): 1042.75; (8342-12587): 666.465; (12587-17838): 5251*0.212=1113.212; (17838-23089): 5251*0.241=1265.491; (23089-29397): 6308*0.311=1961.788; (29397-35000): 5603*0.349=1955.447; Total IRS=8005.153; SS: 35000*0.11=3850; Net: 23144.847"
+    }
+  ]
+}
