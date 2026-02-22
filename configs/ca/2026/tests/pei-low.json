@@ -1,0 +1,7 @@
+{
+  "name": "PEI - Low income (CAD 30,000)",
+  "variant": "pei",
+  "inputs": { "gross_annual": 30000, "filing_status": "single" },
+  "expected": { "net": 24700, "effective_rate": 0.177 },
+  "tolerance": 300, "tolerance_percent": 0.015
+}

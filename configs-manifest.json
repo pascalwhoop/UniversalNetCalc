@@ -47,6 +47,23 @@
             "saskatchewan",
             "yukon"
           ]
+        },
+        "2026": {
+          "variants": [
+            "alberta",
+            "bc",
+            "manitoba",
+            "new-brunswick",
+            "newfoundland",
+            "nova-scotia",
+            "nunavut",
+            "nwt",
+            "ontario",
+            "pei",
+            "quebec",
+            "saskatchewan",
+            "yukon"
+          ]
         }
       }
     },

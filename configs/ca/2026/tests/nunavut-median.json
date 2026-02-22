@@ -1,0 +1,8 @@
+{
+  "name": "Nunavut - Median income (CAD 60,000)",
+  "variant": "nunavut",
+  "inputs": { "gross_annual": 60000, "filing_status": "single" },
+  "expected": { "net": 47937.92, "effective_rate": 0.20104 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

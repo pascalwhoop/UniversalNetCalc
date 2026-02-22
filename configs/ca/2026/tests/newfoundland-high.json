@@ -1,0 +1,8 @@
+{
+  "name": "Newfoundland - High income (CAD 200,000)",
+  "variant": "newfoundland",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 126690.53, "effective_rate": 0.36655 },
+  "tolerance": 10,
+  "tolerance_percent": 0.005
+}

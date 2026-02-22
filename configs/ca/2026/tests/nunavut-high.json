@@ -1,0 +1,7 @@
+{
+  "name": "Nunavut - High income (CAD 200,000)",
+  "variant": "nunavut",
+  "inputs": { "gross_annual": 200000, "filing_status": "single" },
+  "expected": { "net": 139000, "effective_rate": 0.305 },
+  "tolerance": 2000, "tolerance_percent": 0.02
+}
