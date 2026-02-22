@@ -20,13 +20,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { InputDefinition } from "@/lib/api"
+import type { InputDefinition, CalculationResult } from "@/lib/api"
+import { getCurrencySymbol } from "@/lib/api"
 
 interface DeductionManagerProps {
   inputDefs: Record<string, InputDefinition>
   formValues: Record<string, string>
   onUpdateFormValue: (key: string, value: string) => void
   columnIndex: number
+  result?: CalculationResult | null
+  currency: string
 }
 
 // Define compound deductions (deductions that require multiple fields)
@@ -45,6 +48,8 @@ export function DeductionManager({
   formValues,
   onUpdateFormValue,
   columnIndex,
+  result,
+  currency,
 }: DeductionManagerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedDeduction, setSelectedDeduction] = useState<string | null>(null)
@@ -125,7 +130,7 @@ export function DeductionManager({
       {/* Active Deductions List */}
       {activeDeductions.length > 0 && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Active Deductions</Label>
+          <Label className="text-xs text-muted-foreground">Tax Deductions</Label>
           <div className="space-y-1.5">
             {activeDeductions.map(({ key, def }) => {
               const value = parseFloat(formValues[key] || "0")
@@ -178,13 +183,13 @@ export function DeductionManager({
               onClick={handleOpenAddDialog}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Deduction
+              Add Tax Deduction
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
-                {selectedDeduction ? "Edit Deduction" : "Add Deduction"}
+                {selectedDeduction ? "Edit Tax Deduction" : "Add Tax Deduction"}
               </DialogTitle>
               <DialogDescription>
                 {selectedDeduction
@@ -242,6 +247,18 @@ export function DeductionManager({
                     const fieldDef = inputDefs[fieldKey]
                     if (!fieldDef) return null
 
+                    // Check if this is the primary deduction field (not mortgage_start_year)
+                    const isPrimaryField = fieldKey === selectedDeduction
+                    const fieldValue = formValues[fieldKey]
+                    const parsedAmount = parseFloat(fieldValue || "0")
+
+                    // Calculate tax saving
+                    let taxSaving = 0
+                    if (isPrimaryField && result && parsedAmount > 0) {
+                      const effectiveRate = result.marginal_rate ?? result.effective_rate ?? 0
+                      taxSaving = parsedAmount * effectiveRate
+                    }
+
                     return (
                       <div key={fieldKey} className="space-y-2">
                         <Label htmlFor={`${fieldKey}-${columnIndex}`}>
@@ -253,9 +270,14 @@ export function DeductionManager({
                           min={fieldDef.min || 0}
                           max={fieldDef.max}
                           placeholder="0"
-                          value={formValues[fieldKey] || "0"}
+                          value={fieldValue !== undefined && fieldValue !== "" ? fieldValue : (fieldDef.default !== undefined ? String(fieldDef.default) : "")}
                           onChange={(e) => handleInputChange(fieldKey, e.target.value)}
                         />
+                        {taxSaving > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            ≈ {getCurrencySymbol(currency)}{taxSaving.toLocaleString(undefined, {maximumFractionDigits: 0})} saved/yr · {getCurrencySymbol(currency)}{(taxSaving / 12).toLocaleString(undefined, {maximumFractionDigits: 0})}/mo
+                          </p>
+                        )}
                         {fieldDef.description && (
                           <p className="text-xs text-muted-foreground">
                             {fieldDef.description}

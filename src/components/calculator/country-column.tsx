@@ -403,20 +403,28 @@ export function CountryColumn({
             </div>
           )}
 
-          {/* Deductions Manager */}
-          <DeductionManager
-            inputDefs={inputDefs}
-            formValues={formValues}
-            onUpdateFormValue={updateFormValue}
-            columnIndex={index}
-          />
+          {/* Section: Tax Deductions */}
+          <div className="pt-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Tax Deductions</p>
+            <DeductionManager
+              inputDefs={inputDefs}
+              formValues={formValues}
+              onUpdateFormValue={updateFormValue}
+              columnIndex={index}
+              result={result}
+              currency={currency || "EUR"}
+            />
+          </div>
 
-          {/* Cost of Living */}
-          <CostOfLivingSection
-            value={costOfLiving}
-            currencySymbol={getCurrencySymbol(currency || "EUR")}
-            onChange={(col: CostOfLiving) => onUpdate({ costOfLiving: col })}
-          />
+          {/* Section: Monthly Living Costs */}
+          <div className="pt-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Monthly Living Costs</p>
+            <CostOfLivingSection
+              value={costOfLiving}
+              currencySymbol={getCurrencySymbol(currency || "EUR")}
+              onChange={(col: CostOfLiving) => onUpdate({ costOfLiving: col })}
+            />
+          </div>
 
           {/* Variant Selection */}
           {variants.length > 0 && (

@@ -22,7 +22,7 @@ const FIELDS: { key: keyof CostOfLiving; label: string }[] = [
 ]
 
 export function CostOfLivingSection({ value, currencySymbol, onChange }: CostOfLivingSectionProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
 
   const handleChange = (key: keyof CostOfLiving, raw: string) => {
     const num = parseFloat(raw)

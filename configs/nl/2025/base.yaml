@@ -89,7 +89,7 @@ inputs:
     required: false
     min: 1990
     max: 2025
-    default: 2024
+    default: 2025
     label: "Mortgage Start Year (Optional)"
     description: "Year when mortgage was first taken out (for 30-year eligibility check)"
 
