@@ -56,7 +56,7 @@ jobs:
         env:
           CLAUDE_CODE_USE_VERTEX: "1"
           ANTHROPIC_VERTEX_PROJECT_ID: ${{ secrets.ANTHROPIC_VERTEX_PROJECT_ID }}
-          CLOUD_ML_REGION: ${{ secrets.CLOUD_ML_REGION }}
+          CLOUD_ML_REGION: "global"
         with:
           use_vertex: true
           additional_permissions: |
