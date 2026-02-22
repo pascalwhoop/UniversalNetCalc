@@ -27,7 +27,7 @@ interface HistoryItemProps {
   onRename?: (id: string, newName: string) => void
 }
 
-export function HistoryItem({ calculation, onDelete, onRename }: HistoryItemProps) {
+export function HistoryItem({ calculation, onDelete, onRename: _onRename }: HistoryItemProps) {
   const router = useRouter()
 
   const handleRestore = () => {

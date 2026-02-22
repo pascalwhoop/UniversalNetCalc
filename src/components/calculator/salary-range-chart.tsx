@@ -314,7 +314,7 @@ export function SalaryRangeChart({
                   content={
                     <ChartTooltipContent
                       hideLabel
-                      formatter={(value, name) => {
+                      formatter={(value, _name) => {
                         const numValue = Number(value)
                         if (isNaN(numValue)) return null
                         return formatCompactCurrency(numValue, currency)

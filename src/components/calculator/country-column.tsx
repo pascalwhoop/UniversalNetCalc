@@ -24,9 +24,9 @@ import {
 import { ResultBreakdown } from "./result-breakdown"
 import { SalaryRangeChart } from "./salary-range-chart"
 import { NoticeIcon } from "./notices"
-import { getCountryName, getCurrencySymbol, type InputDefinition, type CalcRequest } from "@/lib/api"
+import { getCountryName, getCurrencySymbol, type CalcRequest } from "@/lib/api"
 import { CountryColumnState } from "@/lib/types"
-import { getCountryFlag, getCountryMetadata } from "@/lib/country-metadata"
+import { getCountryFlag } from "@/lib/country-metadata"
 import { Crown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Info } from "lucide-react"
@@ -49,7 +49,7 @@ interface CountryColumnProps extends CountryColumnState {
 }
 
 export function CountryColumn({
-  id,
+  id: _id,
   index,
   country,
   year,

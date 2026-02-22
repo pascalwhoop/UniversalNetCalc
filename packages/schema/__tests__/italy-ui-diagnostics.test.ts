@@ -49,7 +49,7 @@ describe('Italy UI - Simulated Hook Data', () => {
     // Simulate the component state
     const country = 'it'
     const year = '2025'
-    const variant = ''
+    const _variant = ''
     const formValues = { gross_annual: '60000' }
 
     // When user selects year, the component should keep the country selected
@@ -152,8 +152,8 @@ describe('Italy UI - Component Logic Issues', () => {
 
     // Only reset variant if country or year changes
     // This should NOT reset if we're just changing variant
-    const countryChanged = false
-    const yearChanged = false
+    const _countryChanged = false
+    const _yearChanged = false
 
     if (!country || !year) {
       variant = ''
@@ -223,7 +223,7 @@ describe('Italy Selector - Regression Prevention', () => {
     // The bug was caused by stale manifest
     // After adding Italy configs, manifest wasn't regenerated
 
-    const fileSystem = {
+    const _fileSystem = {
       'configs/it/2025/base.yaml': true,
       'configs/it/2025/variants/impatriate.yaml': true,
       'configs/it/2026/base.yaml': true,

@@ -98,6 +98,7 @@ export function ComparisonGrid() {
 
     hasInitializedFromUrl.current = true
     setIsInitialized(true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Sync state to URL (debounced)
@@ -169,7 +170,7 @@ export function ComparisonGrid() {
         }
       }
     },
-    [countries.length, isMobile, activeTabIndex]
+    [countries, isMobile, activeTabIndex]
   )
 
   // Copy gross to all countries with currency conversion

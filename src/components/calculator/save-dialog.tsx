@@ -61,7 +61,7 @@ export function SaveDialog({ open, onOpenChange, state, results }: SaveDialogPro
     try {
       // Convert results map to array format
       const resultsArray = results
-        ? Array.from(results.entries()).map(([index, data]) => ({
+        ? Array.from(results.entries()).map(([_index, data]) => ({
             country: data.country,
             year: data.year,
             result: data.result,

@@ -64,7 +64,7 @@ async function parseSwissTaxData() {
   // Column 0: Canton capital city name
   // Column 1: Canton tax multiplier
   // Column 2: Municipal tax multiplier
-  const headerRowIdx = 11
+  const _headerRowIdx = 11
   const dataStartIdx = 14
   const cantonColIdx = 0
   const cantonTaxColIdx = 1
