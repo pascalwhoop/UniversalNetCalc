@@ -57,9 +57,9 @@ jobs:
           CLAUDE_CODE_USE_VERTEX: "1"
           ANTHROPIC_VERTEX_PROJECT_ID: ${{ secrets.ANTHROPIC_VERTEX_PROJECT_ID }}
           CLOUD_ML_REGION: "global"
-          OVERRIDE_GITHUB_TOKEN: ${{ secrets.PM_AGENT_TOKEN }}
         with:
           use_vertex: true
+          github_token: ${{ secrets.PM_AGENT_TOKEN }}
           additional_permissions: |
             actions: read
           allowed_tools: 'Bash,Edit,MultiEdit,Glob,Grep,LS,Read,Write,mcp__github_comment__update_claude_comment'
