@@ -24,6 +24,7 @@ import {
 import { ResultBreakdown } from "./result-breakdown"
 import { SalaryRangeChart } from "./salary-range-chart"
 import { NoticeIcon } from "./notices"
+import { DeductionManager } from "./deduction-manager"
 import { getCountryName, getCurrencySymbol, type InputDefinition, type CalcRequest } from "@/lib/api"
 import { CountryColumnState } from "@/lib/types"
 import { getCountryFlag, getCountryMetadata } from "@/lib/country-metadata"
@@ -164,13 +165,20 @@ export function CountryColumn({
 
     // Add form values
     for (const [key, value] of Object.entries(formValues)) {
-      if (key !== "gross_annual" && value) {
-        const inputDef = inputsData?.inputs[key]
-        if (inputDef?.type === "boolean") {
-          request[key] = value === "true"
-        } else {
-          request[key] = value
+      if (key === "gross_annual") continue
+
+      const inputDef = inputsData?.inputs[key]
+
+      if (inputDef?.type === "boolean") {
+        request[key] = value === "true"
+      } else if (inputDef?.type === "number") {
+        const numValue = parseFloat(value || "0")
+        if (!isNaN(numValue)) {
+          request[key] = numValue
         }
+      } else if (value) {
+        // For enum/string inputs, only include if non-empty
+        request[key] = value
       }
     }
 
@@ -418,6 +426,14 @@ export function CountryColumn({
               ))}
             </div>
           )}
+
+          {/* Deductions Manager */}
+          <DeductionManager
+            inputDefs={inputDefs}
+            formValues={formValues}
+            onUpdateFormValue={updateFormValue}
+            columnIndex={index}
+          />
 
           {/* Variant Selection */}
           {variants.length > 0 && (
