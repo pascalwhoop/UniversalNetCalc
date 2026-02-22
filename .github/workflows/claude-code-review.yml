@@ -62,7 +62,8 @@ jobs:
           github_token: ${{ secrets.PM_AGENT_TOKEN }}
           additional_permissions: |
             actions: read
-          claude_args: '--max-turns 10'
+          claude_args: '--max-turns 30'
+          allowed_tools: 'Bash,Edit,MultiEdit,Glob,Grep,LS,Read,Write,mcp__github_comment__update_claude_comment'
           prompt: |
             /reviewer
 
