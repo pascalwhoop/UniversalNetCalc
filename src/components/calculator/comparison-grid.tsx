@@ -19,6 +19,7 @@ import { MobileCountrySelector } from "./mobile-country-selector"
 import { UnsupportedCurrencyError } from "@/lib/errors"
 import { calculateNetDelta, findBestCountryByNet } from "@/lib/comparison-utils"
 import { detectUserCountry } from "@/lib/detect-country"
+import { DestinationWizard } from "./destination-wizard"
 
 const MAX_COUNTRIES = 4
 
@@ -71,6 +72,7 @@ export function ComparisonGrid() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [salaryModeSynced, setSalaryModeSynced] = useState(true)
+  const [wizardTargetId, setWizardTargetId] = useState<string | null>(null)
 
   // Initialize from URL on mount ONLY
   useEffect(() => {
@@ -147,22 +149,23 @@ export function ComparisonGrid() {
 
   // Update a single country's state
   const updateCountry = useCallback((id: string, updates: Partial<CountryColumnState>) => {
-    setCountries(prev => {
-      const next = prev.map(c => (c.id === id ? { ...c, ...updates } : c))
-      return next
-    })
+    setCountries(prev => prev.map(c => (c.id === id ? { ...c, ...updates } : c)))
 
-    // In synced mode, when a column's currency is set (country selected), convert its gross from a sibling
-    if (salaryModeSynced && "currency" in updates && updates.currency && !("gross_annual" in updates)) {
+    if (!salaryModeSynced) return
+
+    // When a follower's currency loads: sync salary FROM the leader (index 0)
+    if ("currency" in updates && updates.currency && !("gross_annual" in updates)) {
       const targetCurrency = updates.currency
       setCountries(prev => {
-        const source = prev.find(c => c.id !== id && c.gross_annual)
-        if (!source) return prev
-        const amount = parseFloat(source.gross_annual)
+        const me = prev.find(c => c.id === id)
+        if (!me || me.index === 0) return prev // Leader doesn't sync from anyone
+        const leader = [...prev].sort((a, b) => a.index - b.index).find(c => c.index === 0)
+        if (!leader?.gross_annual) return prev
+        const amount = parseFloat(leader.gross_annual)
         if (isNaN(amount)) return prev
-        const sourceCurrency = source.currency || "EUR"
+        const sourceCurrency = leader.currency || "EUR"
         if (sourceCurrency === targetCurrency) {
-          return prev.map(c => c.id === id ? { ...c, gross_annual: source.gross_annual } : c)
+          return prev.map(c => (c.id === id ? { ...c, gross_annual: leader.gross_annual } : c))
         }
         fetchExchangeRate(sourceCurrency, targetCurrency)
           .then(rate => {
@@ -170,29 +173,30 @@ export function ComparisonGrid() {
             setCountries(cols => cols.map(col => col.id === id ? { ...col, gross_annual: converted } : col))
           })
           .catch(() => {
-            setCountries(cols => cols.map(col => col.id === id ? { ...col, gross_annual: source.gross_annual } : col))
+            setCountries(cols => cols.map(col => col.id === id ? { ...col, gross_annual: leader.gross_annual } : col))
           })
         return prev
       })
     }
 
-    // In synced mode, propagate gross_annual changes to all other columns with currency conversion
-    if (salaryModeSynced && "gross_annual" in updates) {
-      const newGross = updates.gross_annual
-      const amount = parseFloat(newGross ?? "")
-      if (isNaN(amount)) return
-
+    // When the leader's salary changes: propagate to all followers
+    if ("gross_annual" in updates) {
       setCountries(prev => {
-        const source = prev.find(c => c.id === id)
-        if (!source) return prev
-        const sourceCurrency = source.currency || "EUR"
+        const leader = prev.find(c => c.id === id)
+        if (!leader || leader.index !== 0) return prev // Only leader propagates
+        const amount = parseFloat(updates.gross_annual ?? "")
+        if (isNaN(amount)) return prev
+        const sourceCurrency = leader.currency || "EUR"
 
-        // Kick off async conversion for each other column
         prev.forEach(c => {
           if (c.id === id) return
           const targetCurrency = c.currency || "EUR"
           if (targetCurrency === sourceCurrency) {
-            setCountries(cols => cols.map(col => col.id === c.id ? { ...col, gross_annual: newGross ?? col.gross_annual } : col))
+            setCountries(cols =>
+              cols.map(col =>
+                col.id === c.id ? { ...col, gross_annual: updates.gross_annual ?? col.gross_annual } : col
+              )
+            )
           } else {
             fetchExchangeRate(sourceCurrency, targetCurrency)
               .then(rate => {
@@ -200,8 +204,11 @@ export function ComparisonGrid() {
                 setCountries(cols => cols.map(col => col.id === c.id ? { ...col, gross_annual: converted } : col))
               })
               .catch(() => {
-                // Fallback: copy raw value if conversion unavailable
-                setCountries(cols => cols.map(col => col.id === c.id ? { ...col, gross_annual: newGross ?? col.gross_annual } : col))
+                setCountries(cols =>
+                  cols.map(col =>
+                    col.id === c.id ? { ...col, gross_annual: updates.gross_annual ?? col.gross_annual } : col
+                  )
+                )
               })
           }
         })
@@ -224,31 +231,74 @@ export function ComparisonGrid() {
     }
   }, [])
 
-  // Add new country
-  const addCountry = useCallback(() => {
-    if (countries.length >= MAX_COUNTRIES) return
-
-    const newState = createEmptyCountryState(countries.length)
-
-    // In synced mode, pre-fill gross from the first column that has a value
-    if (salaryModeSynced) {
-      const source = countries.find(c => c.gross_annual)
-      if (source) {
-        const amount = parseFloat(source.gross_annual)
-        if (!isNaN(amount)) {
-          // We don't know the new column's currency yet (no country selected),
-          // so store the source amount; it will be re-converted when the user picks a country.
-          newState.gross_annual = source.gross_annual
-          newState.currency = source.currency
-        }
+  // Wizard initial state — empty for new, existing state for edit
+  const wizardInitialState = useCallback((): CountryColumnState => {
+    if (!wizardTargetId || wizardTargetId === "__new__") {
+      return {
+        id: crypto.randomUUID(),
+        index: countries.length,
+        country: "",
+        year: "",
+        variant: "",
+        gross_annual: salaryModeSynced ? "" : "",
+        formValues: {},
+        currency: "EUR",
+        result: null,
+        isCalculating: false,
+        calculationError: null,
+        costOfLiving: { rent: 0, healthcare: 0, food: 0, mobility: 0, travel: 0 },
       }
     }
-
-    setCountries(prev => [...prev, newState])
-    if (isMobile) {
-      setActiveTabIndex(countries.length)
+    return countries.find(c => c.id === wizardTargetId) ?? {
+      id: crypto.randomUUID(),
+      index: countries.length,
+      country: "",
+      year: "",
+      variant: "",
+      gross_annual: "",
+      formValues: {},
+      currency: "EUR",
+      result: null,
+      isCalculating: false,
+      calculationError: null,
+      costOfLiving: { rent: 0, healthcare: 0, food: 0, mobility: 0, travel: 0 },
     }
-  }, [countries, isMobile, salaryModeSynced])
+  }, [wizardTargetId, countries, salaryModeSynced])
+
+  const handleWizardSave = useCallback(
+    (saved: CountryColumnState) => {
+      if (wizardTargetId === "__new__") {
+        // New followers start with empty salary; CountryColumn will trigger
+        // updateCountry({ currency }) once inputsData loads, which converts from leader.
+        const gross_annual = salaryModeSynced ? "" : saved.gross_annual
+
+        const newEntry: CountryColumnState = {
+          ...saved,
+          id: crypto.randomUUID(),
+          index: countries.length,
+          gross_annual,
+          result: null,
+          isCalculating: false,
+          calculationError: null,
+        }
+        setCountries(prev => [...prev, newEntry])
+        if (isMobile) setActiveTabIndex(countries.length)
+      } else {
+        // Editing existing — preserve the id/index
+        setCountries(prev =>
+          prev.map(c => (c.id === wizardTargetId ? { ...c, ...saved, id: c.id, index: c.index } : c))
+        )
+      }
+      setWizardTargetId(null)
+    },
+    [wizardTargetId, countries, salaryModeSynced, isMobile]
+  )
+
+  // Add new country — opens wizard
+  const addCountry = useCallback(() => {
+    if (countries.length >= MAX_COUNTRIES) return
+    setWizardTargetId("__new__")
+  }, [countries.length])
 
   // Remove country
   const removeCountry = useCallback(
@@ -494,9 +544,12 @@ export function ComparisonGrid() {
               {...country}
               onUpdate={updates => updateCountry(country.id, updates)}
               onRemove={() => removeCountry(country.id)}
+              onEdit={() => setWizardTargetId(country.id)}
               showRemove={countries.length > 1}
               isBest={bestCountryId === country.id}
               comparisonDelta={getComparisonDelta(country.id)}
+              isLeader={country.index === 0}
+              salaryModeSynced={salaryModeSynced}
             />
           ))}
         </div>
@@ -514,14 +567,29 @@ export function ComparisonGrid() {
                 {...country}
                 onUpdate={updates => updateCountry(country.id, updates)}
                 onRemove={() => removeCountry(country.id)}
+                onEdit={() => setWizardTargetId(country.id)}
                 showRemove={countries.length > 1}
                 isBest={bestCountryId === country.id}
                 comparisonDelta={getComparisonDelta(country.id)}
+                isLeader={country.index === 0}
+                salaryModeSynced={salaryModeSynced}
               />
             ))}
           </div>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
+      )}
+
+      {/* Destination Wizard */}
+      {wizardTargetId && (
+        <DestinationWizard
+          open={!!wizardTargetId}
+          onClose={() => setWizardTargetId(null)}
+          initialState={wizardInitialState()}
+          onSave={handleWizardSave}
+          isLeader={wizardTargetId === "__new__" ? false : (countries.find(c => c.id === wizardTargetId)?.index === 0)}
+          salaryModeSynced={salaryModeSynced}
+        />
       )}
 
       {/* Save Dialog */}

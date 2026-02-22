@@ -29,7 +29,7 @@ import { DeductionManager } from "./deduction-manager"
 import { CostOfLivingSection } from "./cost-of-living-section"
 import { CountryColumnState, CostOfLiving, DEFAULT_COST_OF_LIVING } from "@/lib/types"
 import { getCountryFlag } from "@/lib/country-metadata"
-import { Crown } from "lucide-react"
+import { Crown, Settings } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Info } from "lucide-react"
 import {
@@ -43,9 +43,12 @@ import {
 interface CountryColumnProps extends CountryColumnState {
   onUpdate: (updates: Partial<CountryColumnState>) => void
   onRemove: () => void
+  onEdit?: () => void
   showRemove?: boolean
   isBest?: boolean
   comparisonDelta?: number
+  isLeader?: boolean
+  salaryModeSynced?: boolean
 }
 
 export function CountryColumn({
@@ -63,9 +66,12 @@ export function CountryColumn({
   costOfLiving = DEFAULT_COST_OF_LIVING,
   onUpdate,
   onRemove,
+  onEdit,
   showRemove = true,
   isBest = false,
   comparisonDelta,
+  isLeader: _isLeader = false,
+  salaryModeSynced: _salaryModeSynced = false,
 }: CountryColumnProps) {
   // Queries for dropdowns
   const { data: countries = [] } = useCountries()
@@ -78,6 +84,7 @@ export function CountryColumn({
 
   // Track if we've initialized defaults
   const hasInitializedYearRef = useRef<string | null>(null)
+  const currencyEmittedForRef = useRef<string | null>(null)
 
   // Auto-select latest year when years load
   useEffect(() => {
@@ -94,11 +101,17 @@ export function CountryColumn({
   useEffect(() => {
     if (!inputsData) return
 
+    const key = `${country}:${year}:${variant}`
     const updates: Partial<CountryColumnState> = {}
 
-    // Update currency if changed
-    if (inputsData.currency && inputsData.currency !== currency) {
-      updates.currency = inputsData.currency
+    // Always emit currency on first load for this country/year/variant — even if it matches
+    // the default "EUR" — so synced followers can trigger salary conversion via updateCountry.
+    if (inputsData.currency) {
+      const isFirstLoad = currencyEmittedForRef.current !== key
+      if (isFirstLoad || inputsData.currency !== currency) {
+        updates.currency = inputsData.currency
+        currencyEmittedForRef.current = key
+      }
     }
 
     // Initialize form defaults for new inputs ONLY if they don't exist
@@ -238,17 +251,31 @@ export function CountryColumn({
               </Badge>
             )}
           </div>
-          {showRemove && onRemove && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 md:h-7 md:w-7 text-muted-foreground hover:text-destructive"
-              onClick={onRemove}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Remove</span>
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 md:h-7 md:w-7 text-muted-foreground"
+                onClick={onEdit}
+                title="Edit destination"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="sr-only">Edit</span>
+              </Button>
+            )}
+            {showRemove && onRemove && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 md:h-7 md:w-7 text-muted-foreground hover:text-destructive"
+                onClick={onRemove}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Remove</span>
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
 
