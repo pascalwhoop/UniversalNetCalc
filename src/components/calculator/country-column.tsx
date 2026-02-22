@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useRef } from "react"
 import { toast } from "sonner"
-import { X, Copy } from "lucide-react"
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -42,8 +42,6 @@ interface CountryColumnProps extends CountryColumnState {
   onUpdate: (updates: Partial<CountryColumnState>) => void
   onRemove: () => void
   showRemove?: boolean
-  showCopyToAll?: boolean
-  onCopyGrossToAll?: () => void
   isBest?: boolean
   comparisonDelta?: number
 }
@@ -63,8 +61,6 @@ export function CountryColumn({
   onUpdate,
   onRemove,
   showRemove = true,
-  showCopyToAll = false,
-  onCopyGrossToAll,
   isBest = false,
   comparisonDelta,
 }: CountryColumnProps) {
@@ -316,27 +312,6 @@ export function CountryColumn({
                   />
                 )}
               </div>
-              {showCopyToAll && gross_annual && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 md:h-5 md:px-1.5 text-xs text-muted-foreground hover:text-foreground"
-                        onClick={onCopyGrossToAll}
-                      >
-                        <Copy className="h-3 w-3 mr-1" />
-                        <span className="hidden sm:inline">Copy all</span>
-                        <span className="sm:hidden">Copy</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Copy salary to all countries (converts currency)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">

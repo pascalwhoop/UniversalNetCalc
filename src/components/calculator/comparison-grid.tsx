@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { CountryColumn } from "./country-column"
 import { ComparisonSummary } from "./comparison-summary"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { toast } from "sonner"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ShareButton } from "./share-button"
 import { SaveDialog } from "./save-dialog"
 import { CountryColumnState } from "@/lib/types"
@@ -67,6 +68,7 @@ export function ComparisonGrid() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [activeTabIndex, setActiveTabIndex] = useState(0)
+  const [salaryModeSynced, setSalaryModeSynced] = useState(true)
 
   // Initialize from URL on mount ONLY
   useEffect(() => {
@@ -142,20 +144,108 @@ export function ComparisonGrid() {
 
   // Update a single country's state
   const updateCountry = useCallback((id: string, updates: Partial<CountryColumnState>) => {
-    setCountries(prev =>
-      prev.map(c => (c.id === id ? { ...c, ...updates } : c))
-    )
+    setCountries(prev => {
+      const next = prev.map(c => (c.id === id ? { ...c, ...updates } : c))
+      return next
+    })
+
+    // In synced mode, when a column's currency is set (country selected), convert its gross from a sibling
+    if (salaryModeSynced && "currency" in updates && updates.currency && !("gross_annual" in updates)) {
+      const targetCurrency = updates.currency
+      setCountries(prev => {
+        const source = prev.find(c => c.id !== id && c.gross_annual)
+        if (!source) return prev
+        const amount = parseFloat(source.gross_annual)
+        if (isNaN(amount)) return prev
+        const sourceCurrency = source.currency || "EUR"
+        if (sourceCurrency === targetCurrency) {
+          return prev.map(c => c.id === id ? { ...c, gross_annual: source.gross_annual } : c)
+        }
+        fetchExchangeRate(sourceCurrency, targetCurrency)
+          .then(rate => {
+            const converted = String(Math.round(amount * rate))
+            setCountries(cols => cols.map(col => col.id === id ? { ...col, gross_annual: converted } : col))
+          })
+          .catch(() => {
+            setCountries(cols => cols.map(col => col.id === id ? { ...col, gross_annual: source.gross_annual } : col))
+          })
+        return prev
+      })
+    }
+
+    // In synced mode, propagate gross_annual changes to all other columns with currency conversion
+    if (salaryModeSynced && "gross_annual" in updates) {
+      const newGross = updates.gross_annual
+      const amount = parseFloat(newGross ?? "")
+      if (isNaN(amount)) return
+
+      setCountries(prev => {
+        const source = prev.find(c => c.id === id)
+        if (!source) return prev
+        const sourceCurrency = source.currency || "EUR"
+
+        // Kick off async conversion for each other column
+        prev.forEach(c => {
+          if (c.id === id) return
+          const targetCurrency = c.currency || "EUR"
+          if (targetCurrency === sourceCurrency) {
+            setCountries(cols => cols.map(col => col.id === c.id ? { ...col, gross_annual: newGross ?? col.gross_annual } : col))
+          } else {
+            fetchExchangeRate(sourceCurrency, targetCurrency)
+              .then(rate => {
+                const converted = String(Math.round(amount * rate))
+                setCountries(cols => cols.map(col => col.id === c.id ? { ...col, gross_annual: converted } : col))
+              })
+              .catch(() => {
+                // Fallback: copy raw value if conversion unavailable
+                setCountries(cols => cols.map(col => col.id === c.id ? { ...col, gross_annual: newGross ?? col.gross_annual } : col))
+              })
+          }
+        })
+        return prev
+      })
+    }
+  }, [salaryModeSynced])
+
+  // Toggle salary mode
+  const handleSalaryModeChange = useCallback((synced: boolean) => {
+    setSalaryModeSynced(synced)
+    if (synced) {
+      // Sync all columns to the first column that has a gross value
+      setCountries(prev => {
+        const sorted = [...prev].sort((a, b) => a.index - b.index)
+        const source = sorted.find(c => c.gross_annual)
+        if (!source) return prev
+        return prev.map(c => ({ ...c, gross_annual: source.gross_annual }))
+      })
+    }
   }, [])
 
   // Add new country
   const addCountry = useCallback(() => {
-    if (countries.length < MAX_COUNTRIES) {
-      setCountries(prev => [...prev, createEmptyCountryState(prev.length)])
-      if (isMobile) {
-        setActiveTabIndex(countries.length)
+    if (countries.length >= MAX_COUNTRIES) return
+
+    const newState = createEmptyCountryState(countries.length)
+
+    // In synced mode, pre-fill gross from the first column that has a value
+    if (salaryModeSynced) {
+      const source = countries.find(c => c.gross_annual)
+      if (source) {
+        const amount = parseFloat(source.gross_annual)
+        if (!isNaN(amount)) {
+          // We don't know the new column's currency yet (no country selected),
+          // so store the source amount; it will be re-converted when the user picks a country.
+          newState.gross_annual = source.gross_annual
+          newState.currency = source.currency
+        }
       }
     }
-  }, [countries.length, isMobile])
+
+    setCountries(prev => [...prev, newState])
+    if (isMobile) {
+      setActiveTabIndex(countries.length)
+    }
+  }, [countries, isMobile, salaryModeSynced])
 
   // Remove country
   const removeCountry = useCallback(
@@ -171,48 +261,6 @@ export function ComparisonGrid() {
       }
     },
     [countries, isMobile, activeTabIndex]
-  )
-
-  // Copy gross to all countries with currency conversion
-  const copyGrossToAll = useCallback(
-    async (sourceId: string) => {
-      const source = countries.find(c => c.id === sourceId)
-      if (!source || !source.gross_annual) return
-
-      const sourceAmount = parseFloat(source.gross_annual)
-      if (isNaN(sourceAmount)) return
-
-      // Convert to each country's currency
-      const updates = await Promise.all(
-        countries.map(async c => {
-          if (c.id === sourceId) return c
-
-          if (c.currency === source.currency) {
-            return { ...c, gross_annual: source.gross_annual }
-          } else {
-            try {
-              const sourceCurrency = source.currency || "EUR"
-              const targetCurrency = c.currency || "EUR"
-              const rate = await fetchExchangeRate(sourceCurrency, targetCurrency)
-              const converted = Math.round(sourceAmount * rate)
-              return { ...c, gross_annual: String(converted) }
-            } catch (e) {
-              // Unsupported currency errors are expected, don't log as error
-              if (e instanceof UnsupportedCurrencyError) {
-                console.warn(`Currency conversion not available: ${e.currency}`)
-              } else {
-                console.error("Currency conversion failed:", e)
-              }
-              return { ...c, gross_annual: source.gross_annual }
-            }
-          }
-        })
-      )
-
-      setCountries(updates)
-      toast.success("Salary copied to all countries")
-    },
-    [countries]
   )
 
   // Calculate normalized net values for comparison
@@ -306,31 +354,63 @@ export function ComparisonGrid() {
       {!isMobile && (
         <div className="flex items-center justify-between pb-4">
           <div>
-            <h2 className="text-lg font-semibold">Compare Countries</h2>
+            <h2 className="text-lg font-semibold">Compare Destinations</h2>
             <p className="text-sm text-muted-foreground">
-              Add up to {MAX_COUNTRIES} countries to compare side by side
+              Add up to {MAX_COUNTRIES} destinations to compare side by side
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setSaveDialogOpen(true)}
-              disabled={countryResults.size === 0}
-              variant="outline"
-              size="sm"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-            <ShareButton disabled={countries.length === 0} />
-            <Button
-              onClick={addCountry}
-              disabled={countries.length >= MAX_COUNTRIES}
-              variant="outline"
-              size="sm"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Country
-            </Button>
+          <div className="flex items-center gap-3">
+            {/* Salary mode toggle */}
+            <TooltipProvider delayDuration={300}>
+              <Tabs
+                value={salaryModeSynced ? "synced" : "independent"}
+                onValueChange={v => handleSalaryModeChange(v === "synced")}
+              >
+                <TabsList>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="synced">Same salary</TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-[200px]">One gross salary applied to all destinations — compare nets across tax systems.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="independent">Local salaries</TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-[200px]">Each destination has its own gross — for comparing real market-rate offers.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </Tabs>
+            </TooltipProvider>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setSaveDialogOpen(true)}
+                disabled={countryResults.size === 0}
+                variant="outline"
+                size="sm"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save
+              </Button>
+              <ShareButton disabled={countries.length === 0} />
+              <Button
+                onClick={addCountry}
+                disabled={countries.length >= MAX_COUNTRIES}
+                variant="outline"
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Destination
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -339,7 +419,7 @@ export function ComparisonGrid() {
       {isMobile && (
         <div className="pb-3">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-semibold">Compare Countries</h2>
+            <h2 className="text-base font-semibold">Compare Destinations</h2>
             <div className="flex gap-2">
               <Button
                 onClick={() => setSaveDialogOpen(true)}
@@ -352,6 +432,16 @@ export function ComparisonGrid() {
               <ShareButton disabled={countries.length === 0} />
             </div>
           </div>
+          {/* Salary mode toggle (mobile) */}
+          <Tabs
+            value={salaryModeSynced ? "synced" : "independent"}
+            onValueChange={v => handleSalaryModeChange(v === "synced")}
+          >
+            <TabsList>
+              <TabsTrigger value="synced">Same salary</TabsTrigger>
+              <TabsTrigger value="independent">Local salaries</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       )}
 
@@ -389,8 +479,6 @@ export function ComparisonGrid() {
               onUpdate={updates => updateCountry(country.id, updates)}
               onRemove={() => removeCountry(country.id)}
               showRemove={countries.length > 1}
-              showCopyToAll={countries.length > 1}
-              onCopyGrossToAll={() => copyGrossToAll(country.id)}
               isBest={bestCountryId === country.id}
               comparisonDelta={getComparisonDelta(country.id)}
             />
@@ -411,8 +499,6 @@ export function ComparisonGrid() {
                 onUpdate={updates => updateCountry(country.id, updates)}
                 onRemove={() => removeCountry(country.id)}
                 showRemove={countries.length > 1}
-                showCopyToAll={countries.length > 1}
-                onCopyGrossToAll={() => copyGrossToAll(country.id)}
                 isBest={bestCountryId === country.id}
                 comparisonDelta={getComparisonDelta(country.id)}
               />

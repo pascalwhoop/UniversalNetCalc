@@ -39,7 +39,7 @@ export function MobileCountrySelector({
                 {country ? getCountryFlag(country) : "🌍"}
               </span>
               <span className="text-xs">
-                {country ? getCountryName(country) : `Country ${index + 1}`}
+                {country ? getCountryName(country) : `Destination ${index + 1}`}
               </span>
             </TabsTrigger>
           ))}
@@ -52,7 +52,7 @@ export function MobileCountrySelector({
           variant="outline"
           size="icon"
           className="shrink-0"
-          aria-label="Add country"
+          aria-label="Add destination"
         >
           <Plus className="h-4 w-4" />
         </Button>
