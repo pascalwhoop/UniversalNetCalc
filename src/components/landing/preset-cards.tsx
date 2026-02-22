@@ -34,9 +34,9 @@ export function PresetCards() {
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Quick Start</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Popular Mobility Scenarios</h2>
           <p className="text-lg text-muted-foreground">
-            Get started with pre-configured country comparisons
+            Common comparisons for professionals considering a move
           </p>
         </div>
 
