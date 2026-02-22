@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useCallback, useRef } from "react"
+import { useEffect, useCallback, useRef, useMemo } from "react"
 import { toast } from "sonner"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -133,6 +133,30 @@ export function CountryColumn({
   }, [inputsData?.currency, country, year, variant])
   // Only run when country/year/variant changes, not on every formValues change
 
+  // Build the current calc request (shared by calculate() and DeductionManager)
+  const calcRequest: CalcRequest | null = useMemo(() => {
+    if (!country || !year || !gross_annual) return null
+    const grossNum = parseFloat(gross_annual)
+    if (isNaN(grossNum) || grossNum <= 0) return null
+
+    const request: CalcRequest = { country, year, gross_annual: grossNum }
+    if (variant) request.variant = variant
+
+    for (const [key, value] of Object.entries(formValues)) {
+      if (key === "gross_annual") continue
+      const inputDef = inputsData?.inputs[key] as InputDefinition | undefined
+      if (inputDef?.type === "boolean") {
+        request[key] = value === "true"
+      } else if (inputDef?.type === "number") {
+        const numValue = parseFloat(value || "0")
+        if (!isNaN(numValue)) request[key] = numValue
+      } else if (value) {
+        request[key] = value
+      }
+    }
+    return request
+  }, [country, year, gross_annual, variant, formValues, inputsData])
+
   // Trigger calculation when inputs change
   const calculate = useCallback(() => {
     if (!country || !year || !gross_annual) {
@@ -150,38 +174,11 @@ export function CountryColumn({
       return
     }
 
-    // Build request
-    const request: CalcRequest = {
-      country,
-      year,
-      gross_annual: grossNum,
-    }
-
-    if (variant) {
-      request.variant = variant
-    }
-
-    // Add form values
-    for (const [key, value] of Object.entries(formValues)) {
-      if (key === "gross_annual") continue
-
-      const inputDef = inputsData?.inputs[key] as InputDefinition | undefined
-
-      if (inputDef?.type === "boolean") {
-        request[key] = value === "true"
-      } else if (inputDef?.type === "number") {
-        const numValue = parseFloat(value || "0")
-        if (!isNaN(numValue)) {
-          request[key] = numValue
-        }
-      } else if (value) {
-        request[key] = value
-      }
-    }
+    if (!calcRequest) return
 
     onUpdate({ isCalculating: true })
 
-    calculateMutation.mutate(request, {
+    calculateMutation.mutate(calcRequest, {
       onSuccess: data => {
         onUpdate({
           result: data,
@@ -412,7 +409,7 @@ export function CountryColumn({
               onUpdateFormValue={updateFormValue}
               columnIndex={index}
               result={result}
-              currency={currency || "EUR"}
+              calcRequest={calcRequest}
             />
           </div>
 

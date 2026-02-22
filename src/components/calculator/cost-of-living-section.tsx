@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CostOfLiving } from "@/lib/types"
 
@@ -59,18 +58,18 @@ export function CostOfLivingSection({ value, currencySymbol, onChange }: CostOfL
               <Label htmlFor={`col-${key}`} className="text-xs text-muted-foreground">
                 {label}
               </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+              <div className="flex items-center h-8 rounded-md border border-input bg-background text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                <span className="pl-3 pr-1 text-muted-foreground whitespace-nowrap shrink-0">
                   {currencySymbol}
                 </span>
-                <Input
+                <input
                   id={`col-${key}`}
                   type="number"
                   min={0}
                   step={50}
                   value={value[key] || ""}
                   onChange={e => handleChange(key, e.target.value)}
-                  className="pl-7 h-8 text-sm"
+                  className="flex-1 min-w-0 bg-transparent py-1 pr-3 outline-none placeholder:text-muted-foreground"
                   placeholder="0"
                 />
               </div>
