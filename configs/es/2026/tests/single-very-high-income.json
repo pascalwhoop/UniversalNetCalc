@@ -1,0 +1,22 @@
+{
+  "name": "Single filer at very high income",
+  "description": "Very high earner at €500,000 in Spain - in top IRPF bracket",
+  "inputs": {
+    "gross_annual": 500000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 276131,
+    "effective_rate": 0.4477
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Spanish national IRPF rates, SS (capped), and progressive solidarity contribution",
+      "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
+      "retrieved_at": "2026-02-22",
+      "notes": "IRPF: 47% on income above €300k. SS capped at €61,214.40. Solidarity on €438,785.60 excess at progressive rates: 0.19%/0.21%/0.24%. Total solidarity ~€1,042.68."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Beckham Law at threshold",
+  "description": "Expat under Beckham Law at €600,000 - exactly at the flat rate threshold",
+  "variant": "beckham-law",
+  "inputs": {
+    "gross_annual": 600000,
+    "filing_status": "single"
+  },
+  "expected": {
+    "net": 450738,
+    "effective_rate": 0.2488
+  },
+  "tolerance": 100,
+  "tolerance_percent": 0.01,
+  "sources": [
+    {
+      "description": "Calculated using 2026 Beckham Law rates at threshold",
+      "url": "https://www.lawants.com/en/beckham-law/",
+      "retrieved_at": "2026-02-22",
+      "notes": "Beckham tax: 24% of €600,000 = €144,000. SS: €3,978.94. Solidarity on €538,785.60: ~€1,282.68."
+    }
+  ]
+}
