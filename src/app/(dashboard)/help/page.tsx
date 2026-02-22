@@ -52,7 +52,7 @@ export default async function HelpPage() {
               <li>Fill in any required inputs (e.g., filing status, region)</li>
               <li>Optionally select a tax variant (e.g., expat regime)</li>
               <li>View the detailed breakdown of taxes and contributions</li>
-              <li>Add more countries to compare side-by-side (up to 4)</li>
+              <li>Add more destinations to compare side-by-side (up to 4)</li>
               <li>Share your comparison with the shareable URL</li>
             </ol>
           </CardContent>
@@ -194,7 +194,7 @@ export default async function HelpPage() {
                 </AccordionTrigger>
                 <AccordionContent>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Yes! Click &quot;Add Country&quot; to add up to 4 countries for
+                    Yes! Click &quot;Add Destination&quot; to add up to 4 destinations for
                     side-by-side comparison. Currency conversion is handled
                     automatically using recent exchange rates.
                   </p>
