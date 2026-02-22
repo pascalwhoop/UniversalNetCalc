@@ -1,4 +1,5 @@
 export { ComparisonGrid } from "./comparison-grid"
+export { DestinationWizard } from "./destination-wizard"
 export { ComparisonSummary } from "./comparison-summary"
 export { CountryColumn } from "./country-column"
 export { ResultBreakdown } from "./result-breakdown"
