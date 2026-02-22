@@ -1,0 +1,22 @@
+{
+  "name": "Base - High Income (KRW 100M)",
+  "description": "High salary, testing pension cap and third income tax bracket",
+  "inputs": {
+    "gross_annual": 100000000
+  },
+  "expected": {
+    "net": 75627717,
+    "effective_rate": 0.24372,
+    "breakdown": {
+      "earned_income_deduction": 14750000,
+      "national_income_tax": 14340000,
+      "local_income_tax": 1434000,
+      "national_pension": 3630900,
+      "health_insurance": 3595000,
+      "long_term_care_insurance": 472383,
+      "employment_insurance": 900000
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005
+}

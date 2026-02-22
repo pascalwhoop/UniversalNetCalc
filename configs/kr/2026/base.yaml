@@ -1,0 +1,398 @@
+meta:
+  country: "kr"
+  year: 2026
+  currency: "KRW"
+  version: "1.0.0"
+  sources:
+    - url: "https://taxsummaries.pwc.com/republic-of-korea/individual/taxes-on-personal-income"
+      description: "PWC Korea - Individual Taxes on Personal Income"
+      retrieved_at: "2026-02-22"
+    - url: "https://taxsummaries.pwc.com/republic-of-korea/individual/other-taxes"
+      description: "PWC Korea - Social Insurance Contributions 2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://koreantaxexpert.com/2025/12/08/korea-social-insurance-contribution-rates-2025-2026/"
+      description: "Korea Social Insurance Contribution Rates 2025-2026"
+      retrieved_at: "2026-02-22"
+    - url: "https://www.shoplworks.com/blog-insight/2026-four-major-insurance-rate-changes-company-must-know"
+      description: "2026 Four Major Insurance Rate Changes"
+      retrieved_at: "2026-02-22"
+    - url: "https://angelsitter.co.kr/board.view.php?board=bbs3&no=738"
+      description: "2026 Health Insurance and Long-term Care Insurance Rates"
+      retrieved_at: "2026-02-22"
+    - url: "https://barunlaw.com/letter/publications/Legal500_Comparative_Country_Guides_2026_Private_Client_South_Korea.pdf"
+      description: "Legal 500 Country Comparative Guides 2026 - South Korea Income Tax Brackets"
+      retrieved_at: "2026-02-22"
+  updated_at: "2026-02-22"
+  notes: |
+    This configuration covers the standard South Korean tax system for 2026.
+
+    Key features:
+    - Progressive income tax (6% to 45%) with 8 tax brackets (unchanged from 2025)
+    - Local income tax (10% of national income tax)
+    - Earned income deduction (complex 5-bracket formula, capped at KRW 20M)
+    - Basic personal deduction (KRW 1.5M)
+    - National pension (4.75%, increased from 4.5% in 2025; capped at KRW 6,370,000/month Jan-Jun 2026)
+    - Health insurance (3.595%, increased from 3.545% in 2025)
+    - Long-term care (13.14% of health insurance, rate 0.9448% of salary)
+    - Employment insurance (0.9%, unchanged)
+
+    Key changes from 2025:
+    - National Pension rate increased: 4.5% → 4.75% (employee share)
+      The total NPS rate increases from 9.0% to 9.5% as part of a gradual reform
+      reaching 13.0% by 2033 (National Pension Act amendment, effective Jan 1, 2026)
+    - Health insurance rate increased: 3.545% → 3.595% (employee share of total 7.19%)
+    - Long-term care rate increased: 0.9182% → 0.9448% of salary (13.14% of health insurance)
+    - Income tax brackets: unchanged from 2025
+
+    Pension cap notes:
+    - The monthly cap is KRW 6,370,000 from Jan-Jun 2026 (same as 2025)
+    - From July 2026, the cap will rise to KRW 6,590,000
+    - This config uses the Jan-Jun 2026 cap of KRW 6,370,000 for simplicity;
+      actual annual pension may vary slightly for high earners
+
+    Key assumptions:
+    - Tax resident (183+ days in Korea)
+    - Standard employee with earned income
+    - No special exemptions or reductions
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: |
+      Enter your total annual gross salary (KRW) before any deductions or taxes.
+      This should include all employment income received during the year.
+    severity: "info"
+
+  - id: "tax_resident"
+    title: "Tax Residency"
+    body: |
+      This calculator assumes you are a tax resident (staying in Korea for 183+ days).
+      Tax residents are subject to Korean tax on worldwide income, though special rules
+      apply based on years of residency.
+    severity: "info"
+
+  - id: "local_tax_explained"
+    title: "Local Income Tax"
+    body: |
+      In addition to national income tax, all taxpayers pay a local income tax equal
+      to 10% of the national income tax. This effectively increases tax rates by 10%.
+    severity: "info"
+
+  - id: "social_insurance"
+    title: "Social Insurance Contributions"
+    body: |
+      Mandatory social insurance includes National Pension (4.75%, increased from 4.5%
+      in 2025), Health Insurance (3.595%), Long-term Care Insurance (13.14% of health
+      insurance), and Employment Insurance (0.9%). Pension contributions are capped at
+      KRW 6,370,000/month (Jan-Jun 2026).
+    severity: "info"
+
+  - id: "flat_tax_option"
+    title: "Foreign Workers: 19% Flat Tax Option Available"
+    body: |
+      If you are a foreign worker who started work in Korea before December 31, 2026,
+      you may be eligible for a simplified 19% flat tax rate (plus 10% local tax = 20.9% total).
+      This option lasts for 20 years but forfeits all deductions and credits.
+      See the "flat-tax" variant for calculations.
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total yearly salary before any deductions (KRW)"
+
+parameters:
+  # National income tax brackets - 8 brackets from 6% to 45% (unchanged from 2025)
+  national_tax_brackets:
+    - threshold: 0
+      rate: 0.06
+    - threshold: 14000000
+      rate: 0.15
+    - threshold: 50000000
+      rate: 0.24
+    - threshold: 88000000
+      rate: 0.35
+    - threshold: 150000000
+      rate: 0.38
+    - threshold: 300000000
+      rate: 0.40
+    - threshold: 500000000
+      rate: 0.42
+    - threshold: 1000000000
+      rate: 0.45
+
+  # Local income tax rate (percentage of national tax)
+  local_tax_rate: 0.10
+
+  # Basic personal deduction
+  basic_deduction: 1500000
+
+  # Earned income deduction parameters (5-bracket formula)
+  # Formula calculates cumulative deduction based on income ranges
+  earned_income_deduction_cap: 20000000
+
+  # Social insurance rates (2026)
+  # National Pension: increased from 4.5% to 4.75% (employee share)
+  national_pension_rate: 0.0475
+  national_pension_monthly_cap: 6370000  # KRW per month (valid Jan-Jun 2026; rises to 6,590,000 from Jul 2026)
+
+  # Health Insurance: increased from 3.545% to 3.595% (employee share of 7.19% total)
+  health_insurance_rate: 0.03595
+
+  # Long-term Care: 13.14% of health insurance (0.9448% of salary total; rate unchanged as fraction of health insurance)
+  long_term_care_rate: 0.1314
+
+  employment_insurance_rate: 0.009
+
+calculations:
+  # ============================================================================
+  # EARNED INCOME DEDUCTION (Complex 5-bracket formula)
+  # ============================================================================
+  # Formula:
+  # 0-5M: 70% of amount
+  # 5M-15M: 3.5M base + 40% of excess over 5M
+  # 15M-45M: 7.5M base + 15% of excess over 15M
+  # 45M-100M: 12M base + 5% of excess over 45M
+  # Over 100M: 14.75M base + 2% of excess over 100M
+  # Maximum: 20M
+
+  - id: earned_income_deduction_uncapped
+    type: conditional
+    condition:
+      type: lte
+      left: "@gross_annual"
+      right: 5000000
+    then:
+      type: mul
+      values:
+        - "@gross_annual"
+        - 0.70
+    else:
+      type: conditional
+      condition:
+        type: lte
+        left: "@gross_annual"
+        right: 15000000
+      then:
+        type: sum
+        values:
+          - 3500000
+          - type: mul
+            values:
+              - type: sub
+                values:
+                  - "@gross_annual"
+                  - 5000000
+              - 0.40
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: 45000000
+        then:
+          type: sum
+          values:
+            - 7500000
+            - type: mul
+              values:
+                - type: sub
+                  values:
+                    - "@gross_annual"
+                    - 15000000
+                - 0.15
+        else:
+          type: conditional
+          condition:
+            type: lte
+            left: "@gross_annual"
+            right: 100000000
+          then:
+            type: sum
+            values:
+              - 12000000
+              - type: mul
+                values:
+                  - type: sub
+                    values:
+                      - "@gross_annual"
+                      - 45000000
+                  - 0.05
+          else:
+            type: sum
+            values:
+              - 14750000
+              - type: mul
+                values:
+                  - type: sub
+                    values:
+                      - "@gross_annual"
+                      - 100000000
+                  - 0.02
+
+  - id: earned_income_deduction
+    type: min
+    values:
+      - "$earned_income_deduction_uncapped"
+      - "$earned_income_deduction_cap"
+    category: deduction
+    label: "Earned Income Deduction"
+    description: "Deduction for salary/wage earners (max KRW 20M)"
+
+  # ============================================================================
+  # TAXABLE INCOME CALCULATION
+  # ============================================================================
+
+  - id: adjusted_gross_income
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$earned_income_deduction"
+
+  - id: taxable_income
+    type: sub
+    values:
+      - "$adjusted_gross_income"
+      - "$basic_deduction"
+    category: deduction
+    label: "Basic Personal Deduction"
+    description: "Standard deduction for all taxpayers (KRW 1.5M)"
+
+  # ============================================================================
+  # INCOME TAX CALCULATION
+  # ============================================================================
+
+  - id: national_income_tax
+    type: bracket_tax
+    base: "$taxable_income"
+    brackets: "$national_tax_brackets"
+    category: income_tax
+    label: "National Income Tax"
+    description: "Progressive tax (6%-45%) on taxable income"
+
+  - id: local_income_tax
+    type: mul
+    values:
+      - "$national_income_tax"
+      - "$local_tax_rate"
+    category: income_tax
+    label: "Local Income Tax"
+    description: "10% of national income tax"
+
+  - id: total_income_tax
+    type: sum
+    values:
+      - "$national_income_tax"
+      - "$local_income_tax"
+
+  # ============================================================================
+  # SOCIAL INSURANCE CONTRIBUTIONS
+  # ============================================================================
+
+  # National Pension (capped at 6.37M/month = 76.44M/year, Jan-Jun 2026)
+  - id: annual_pension_cap
+    type: mul
+    values:
+      - "$national_pension_monthly_cap"
+      - 12
+
+  - id: pension_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$annual_pension_cap"
+
+  - id: national_pension
+    type: mul
+    values:
+      - "$pension_base"
+      - "$national_pension_rate"
+    category: contribution
+    label: "National Pension"
+    description: "4.75% of salary (increased from 4.5% in 2025; capped at KRW 6.37M/month)"
+
+  # Health Insurance (no annual cap)
+  - id: health_insurance_base
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$health_insurance_rate"
+
+  - id: health_insurance
+    type: identity
+    value: "$health_insurance_base"
+    category: contribution
+    label: "Health Insurance"
+    description: "3.595% of salary (increased from 3.545% in 2025)"
+
+  # Long-term Care Insurance (13.14% of health insurance)
+  - id: long_term_care_insurance
+    type: mul
+    values:
+      - "$health_insurance_base"
+      - "$long_term_care_rate"
+    category: contribution
+    label: "Long-term Care Insurance"
+    description: "13.14% of health insurance contribution (rate 0.9448% of salary)"
+
+  # Employment Insurance
+  - id: employment_insurance
+    type: mul
+    values:
+      - "@gross_annual"
+      - "$employment_insurance_rate"
+    category: contribution
+    label: "Employment Insurance"
+    description: "0.9% of salary (unchanged from 2025)"
+
+  # Total social insurance
+  - id: total_social_insurance
+    type: sum
+    values:
+      - "$national_pension"
+      - "$health_insurance"
+      - "$long_term_care_insurance"
+      - "$employment_insurance"
+
+  # ============================================================================
+  # NET INCOME CALCULATION
+  # ============================================================================
+
+  - id: total_deductions
+    type: sum
+    values:
+      - "$total_income_tax"
+      - "$total_social_insurance"
+
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$net_annual"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$national_income_tax"
+      - "$local_income_tax"
+    contributions:
+      - "$national_pension"
+      - "$health_insurance"
+      - "$long_term_care_insurance"
+      - "$employment_insurance"
+    deductions:
+      - "$earned_income_deduction"
+      - "$taxable_income"

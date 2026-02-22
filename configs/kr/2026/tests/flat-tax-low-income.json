@@ -1,0 +1,22 @@
+{
+  "name": "Flat Tax - Low Income (KRW 25M)",
+  "description": "Low income with 19% flat tax - worse than progressive at this income level",
+  "variant": "flat-tax",
+  "inputs": {
+    "gross_annual": 25000000
+  },
+  "expected": {
+    "net": 17345675,
+    "effective_rate": 0.30657,
+    "breakdown": {
+      "national_income_tax": 4750000,
+      "local_income_tax": 475000,
+      "national_pension": 1187500,
+      "health_insurance": 898750,
+      "long_term_care_insurance": 118076,
+      "employment_insurance": 225000
+    }
+  },
+  "tolerance": 200,
+  "tolerance_percent": 0.005
+}
