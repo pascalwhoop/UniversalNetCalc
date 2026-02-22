@@ -1,0 +1,28 @@
+{
+  "name": "Single filer at low income in Geneva (2026)",
+  "description": "Single person earning CHF 45,000 in Geneva canton (high-tax)",
+  "inputs": {
+    "gross_annual": 45000,
+    "filing_status": "single",
+    "region_level_1": "geneva"
+  },
+  "expected": {
+    "net": 37350,
+    "effective_rate": 0.170,
+    "breakdown": {
+      "federal_income_tax": 174,
+      "cantonal_municipal_tax": 4500,
+      "avs_ai_apg_contribution": 2385,
+      "unemployment_contribution": 495
+    }
+  },
+  "tolerance": 150,
+  "tolerance_percent": 0.02,
+  "sources": [
+    {
+      "description": "Geneva has relatively high cantonal/municipal taxes. Taxable income for federal: 45000 - 2880 - 5000 = 37120. Federal tax ~174 CHF. Cantonal/Municipal 10% of gross for low income. Social 6.4%.",
+      "url": "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland",
+      "retrieved_at": "2026-02-22"
+    }
+  ]
+}
