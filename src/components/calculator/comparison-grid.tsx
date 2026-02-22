@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ShareButton } from "./share-button"
 import { SaveDialog } from "./save-dialog"
-import { CountryColumnState } from "@/lib/types"
+import { CountryColumnState, DEFAULT_COST_OF_LIVING } from "@/lib/types"
 import { decodeState, updateURL } from "@/lib/url-state"
 import { useSearchParams } from "next/navigation"
 import { fetchExchangeRate } from "@/lib/api"
@@ -35,6 +35,7 @@ function createEmptyCountryState(index: number): CountryColumnState {
     result: null,
     isCalculating: false,
     calculationError: null,
+    costOfLiving: { ...DEFAULT_COST_OF_LIVING },
   }
 }
 
@@ -51,6 +52,7 @@ function createDefaultCountryState(index: number, country?: string): CountryColu
     result: null,
     isCalculating: false,
     calculationError: null,
+    costOfLiving: { ...DEFAULT_COST_OF_LIVING },
   }
 }
 
@@ -89,6 +91,7 @@ export function ComparisonGrid() {
         result: null,
         isCalculating: false,
         calculationError: null,
+        costOfLiving: { ...DEFAULT_COST_OF_LIVING },
       }))
 
       setCountries(entries)
@@ -267,6 +270,12 @@ export function ComparisonGrid() {
   const [normalizedNetValues, setNormalizedNetValues] = useState<Map<string, number>>(new Map())
   const BASE_CURRENCY = "EUR"
 
+  // Check if any column has cost-of-living data
+  const anyColHasCostOfLiving = countries.some(c => {
+    const col = c.costOfLiving
+    return col && Object.values(col).some(v => v > 0)
+  })
+
   useEffect(() => {
     const normalize = async () => {
       const normalized = new Map<string, number>()
@@ -277,12 +286,18 @@ export function ComparisonGrid() {
         const { net, currency } = country.result
         const cur = currency || "EUR"
 
+        // Use disposable income if any column has COL data
+        const monthlyCosts = anyColHasCostOfLiving
+          ? Object.values(country.costOfLiving || {}).reduce((sum, v) => sum + v, 0)
+          : 0
+        const comparableNet = net - monthlyCosts * 12
+
         if (cur === BASE_CURRENCY) {
-          normalized.set(country.id, net)
+          normalized.set(country.id, comparableNet)
         } else {
           try {
             const rate = await fetchExchangeRate(cur, BASE_CURRENCY)
-            normalized.set(country.id, net * rate)
+            normalized.set(country.id, comparableNet * rate)
           } catch (error) {
             // Unsupported currency errors are expected, don't log as error
             if (error instanceof UnsupportedCurrencyError) {
@@ -292,7 +307,7 @@ export function ComparisonGrid() {
             } else {
               console.error(`Failed to convert ${cur} to ${BASE_CURRENCY}:`, error)
             }
-            normalized.set(country.id, net)
+            normalized.set(country.id, comparableNet)
           }
         }
       }
@@ -306,6 +321,7 @@ export function ComparisonGrid() {
     } else {
       setNormalizedNetValues(new Map())
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countries])
 
   // Find best country

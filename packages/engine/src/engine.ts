@@ -19,9 +19,25 @@ export class CalculationEngine {
   }
 
   calculate(inputs: Record<string, string | number | boolean | Record<string, unknown> | undefined>): CalculationResult {
+    // Apply input defaults for optional inputs not provided
+    const inputsWithDefaults: Record<string, string | number | boolean | Record<string, unknown> | undefined> = {}
+    for (const [key, def] of Object.entries(this.config.inputs)) {
+      if (inputs[key] !== undefined) {
+        inputsWithDefaults[key] = inputs[key]
+      } else if ('default' in def && def.default !== undefined) {
+        inputsWithDefaults[key] = def.default as string | number | boolean
+      }
+    }
+    // Also include any extra inputs not in config definitions
+    for (const [key, value] of Object.entries(inputs)) {
+      if (inputsWithDefaults[key] === undefined) {
+        inputsWithDefaults[key] = value
+      }
+    }
+
     // Initialize context
     const context: CalculationContext = {
-      inputs: { ...inputs },
+      inputs: inputsWithDefaults,
       parameters: this.config.parameters,
       nodes: {},
       config: {
