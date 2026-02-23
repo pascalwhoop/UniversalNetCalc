@@ -95,7 +95,11 @@ export function DestinationWizard({
       const sourceCurrency = leaderCurrencyRef.current
       const sourceAmount = parseFloat(leaderGrossRef.current)
       if (isNaN(sourceAmount) || sourceAmount <= 0) return
-      if (sourceCurrency === destinationCurrency) return
+      if (sourceCurrency === destinationCurrency) {
+        // Reset to leader's amount when currencies match
+        setDraft(prev => ({ ...prev, gross_annual: leaderGrossRef.current }))
+        return
+      }
       fetchExchangeRate(sourceCurrency, destinationCurrency)
         .then(rate => {
           const converted = String(Math.round(sourceAmount * rate))
