@@ -3,6 +3,29 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Globe, TrendingUp, Share2, Lock } from "lucide-react"
 import { LayoutTextFlip } from "@/components/ui/layout-text-flip"
 
+const heroFeatures = [
+  {
+    icon: TrendingUp,
+    title: "Tax Advisor Depth",
+    description: "Canton + municipality level, expat regimes, deductions",
+  },
+  {
+    icon: Globe,
+    title: "All Countries, One Place",
+    description: "Side-by-side comparison vs. scattered estimates",
+  },
+  {
+    icon: Lock,
+    title: "Free & Community-Maintained",
+    description: "Open source, no tracking, no paywalls",
+  },
+  {
+    icon: Share2,
+    title: "Share & Collaborate",
+    description: "Shareable links for team decisions",
+  },
+] as const
+
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/30 py-20 md:py-32">
@@ -34,34 +57,18 @@ export function HeroSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <div className="flex flex-col items-center p-4 rounded-lg bg-card border">
-            <TrendingUp className="w-8 h-8 text-primary mb-2" />
-            <h3 className="font-semibold text-sm">Tax Advisor Depth</h3>
-            <p className="text-xs text-muted-foreground text-center">
-              Canton + municipality level, expat regimes, deductions
-            </p>
-          </div>
-          <div className="flex flex-col items-center p-4 rounded-lg bg-card border">
-            <Globe className="w-8 h-8 text-primary mb-2" />
-            <h3 className="font-semibold text-sm">All Countries, One Place</h3>
-            <p className="text-xs text-muted-foreground text-center">
-              Side-by-side comparison vs. scattered estimates
-            </p>
-          </div>
-          <div className="flex flex-col items-center p-4 rounded-lg bg-card border">
-            <Lock className="w-8 h-8 text-primary mb-2" />
-            <h3 className="font-semibold text-sm">Free & Community-Maintained</h3>
-            <p className="text-xs text-muted-foreground text-center">
-              Open source, no tracking, no paywalls
-            </p>
-          </div>
-          <div className="flex flex-col items-center p-4 rounded-lg bg-card border">
-            <Share2 className="w-8 h-8 text-primary mb-2" />
-            <h3 className="font-semibold text-sm">Share & Collaborate</h3>
-            <p className="text-xs text-muted-foreground text-center">
-              Shareable links for team decisions
-            </p>
-          </div>
+          {heroFeatures.map(({ icon: Icon, title, description }) => (
+            <div
+              key={title}
+              className="flex flex-col items-center p-4 rounded-lg bg-card border"
+            >
+              <Icon className="w-8 h-8 text-primary mb-2" />
+              <h3 className="font-semibold text-sm text-center">{title}</h3>
+              <p className="text-xs text-muted-foreground text-center">
+                {description}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
