@@ -58,6 +58,12 @@ being considered:
 - **Spending percentile**: instead of flat numbers, ask "where are you on the spending curve
   for going out?" and translate that to local amounts. More nuanced and more useful.
 
+### 2026 country config batch
+All 2025 configs need 2026 updates. Priority order:
+- **p1 (EU core):** NL (#56), DE (#57), FR (#58), SE (#59), NO (#60), DK (#61), CH (#62), ES (#63), IE (#64)
+- **p2 (rest of world):** PT (#65), CA (#66), KR (#67), US (#68), SG (#69), JP (#71) — note JP fiscal year starts April 1, bump to p2
+- **p3:** AU (#72), NZ (#73), UAE (#74) — AU and NZ have July/April 2026 deadlines respectively
+
 ### Broader country coverage (EU focus first)
 More EU countries to serve the beachhead market. Priority order roughly: countries with high
 inbound mobility for EU professionals. Watch issue tracker for user requests — repeated asks

@@ -2,7 +2,7 @@
 
 ## The Question We Answer
 
-**"If I move to [country/city], how will I actually be standing financially?"**
+**"If I move to [country/city], what would I actually take home?"**
 
 Not approximately. Not with hand-wavy averages. With the actual tax rules, the actual deductions
 you'd qualify for, and your actual costs — so you can make a real decision.
