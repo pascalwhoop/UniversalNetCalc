@@ -19,7 +19,7 @@ export function HeroSection() {
             />
           </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">
-            how will I actually be standing financially?
+            what would I actually take home?
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Tax-advisor-level accuracy for EU free movers, expats, remote workers, and consultants.

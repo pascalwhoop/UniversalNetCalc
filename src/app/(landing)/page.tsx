@@ -6,7 +6,7 @@ import { FeaturesSection } from "@/components/landing/features-section"
 export const metadata: Metadata = {
   title: "NetCalc - Tax-Advisor-Level Salary Comparisons for Mobile Professionals",
   description:
-    "If I move to [country/city], how will I actually be standing financially? Tax-advisor-level accuracy for EU free movers, expats, remote workers. Canton/municipality level, expat regimes, free & open source.",
+    "If I move to [country/city], what would I actually take home? Tax-advisor-level accuracy for EU free movers, expats, remote workers. Canton/municipality level, expat regimes, free & open source.",
 }
 
 export default function LandingPage() {

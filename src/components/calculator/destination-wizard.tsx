@@ -77,16 +77,13 @@ export function DestinationWizard({
   const { data: variants = [] } = useVariants(country, year)
   const { data: inputsData } = useInputs(country, year, variant || undefined)
 
-  const hasInitializedYearRef = useRef<string | null>(null)
-
-  // Auto-select latest year when country changes
+  // Auto-select latest year when country is set but year is empty (minimize clicks)
   useEffect(() => {
-    if (years.length > 0 && !year && hasInitializedYearRef.current !== country) {
-      const sorted = [...years].sort((a, b) => b.localeCompare(a))
-      setDraft(prev => ({ ...prev, year: sorted[0] }))
-      hasInitializedYearRef.current = country
+    if (country && years.length > 0 && !year) {
+      const latest = [...years].sort((a, b) => b.localeCompare(a))[0]
+      setDraft(prev => ({ ...prev, year: latest }))
     }
-  }, [years, year, country])
+  }, [country, years, year])
 
   // Convert synced salary to destination currency when inputs load
   const convertSyncedSalary = useCallback(
