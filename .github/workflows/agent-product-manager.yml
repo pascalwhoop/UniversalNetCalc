@@ -1,8 +1,8 @@
 name: Agent - Product Manager
 
 on:
-  schedule:
-    - cron: '0 * * * *' # Every hour
+  # schedule:
+  #   - cron: '0 * * * *' # Every hour
   workflow_dispatch: # Manual trigger
 
 jobs:
