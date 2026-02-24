@@ -80,7 +80,7 @@ export function DestinationWizard({
   const { data: variants = [] } = useVariants(country, year)
   const { data: inputsData } = useInputs(country, year, variant || undefined)
 
-  // Auto-select latest year when country is set but year is empty (minimize clicks)
+  // Auto-select latest year when country is set but year is empty
   useEffect(() => {
     if (country && years.length > 0 && !year) {
       const latest = [...years].sort((a, b) => b.localeCompare(a))[0]
