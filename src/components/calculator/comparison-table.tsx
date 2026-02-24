@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { ChevronRight, ChevronDown, Pencil, X, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -17,6 +17,7 @@ import {
   CATEGORY_CONFIG,
   DISPLAY_CATEGORIES,
 } from "@/lib/breakdown-utils"
+import { useMediaQuery } from "@/lib/hooks"
 
 interface ComparisonTableProps {
   countries: CountryColumnState[]
@@ -25,9 +26,262 @@ interface ComparisonTableProps {
   onConfigure: (id: string) => void
   bestCountryId: string | null
   showRemove: boolean
+  normalizedDisplay?: Map<string, { base: number; original: number; currency: string }>
+  baseCurrency?: string
 }
 
 import { LIVING_COST_CATEGORIES } from "@/lib/types"
+
+function MobileSummaryBar({
+  countries,
+  bestCountryId,
+  onScrollToCard,
+  normalizedDisplay,
+  baseCurrency = "EUR",
+}: {
+  countries: CountryColumnState[]
+  bestCountryId: string | null
+  onScrollToCard: (id: string) => void
+  normalizedDisplay?: Map<string, { base: number; original: number; currency: string }>
+  baseCurrency?: string
+}) {
+  return (
+    <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">TL;DR</div>
+      {countries.map(c => {
+        const norm = normalizedDisplay?.get(c.id)
+        const needsConversion = norm && norm.currency !== baseCurrency
+
+        return (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => onScrollToCard(c.id)}
+            className={`w-full grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 items-start sm:flex sm:items-center sm:justify-between sm:gap-2 py-2 px-3 rounded-md text-left transition-colors hover:bg-muted/50 ${bestCountryId === c.id ? "bg-green-500/10" : ""}`}
+          >
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <span className="shrink-0">
+                {c.country ? `${getCountryFlag(c.country)} ${getCountryName(c.country)}` : `Destination ${c.index + 1}`}
+              </span>
+              {bestCountryId === c.id && (
+                <Badge variant="default" className="bg-green-600 hover:bg-green-700 shrink-0 text-[10px] px-1.5 py-0 w-fit">
+                  <Crown className="h-2.5 w-2.5 mr-0.5" />
+                  Best
+                </Badge>
+              )}
+            </div>
+            {c.isCalculating ? (
+              <Skeleton className="h-5 w-20 justify-self-end sm:justify-self-auto" />
+            ) : c.result ? (
+              <div className="font-mono text-right flex flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-1 sm:flex-nowrap">
+                <div className="flex flex-col items-end sm:flex-row sm:items-center sm:gap-1">
+                  <span className="font-semibold text-primary">
+                    {needsConversion ? formatCurrency(norm!.base, baseCurrency) : formatCurrency(c.result.net, c.result.currency)}
+                  </span>
+                  {needsConversion && (
+                    <span className="text-xs text-muted-foreground font-normal">
+                      ({formatCurrency(norm!.original, norm!.currency)})
+                    </span>
+                  )}
+                </div>
+                <span className="text-muted-foreground font-normal">
+                  {formatPercent(c.result.effective_rate)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground text-sm justify-self-end sm:justify-self-auto">—</span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function MobileCountryCard({
+  cardRef,
+  country,
+  countryBreakdowns,
+  countries,
+  bestCountryId,
+  expandedCategories,
+  onToggleCategory,
+  getUnionItems,
+  anyHasLivingCosts,
+  onEdit,
+  onRemove,
+  onConfigure,
+  showRemove,
+}: {
+  cardRef: (el: HTMLDivElement | null) => void
+  country: CountryColumnState
+  countryBreakdowns: (Record<string, BreakdownItem[]> | null)[]
+  countries: CountryColumnState[]
+  bestCountryId: string | null
+  expandedCategories: Set<string>
+  onToggleCategory: (category: string) => void
+  getUnionItems: (category: string) => { id: string; label: string }[]
+  anyHasLivingCosts: boolean
+  onEdit: (id: string) => void
+  onRemove: (id: string) => void
+  onConfigure: (id: string) => void
+  showRemove: boolean
+}) {
+  const idx = countries.findIndex(x => x.id === country.id)
+  const grouped = countryBreakdowns[idx] ?? null
+  const isBest = bestCountryId === country.id
+
+  return (
+    <div
+      ref={cardRef}
+      className={`rounded-lg border divide-y ${isBest ? "ring-1 ring-green-500/30" : ""}`}
+    >
+      <div className={`flex items-center justify-between p-3 ${isBest ? "bg-green-500/5" : "bg-muted/20"}`}>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium">
+              {country.country ? `${getCountryFlag(country.country)} ${getCountryName(country.country)}` : `Destination ${country.index + 1}`}
+            </span>
+            {isBest && (
+              <Badge variant="default" className="bg-green-600 hover:bg-green-700 shrink-0 text-[10px] px-1.5 py-0">
+                <Crown className="h-2.5 w-2.5 mr-0.5" />
+                Best
+              </Badge>
+            )}
+          </div>
+          {country.country && country.year && (
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {country.year}{country.variant ? ` · ${country.variant}` : ""}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(country.id)}>
+            <Pencil className="h-3 w-3" />
+            <span className="sr-only">Edit</span>
+          </Button>
+          {showRemove && (
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onRemove(country.id)}>
+              <X className="h-3.5 w-3.5" />
+              <span className="sr-only">Remove</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="divide-y text-sm">
+        <div className="flex justify-between items-center px-3 py-2">
+          <span className="font-semibold">Gross Income</span>
+          {country.isCalculating ? (
+            <Skeleton className="h-5 w-24" />
+          ) : country.result ? (
+            <span className="font-mono font-semibold">{formatCurrency(country.result.gross, country.result.currency)}</span>
+          ) : !country.country || !country.year || !country.gross_annual ? (
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => onConfigure(country.id)}>
+              <Settings className="h-3 w-3 mr-1.5" />
+              Configure
+            </Button>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </div>
+
+        {DISPLAY_CATEGORIES.map(category => {
+          const config = CATEGORY_CONFIG[category]
+          const catGrouped = grouped?.[category]
+          if (!catGrouped || catGrouped.length === 0) return null
+          const isExpanded = expandedCategories.has(category)
+          const unionItems = isExpanded ? getUnionItems(category) : []
+          const total = categoryTotal(catGrouped)
+
+          return (
+            <div key={category}>
+              <button
+                type="button"
+                className="w-full flex justify-between items-center px-3 py-2 hover:bg-muted/20 text-left"
+                onClick={() => onToggleCategory(category)}
+              >
+                <div className="flex items-center gap-1.5">
+                  {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                  <span>{config.label}</span>
+                </div>
+                {country.result && (
+                  <span className={`font-mono ${config.colorClass}`}>{config.signPrefix(total)}{formatCurrency(Math.abs(total), country.result.currency)}</span>
+                )}
+              </button>
+              {isExpanded && unionItems.map(item => {
+                const found = catGrouped.find((bi: BreakdownItem) => bi.id === item.id)
+                if (!found || !country.result) return null
+                return (
+                  <div key={item.id} className="flex justify-between items-center pl-9 pr-3 py-1.5 text-xs">
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className={`font-mono ${config.colorClass}`}>{config.signPrefix(found.amount)}{formatCurrency(Math.abs(found.amount), country.result!.currency)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+
+        <div className="h-0.5 bg-foreground/20" />
+
+        <div className={`flex justify-between items-center px-3 py-2 ${isBest ? "bg-green-500/5" : ""}`}>
+          <span className="font-semibold">Net Annual</span>
+          {country.isCalculating ? <Skeleton className="h-6 w-24" /> : country.result ? (
+            <span className="text-base font-bold text-primary">{formatCurrency(country.result.net, country.result.currency)}</span>
+          ) : <span className="text-muted-foreground">—</span>}
+        </div>
+        {country.result && (
+          <>
+            <div className={`flex justify-between items-center px-3 py-2 ${isBest ? "bg-green-500/5" : ""}`}>
+              <span>Net Monthly</span>
+              <span className="font-mono">{formatCurrency(country.result.net / 12, country.result.currency)}</span>
+            </div>
+            <div className={`flex justify-between items-center px-3 py-2 ${isBest ? "bg-green-500/5" : ""}`}>
+              <span>Eff. Rate</span>
+              <span className="font-mono">{formatPercent(country.result.effective_rate)}</span>
+            </div>
+            {country.result.marginal_rate != null && (
+              <div className={`flex justify-between items-center px-3 py-2 ${isBest ? "bg-green-500/5" : ""}`}>
+                <span>Marginal Rate</span>
+                <span className="font-mono">{formatPercent(country.result.marginal_rate)}</span>
+              </div>
+            )}
+          </>
+        )}
+
+        {anyHasLivingCosts && (() => {
+          const monthlyCosts = Object.values(country.costOfLiving || {}).reduce((s, v) => s + v, 0)
+          const cur = country.result?.currency || country.currency || "EUR"
+          return (
+            <>
+              {monthlyCosts > 0 && (
+                <div className="flex justify-between items-center px-3 py-2">
+                  <span>Living Costs /mo</span>
+                  <span className="font-mono text-destructive">-{formatCurrency(monthlyCosts, cur)}</span>
+                </div>
+              )}
+              {country.result && (
+                <div className={`flex justify-between items-center px-3 py-2 font-semibold ${isBest ? "bg-green-500/5" : "bg-muted/30"}`}>
+                  <span>Disposable /mo</span>
+                  <span className="font-mono text-primary">
+                    {formatCurrency(country.result.net / 12 - monthlyCosts, country.result.currency)}
+                  </span>
+                </div>
+              )}
+            </>
+          )
+        })()}
+
+        {country.result && (
+          <div className="px-3 py-2 text-xs text-muted-foreground">
+            Config {country.result.config_version_hash} · {country.result.config_last_updated}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export function ComparisonTable({
   countries,
@@ -36,7 +290,11 @@ export function ComparisonTable({
   onConfigure,
   bestCountryId,
   showRemove,
+  normalizedDisplay,
+  baseCurrency = "EUR",
 }: ComparisonTableProps) {
+  const isMd = useMediaQuery("(min-width: 768px)")
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   const toggleCategory = (category: string) => {
@@ -75,7 +333,41 @@ export function ComparisonTable({
     c.costOfLiving && Object.values(c.costOfLiving).some(v => v > 0)
   )
 
-  const stickyColClass = "sticky left-0 z-10 bg-background"
+  const stickyColClass = "sticky left-0 z-10 bg-background border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
+
+  if (!isMd) {
+    return (
+      <div className="space-y-4">
+        <MobileSummaryBar
+          countries={countries}
+          bestCountryId={bestCountryId}
+          onScrollToCard={id => cardRefs.current[id]?.scrollIntoView({ behavior: "smooth" })}
+          normalizedDisplay={normalizedDisplay}
+          baseCurrency={baseCurrency}
+        />
+        <div className="space-y-4">
+          {countries.map(c => (
+            <MobileCountryCard
+              key={c.id}
+              cardRef={el => { cardRefs.current[c.id] = el }}
+              country={c}
+              countryBreakdowns={countryBreakdowns}
+              countries={countries}
+              bestCountryId={bestCountryId}
+              expandedCategories={expandedCategories}
+              onToggleCategory={toggleCategory}
+              getUnionItems={getUnionItems}
+              anyHasLivingCosts={anyHasLivingCosts}
+              onEdit={onEdit}
+              onRemove={onRemove}
+              onConfigure={onConfigure}
+              showRemove={showRemove}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="overflow-x-auto rounded-lg border">
