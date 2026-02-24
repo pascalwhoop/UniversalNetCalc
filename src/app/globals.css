@@ -46,6 +46,16 @@
 	--radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* Hide number input spinners globally */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+	appearance: none;
+	margin: 0;
+}
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+
 :root {
 	--radius: 0.625rem;
 	--background: oklch(1 0 0);
@@ -187,17 +197,4 @@
     transition: all 300ms ease-in-out;
   }
 
-  /* Button hover effects - apply globally */
-  button:not(:disabled):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  }
-
-  button:not(:disabled):active {
-    transform: translateY(0);
-  }
-
-  button:not(:disabled) {
-    transition: transform 150ms ease, box-shadow 150ms ease;
-  }
 }

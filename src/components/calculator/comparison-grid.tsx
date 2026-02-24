@@ -11,9 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { CountryColumn } from "./country-column"
-import { ComparisonSummary } from "./comparison-summary"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { ComparisonTable } from "./comparison-table"
+import { CountryCalculator } from "./country-calculator"
 import { Toggle } from "@/components/ui/toggle"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ShareButton } from "./share-button"
@@ -23,10 +22,8 @@ import { CountryColumnState, DEFAULT_COST_OF_LIVING } from "@/lib/types"
 import { decodeState, updateURL } from "@/lib/url-state"
 import { useSearchParams } from "next/navigation"
 import { fetchExchangeRate } from "@/lib/api"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { MobileCountrySelector } from "./mobile-country-selector"
 import { UnsupportedCurrencyError } from "@/lib/errors"
-import { calculateNetDelta, findBestCountryByNet } from "@/lib/comparison-utils"
+import { findBestCountryByNet } from "@/lib/comparison-utils"
 import { detectUserCountry } from "@/lib/detect-country"
 
 const MAX_COUNTRIES = 4
@@ -67,7 +64,6 @@ function createDefaultCountryState(index: number, country?: string): CountryColu
 
 export function ComparisonGrid() {
   const searchParams = useSearchParams()
-  const isMobile = useIsMobile()
   const hasInitializedFromUrl = useRef(false)
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -78,7 +74,6 @@ export function ComparisonGrid() {
   const [isInitialized, setIsInitialized] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [pinSalaryDialogOpen, setPinSalaryDialogOpen] = useState(false)
-  const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [salaryModeSynced, setSalaryModeSynced] = useState(true)
 
   // Wizard state: null = closed, '__new__' = adding, '<id>' = editing
@@ -87,7 +82,6 @@ export function ComparisonGrid() {
   const wizardInitialState = useMemo<CountryColumnState>(() => {
     if (wizardTargetId === "__new__") {
       const newState = createEmptyCountryState(countries.length)
-      // In synced mode, pre-fill gross from the leader (index 0)
       if (salaryModeSynced) {
         const leader = [...countries].sort((a, b) => a.index - b.index).find(c => c.index === 0)
         if (leader?.gross_annual) {
@@ -112,9 +106,7 @@ export function ComparisonGrid() {
           calculationError: null,
         }
         setCountries(prev => [...prev, newEntry])
-        if (isMobile) setActiveTabIndex(countries.length)
       } else {
-        // Update existing, reset result so it recalculates
         setCountries(prev =>
           prev.map(c =>
             c.id === wizardTargetId
@@ -125,7 +117,7 @@ export function ComparisonGrid() {
       }
       setWizardTargetId(null)
     },
-    [wizardTargetId, countries.length, isMobile]
+    [wizardTargetId, countries.length]
   )
 
   // Initialize from URL on mount ONLY
@@ -155,7 +147,6 @@ export function ComparisonGrid() {
       const detectedCountry = detectUserCountry()
       const initial = createDefaultCountryState(0, detectedCountry)
       setCountries([initial])
-      // Open wizard immediately for the first destination
       setWizardTargetId(initial.id)
     }
 
@@ -215,7 +206,7 @@ export function ComparisonGrid() {
         const targetCurrency = updates.currency
         setCountries(prev => {
           const me = prev.find(c => c.id === id)
-          if (!me || me.index === 0) return prev // Leader doesn't sync from anyone
+          if (!me || me.index === 0) return prev
           const leader = [...prev].sort((a, b) => a.index - b.index).find(c => c.index === 0)
           if (!leader?.gross_annual) return prev
           const amount = parseFloat(leader.gross_annual)
@@ -246,7 +237,7 @@ export function ComparisonGrid() {
       if ("gross_annual" in updates) {
         setCountries(prev => {
           const leader = prev.find(c => c.id === id)
-          if (!leader || leader.index !== 0) return prev // Only leader propagates
+          if (!leader || leader.index !== 0) return prev
           const amount = parseFloat(updates.gross_annual ?? "")
           if (isNaN(amount)) return prev
           const sourceCurrency = leader.currency || "EUR"
@@ -311,13 +302,9 @@ export function ComparisonGrid() {
         const filtered = countries.filter(c => c.id !== id)
         const renumbered = filtered.map((c, index) => ({ ...c, index }))
         setCountries(renumbered)
-
-        if (isMobile && activeTabIndex >= renumbered.length) {
-          setActiveTabIndex(Math.max(0, renumbered.length - 1))
-        }
       }
     },
-    [countries, isMobile, activeTabIndex]
+    [countries]
   )
 
   const [normalizedNetValues, setNormalizedNetValues] = useState<Map<string, number>>(new Map())
@@ -376,127 +363,88 @@ export function ComparisonGrid() {
 
   const bestCountryId = findBestCountryByNet(normalizedNetValues)
 
-  const getComparisonDelta = useCallback(
-    (id: string): number | undefined => {
-      if (!bestCountryId || bestCountryId === id) return undefined
-
-      const bestNormalizedNet = normalizedNetValues.get(bestCountryId)
-      const currentNormalizedNet = normalizedNetValues.get(id)
-      const country = countries.find(c => c.id === id)
-
-      if (!country?.result) {
-        return undefined
-      }
-
-      const delta = calculateNetDelta(bestNormalizedNet, currentNormalizedNet, country.result)
-      return delta ?? undefined
-    },
-    [bestCountryId, normalizedNetValues, countries]
-  )
-
-  const countriesWithState = countries.map(c => ({
-    index: c.index,
-    country: c.country,
-  }))
-
-  const visibleCountries = isMobile
-    ? countries.filter(c => c.index === activeTabIndex)
-    : countries
-
   const countryResults = new Map(
     countries
       .filter(c => c.result)
       .map(c => [c.id, { country: c.country, year: c.year, result: c.result! }])
   )
 
+  const sortedCountries = [...countries].sort((a, b) => a.index - b.index)
+
   return (
     <div className="flex flex-col h-full">
-      {/* Desktop Header */}
-      {!isMobile && (
-        <div className="flex items-start justify-between gap-4 pb-4">
-          <div>
-            <h2 className="text-lg font-semibold">Compare Destinations</h2>
-            <p className="text-sm text-muted-foreground">
-              Add up to {MAX_COUNTRIES} destinations to compare side by side
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Toggle
-                      variant="outline"
-                      size="sm"
-                      pressed={salaryModeSynced}
-                      onPressedChange={handleSalaryModeChange}
-                      aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
-                    >
-                      <Pin className="h-3.5 w-3.5" />
-                      Pin salary
-                    </Toggle>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[200px]">
-                  <p><strong>Pinned:</strong> One gross for all.</p>
-                  <p className="mt-1"><strong>Unpinned:</strong> One gross per country.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Button
-              onClick={() => setSaveDialogOpen(true)}
-              disabled={countryResults.size === 0}
-              variant="outline"
-              size="sm"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save
-            </Button>
-            <ShareButton disabled={countries.length === 0} />
-            <Button
-              onClick={addCountry}
-              disabled={countries.length >= MAX_COUNTRIES}
-              variant="outline"
-              size="sm"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Destination
-            </Button>
-          </div>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 pb-4">
+        <div>
+          <h2 className="text-lg font-semibold">Compare Destinations</h2>
+          <p className="text-sm text-muted-foreground">
+            Add up to {MAX_COUNTRIES} destinations to compare side by side
+          </p>
         </div>
-      )}
-
-      {/* Mobile Header */}
-      {isMobile && (
-        <div className="pb-3">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">Compare Destinations</h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPinSalaryDialogOpen(true)}
-                className={salaryModeSynced ? "bg-accent text-accent-foreground" : ""}
-                aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
-              >
-                <Pin className="h-3.5 w-3.5 mr-1.5" />
-                Pin salary
-              </Button>
-              <Button
-                onClick={() => setSaveDialogOpen(true)}
-                disabled={countryResults.size === 0}
-                variant="outline"
-                size="sm"
-              >
-                <Save className="h-4 w-4" />
-              </Button>
-              <ShareButton disabled={countries.length === 0} />
-            </div>
-          </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Toggle
+                    variant="outline"
+                    size="sm"
+                    pressed={salaryModeSynced}
+                    onPressedChange={handleSalaryModeChange}
+                    aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
+                  >
+                    <Pin className="h-3.5 w-3.5" />
+                    Pin salary
+                  </Toggle>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[200px]">
+                <p><strong>Pinned:</strong> One gross for all.</p>
+                <p className="mt-1"><strong>Unpinned:</strong> One gross per country.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Button
+            onClick={() => setSaveDialogOpen(true)}
+            disabled={countryResults.size === 0}
+            variant="outline"
+            size="sm"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save
+          </Button>
+          <ShareButton disabled={countries.length === 0} />
+          <Button
+            onClick={addCountry}
+            disabled={countries.length >= MAX_COUNTRIES}
+            size="sm"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Destination
+          </Button>
         </div>
-      )}
+      </div>
 
-      {/* Mobile: Pin salary dialog (opened by Pin salary button) */}
+      {/* Renderless calculation triggers — one per country */}
+      {sortedCountries.map(c => (
+        <CountryCalculator
+          key={c.id}
+          state={c}
+          onUpdate={updates => updateCountry(c.id, updates)}
+        />
+      ))}
+
+      {/* Comparison Table */}
+      <ComparisonTable
+        countries={sortedCountries}
+        onEdit={id => setWizardTargetId(id)}
+        onRemove={removeCountry}
+        onConfigure={id => setWizardTargetId(id)}
+        bestCountryId={bestCountryId}
+        showRemove={countries.length > 1}
+      />
+
+      {/* Mobile: Pin salary dialog */}
       <Dialog open={pinSalaryDialogOpen} onOpenChange={setPinSalaryDialogOpen}>
         <DialogContent className="sm:max-w-[280px]">
           <DialogHeader>
@@ -532,69 +480,6 @@ export function ComparisonGrid() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Mobile Country Tabs */}
-      {isMobile && countries.length > 0 && (
-        <MobileCountrySelector
-          countries={countriesWithState}
-          activeIndex={activeTabIndex}
-          onTabChange={setActiveTabIndex}
-          onAddCountry={addCountry}
-          canAddMore={countries.length < MAX_COUNTRIES}
-        />
-      )}
-
-      {/* Comparison Summary */}
-      {countries.filter(c => c.country && c.year).length >= 2 && (
-        <div className={isMobile ? "mb-4" : ""}>
-          <ComparisonSummary
-            results={countryResults}
-            normalizedNetValues={normalizedNetValues}
-            displayOrder={countries.sort((a, b) => a.index - b.index).map(c => c.id)}
-          />
-        </div>
-      )}
-
-      {/* Country Columns */}
-      {isMobile ? (
-        <div className="flex-1 overflow-y-auto">
-          {visibleCountries.map(country => (
-            <CountryColumn
-              key={country.id}
-              {...country}
-              onUpdate={updates => updateCountry(country.id, updates)}
-              onRemove={() => removeCountry(country.id)}
-              onEdit={() => setWizardTargetId(country.id)}
-              showRemove={countries.length > 1}
-              isBest={bestCountryId === country.id}
-              comparisonDelta={getComparisonDelta(country.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <ScrollArea className="flex-1 -mx-4 px-4">
-          <div
-            className="grid gap-4 pb-4"
-            style={{
-              gridTemplateColumns: `repeat(${countries.length}, minmax(300px, 1fr))`,
-            }}
-          >
-            {countries.map(country => (
-              <CountryColumn
-                key={country.id}
-                {...country}
-                onUpdate={updates => updateCountry(country.id, updates)}
-                onRemove={() => removeCountry(country.id)}
-                onEdit={() => setWizardTargetId(country.id)}
-                showRemove={countries.length > 1}
-                isBest={bestCountryId === country.id}
-                comparisonDelta={getComparisonDelta(country.id)}
-              />
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      )}
 
       {/* Save Dialog */}
       <SaveDialog
