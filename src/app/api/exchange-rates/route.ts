@@ -26,8 +26,47 @@ function getKVNamespace(): KVNamespace | undefined {
     const ctx = getCloudflareContext()
     return (ctx.env as { EXCHANGE_RATES_CACHE?: KVNamespace }).EXCHANGE_RATES_CACHE
   } catch {
-    // Running locally without Cloudflare context - caching disabled
     return undefined
+  }
+}
+
+const DEV_CACHE_DIR = ".cache"
+const DEV_CACHE_FILENAME = "exchange-rates.json"
+
+async function getFromDevCache(from: string, to: string): Promise<CachedRate | null> {
+  try {
+    const { readFile } = await import("fs/promises")
+    const { join } = await import("path")
+    const path = join(process.cwd(), DEV_CACHE_DIR, DEV_CACHE_FILENAME)
+    const raw = await readFile(path, "utf-8").catch(() => "{}")
+    const data = JSON.parse(raw) as Record<string, CachedRate>
+    const entry = data[getCacheKey(from, to)]
+    if (!entry || new Date(entry.expiresAt) <= new Date()) return null
+    return entry
+  } catch {
+    return null
+  }
+}
+
+async function saveToDevCache(from: string, to: string, rate: number): Promise<void> {
+  try {
+    const { readFile, writeFile, mkdir } = await import("fs/promises")
+    const { join } = await import("path")
+    const dir = join(process.cwd(), DEV_CACHE_DIR)
+    await mkdir(dir, { recursive: true })
+    const path = join(dir, DEV_CACHE_FILENAME)
+    const raw = await readFile(path, "utf-8").catch(() => "{}")
+    const data = (JSON.parse(raw) as Record<string, CachedRate>) || {}
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + CACHE_TTL_SECONDS * 1000)
+    data[getCacheKey(from, to)] = {
+      rate,
+      fetchedAt: now.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+    }
+    await writeFile(path, JSON.stringify(data, null, 0))
+  } catch (error) {
+    console.error("Failed to save to dev cache:", error)
   }
 }
 
@@ -151,8 +190,9 @@ export async function GET(request: NextRequest) {
   // Try to get Cloudflare KV for caching
   const kv = getKVNamespace()
 
-  // Check cache first
-  const cached = await getFromCache(kv, from, to)
+  // Check cache first (KV in prod, or dev disk cache)
+  let cached = await getFromCache(kv, from, to)
+  if (!cached && !kv) cached = await getFromDevCache(from, to)
   if (cached) {
     return NextResponse.json({
       from: from.toUpperCase(),
@@ -168,8 +208,8 @@ export async function GET(request: NextRequest) {
   try {
     const rate = await fetchExchangeRate(apiKey, from, to)
 
-    // Save to cache
     await saveToCache(kv, from, to, rate)
+    if (!kv) await saveToDevCache(from, to, rate)
 
     const now = new Date()
     const expiresAt = new Date(now.getTime() + CACHE_TTL_SECONDS * 1000)
@@ -261,8 +301,8 @@ export async function POST(request: NextRequest) {
 
       const key = `${from.toUpperCase()}_${to.toUpperCase()}`
 
-      // Check cache
-      const cached = await getFromCache(kv, from, to)
+      let cached = await getFromCache(kv, from, to)
+      if (!cached && !kv) cached = await getFromDevCache(from, to)
       if (cached) {
         results[key] = {
           rate: cached.rate,
@@ -277,6 +317,7 @@ export async function POST(request: NextRequest) {
       try {
         const rate = await fetchExchangeRate(apiKey, from, to)
         await saveToCache(kv, from, to, rate)
+        if (!kv) await saveToDevCache(from, to, rate)
 
         const now = new Date()
         const expiresAt = new Date(now.getTime() + CACHE_TTL_SECONDS * 1000)

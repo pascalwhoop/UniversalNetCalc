@@ -34,7 +34,7 @@ import { DeductionManager } from "./deduction-manager"
 import { CostOfLivingSection } from "./cost-of-living-section"
 import { NoticeIcon } from "./notices"
 import { CountryColumnState, type CostOfLiving } from "@/lib/types"
-import { getCountryName, getCurrencySymbol, fetchExchangeRate, calculateSalary, type CalculationResult } from "@/lib/api"
+import { getCountryName, getCurrencySymbol, getExchangeRate, calculateSalary, type CalculationResult } from "@/lib/api"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { useCountries, useYears, useVariants, useInputs } from "@/lib/queries"
 import { buildCalcRequest } from "@/lib/calc-utils"
@@ -96,7 +96,7 @@ export function DestinationWizard({
       const sourceAmount = parseFloat(leaderGrossRef.current)
       if (isNaN(sourceAmount) || sourceAmount <= 0) return
       if (sourceCurrency === destinationCurrency) return
-      fetchExchangeRate(sourceCurrency, destinationCurrency)
+      getExchangeRate(sourceCurrency, destinationCurrency)
         .then(rate => {
           const converted = String(Math.round(sourceAmount * rate))
           setDraft(prev => ({ ...prev, gross_annual: converted }))
@@ -223,7 +223,7 @@ export function DestinationWizard({
         <div className="flex-1 overflow-y-auto px-6 min-h-0">
           <div className="space-y-4 pb-2">
             {/* Country & Year */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Country</Label>
                 <Select
@@ -353,7 +353,7 @@ export function DestinationWizard({
 
             {/* Enum inputs */}
             {enumInputs.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {enumInputs.map(([key, def]) => (
                   <div key={key} className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">{def.label || key}</Label>

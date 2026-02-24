@@ -180,5 +180,29 @@ export async function fetchExchangeRate(
   return (data as ExchangeRateResponse).rate
 }
 
+const RATE_CACHE_TTL = 3600_000 // 1 hour
+const rateCache = new Map<string, { rate: number; ts: number }>()
+const inflight = new Map<string, Promise<number>>()
+
+/** Cached + deduplicated exchange rate. Use this from UI to avoid duplicate requests. */
+export async function getExchangeRate(from: string, to: string): Promise<number> {
+  if (from.toUpperCase() === to.toUpperCase()) return 1
+  const key = `${from.toUpperCase()}:${to.toUpperCase()}`
+  const cached = rateCache.get(key)
+  if (cached && Date.now() - cached.ts < RATE_CACHE_TTL) return cached.rate
+
+  if (!inflight.has(key)) {
+    inflight.set(
+      key,
+      fetchExchangeRate(from, to).then(rate => {
+        rateCache.set(key, { rate, ts: Date.now() })
+        inflight.delete(key)
+        return rate
+      })
+    )
+  }
+  return inflight.get(key)!
+}
+
 // Export re-exported for backward compatibility
 export { COUNTRY_NAMES, getCountryName }

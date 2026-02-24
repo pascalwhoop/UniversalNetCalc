@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.cache/
 
 # debug
 npm-debug.log*
@@ -67,3 +68,4 @@ bundle-analysis*.html
 
 # convx history
 history/
+data/

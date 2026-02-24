@@ -21,7 +21,7 @@ import { DestinationWizard } from "./destination-wizard"
 import { CountryColumnState, DEFAULT_COST_OF_LIVING } from "@/lib/types"
 import { decodeState, updateURL } from "@/lib/url-state"
 import { useSearchParams } from "next/navigation"
-import { fetchExchangeRate } from "@/lib/api"
+import { getExchangeRate } from "@/lib/api"
 import { UnsupportedCurrencyError } from "@/lib/errors"
 import { findBestCountryByNet } from "@/lib/comparison-utils"
 import { detectUserCountry } from "@/lib/detect-country"
@@ -215,7 +215,7 @@ export function ComparisonGrid() {
           if (sourceCurrency === targetCurrency) {
             return prev.map(c => (c.id === id ? { ...c, gross_annual: leader.gross_annual } : c))
           }
-          fetchExchangeRate(sourceCurrency, targetCurrency)
+          getExchangeRate(sourceCurrency, targetCurrency)
             .then(rate => {
               const converted = String(Math.round(amount * rate))
               setCountries(cols =>
@@ -233,7 +233,7 @@ export function ComparisonGrid() {
         })
       }
 
-      // When the leader's salary changes: propagate to all followers
+      // When the leader's salary changes: propagate to all followers (batch rates, single setState)
       if ("gross_annual" in updates) {
         setCountries(prev => {
           const leader = prev.find(c => c.id === id)
@@ -242,37 +242,41 @@ export function ComparisonGrid() {
           if (isNaN(amount)) return prev
           const sourceCurrency = leader.currency || "EUR"
 
-          prev.forEach(c => {
-            if (c.id === id) return
-            const targetCurrency = c.currency || "EUR"
-            if (targetCurrency === sourceCurrency) {
-              setCountries(cols =>
-                cols.map(col =>
-                  col.id === c.id
-                    ? { ...col, gross_annual: updates.gross_annual ?? col.gross_annual }
-                    : col
+          const followers = prev.filter(c => c.id !== id)
+          const sameCurrency = followers.filter(c => (c.currency || "EUR") === sourceCurrency)
+          const diffCurrency = followers.filter(c => (c.currency || "EUR") !== sourceCurrency)
+
+          const next = prev.map(c => {
+            if (c.id === id) return { ...c, gross_annual: updates.gross_annual ?? c.gross_annual }
+            if (sameCurrency.some(f => f.id === c.id)) return { ...c, gross_annual: updates.gross_annual ?? c.gross_annual }
+            return c
+          })
+
+          if (diffCurrency.length > 0) {
+            Promise.all(
+              diffCurrency.map(c => getExchangeRate(sourceCurrency, c.currency || "EUR"))
+            )
+              .then(rates =>
+                setCountries(cols =>
+                  cols.map(col => {
+                    const i = diffCurrency.findIndex(f => f.id === col.id)
+                    if (i === -1) return col
+                    return { ...col, gross_annual: String(Math.round(amount * rates[i])) }
+                  })
                 )
               )
-            } else {
-              fetchExchangeRate(sourceCurrency, targetCurrency)
-                .then(rate => {
-                  const converted = String(Math.round(amount * rate))
-                  setCountries(cols =>
-                    cols.map(col => (col.id === c.id ? { ...col, gross_annual: converted } : col))
-                  )
-                })
-                .catch(() => {
-                  setCountries(cols =>
-                    cols.map(col =>
-                      col.id === c.id
-                        ? { ...col, gross_annual: updates.gross_annual ?? col.gross_annual }
-                        : col
-                    )
-                  )
-                })
-            }
-          })
-          return prev
+              .catch(() =>
+                setCountries(cols =>
+                  cols.map(col => {
+                    const i = diffCurrency.findIndex(f => f.id === col.id)
+                    if (i === -1) return col
+                    return { ...col, gross_annual: leader.gross_annual }
+                  })
+                )
+              )
+          }
+
+          return next
         })
       }
     },
@@ -308,16 +312,35 @@ export function ComparisonGrid() {
   )
 
   const [normalizedNetValues, setNormalizedNetValues] = useState<Map<string, number>>(new Map())
-  const BASE_CURRENCY = "EUR"
+  const [normalizedDisplay, setNormalizedDisplay] = useState<Map<string, { base: number; original: number; currency: string }>>(new Map())
+  const [baseCurrency, setBaseCurrency] = useState("EUR")
 
   const anyColHasCostOfLiving = countries.some(c => {
     const col = c.costOfLiving
     return col && Object.values(col).some(v => v > 0)
   })
 
+  const normKey = useMemo(() => {
+    const sorted = [...countries].sort((a, b) => a.index - b.index)
+    return sorted
+      .filter(c => c.result)
+      .map(c => {
+        const costSum = anyColHasCostOfLiving
+          ? Object.values(c.costOfLiving || {}).reduce((s, v) => s + v, 0)
+          : 0
+        return `${c.id}:${c.result!.net}:${c.result!.currency}:${costSum}`
+      })
+      .join("|")
+  }, [countries, anyColHasCostOfLiving])
+
   useEffect(() => {
     const normalize = async () => {
+      const sorted = [...countries].sort((a, b) => a.index - b.index)
+      const firstWithResult = sorted.find(c => c.result)
+      const base = firstWithResult?.result?.currency || firstWithResult?.currency || "EUR"
+
       const normalized = new Map<string, number>()
+      const display = new Map<string, { base: number; original: number; currency: string }>()
 
       for (const country of countries) {
         if (!country.result) continue
@@ -330,36 +353,40 @@ export function ComparisonGrid() {
           : 0
         const comparableNet = net - monthlyCosts * 12
 
-        if (cur === BASE_CURRENCY) {
-          normalized.set(country.id, comparableNet)
-        } else {
+        let rate = 1
+        if (cur !== base) {
           try {
-            const rate = await fetchExchangeRate(cur, BASE_CURRENCY)
-            normalized.set(country.id, comparableNet * rate)
+            rate = await getExchangeRate(cur, base)
           } catch (error) {
             if (error instanceof UnsupportedCurrencyError) {
               console.warn(
                 `Exchange rate not available for ${error.currency}, using original value`
               )
             } else {
-              console.error(`Failed to convert ${cur} to ${BASE_CURRENCY}:`, error)
+              console.error(`Failed to convert ${cur} to ${base}:`, error)
             }
-            normalized.set(country.id, comparableNet)
           }
         }
+
+        display.set(country.id, { base: net * rate, original: net, currency: cur })
+        normalized.set(country.id, cur === base ? comparableNet : comparableNet * rate)
       }
 
+      setBaseCurrency(base)
       setNormalizedNetValues(normalized)
+      setNormalizedDisplay(display)
     }
 
     const hasResults = countries.some(c => c.result)
     if (hasResults) {
       normalize()
     } else {
+      setBaseCurrency("EUR")
       setNormalizedNetValues(new Map())
+      setNormalizedDisplay(new Map())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countries])
+  }, [normKey])
 
   const bestCountryId = findBestCountryByNet(normalizedNetValues)
 
@@ -374,14 +401,14 @@ export function ComparisonGrid() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 pb-4">
         <div>
           <h2 className="text-lg font-semibold">Compare Destinations</h2>
           <p className="text-sm text-muted-foreground">
             Add up to {MAX_COUNTRIES} destinations to compare side by side
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -442,6 +469,8 @@ export function ComparisonGrid() {
         onConfigure={id => setWizardTargetId(id)}
         bestCountryId={bestCountryId}
         showRemove={countries.length > 1}
+        normalizedDisplay={normalizedDisplay}
+        baseCurrency={baseCurrency}
       />
 
       {/* Mobile: Pin salary dialog */}
