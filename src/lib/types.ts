@@ -3,23 +3,41 @@
 import { CalculationResult } from "./api"
 
 /**
- * Monthly cost-of-living expenses in local currency
+ * Monthly cost-of-living expenses in local currency.
+ * Keys are category IDs from LIVING_COST_CATEGORIES, values are monthly amounts.
  */
-export interface CostOfLiving {
-  rent: number
-  healthcare: number
-  food: number
-  mobility: number
-  travel: number
+export type CostOfLiving = Record<string, number>
+
+export const DEFAULT_COST_OF_LIVING: CostOfLiving = {}
+
+export interface LivingCostCategory {
+  id: string
+  emoji: string
+  label: string
 }
 
-export const DEFAULT_COST_OF_LIVING: CostOfLiving = {
-  rent: 0,
-  healthcare: 0,
-  food: 0,
-  mobility: 0,
-  travel: 0,
-}
+export const LIVING_COST_CATEGORIES: LivingCostCategory[] = [
+  { id: "rent", emoji: "🏠", label: "Rent / Mortgage" },
+  { id: "groceries", emoji: "🛒", label: "Groceries" },
+  { id: "health_insurance", emoji: "🏥", label: "Health Insurance" },
+  { id: "transport", emoji: "🚗", label: "Car / Transport" },
+  { id: "phone_internet", emoji: "📱", label: "Phone & Internet" },
+  { id: "utilities", emoji: "⚡", label: "Utilities" },
+  { id: "dining", emoji: "🍽️", label: "Dining Out" },
+  { id: "childcare", emoji: "👶", label: "Childcare" },
+  { id: "education", emoji: "🎓", label: "Education" },
+  { id: "insurance", emoji: "🛡️", label: "Insurance" },
+  { id: "gym", emoji: "💪", label: "Gym & Fitness" },
+  { id: "travel", emoji: "✈️", label: "Travel & Holidays" },
+  { id: "clothing", emoji: "👕", label: "Clothing" },
+  { id: "entertainment", emoji: "🎭", label: "Entertainment" },
+  { id: "pets", emoji: "🐾", label: "Pets" },
+  { id: "personal_care", emoji: "💇", label: "Personal Care" },
+  { id: "gifts", emoji: "🎁", label: "Gifts & Donations" },
+  { id: "savings", emoji: "💰", label: "Savings & Investments" },
+  { id: "subscriptions", emoji: "📦", label: "Subscriptions" },
+  { id: "misc", emoji: "🔧", label: "Miscellaneous" },
+]
 
 /**
  * State for a single country calculation

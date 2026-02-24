@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { ChevronLeft, ChevronRight, Check, Info } from "lucide-react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
+import { Check, Info, ChevronDown } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -25,15 +25,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { DeductionManager } from "./deduction-manager"
 import { CostOfLivingSection } from "./cost-of-living-section"
 import { NoticeIcon } from "./notices"
-import { CountryColumnState, CostOfLiving } from "@/lib/types"
-import { getCountryName, getCurrencySymbol, fetchExchangeRate } from "@/lib/api"
+import { CountryColumnState, type CostOfLiving } from "@/lib/types"
+import { getCountryName, getCurrencySymbol, fetchExchangeRate, calculateSalary, type CalculationResult } from "@/lib/api"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { useCountries, useYears, useVariants, useInputs } from "@/lib/queries"
-
-const STEPS = ["Income", "Deductions", "Living Costs"]
+import { buildCalcRequest } from "@/lib/calc-utils"
+import { formatCurrency } from "@/lib/formatters"
 
 interface DestinationWizardProps {
   open: boolean
@@ -52,18 +57,16 @@ export function DestinationWizard({
   salaryModeSynced = false,
   isLeader = true,
 }: DestinationWizardProps) {
-  const [step, setStep] = useState(0)
   const [draft, setDraft] = useState<CountryColumnState>(initialState)
 
   // Track the leader's gross/currency so we can convert when destination currency loads
   const leaderGrossRef = useRef<string>(initialState.gross_annual)
   const leaderCurrencyRef = useRef<string>(initialState.currency || "EUR")
 
-  // Reset draft and step when wizard opens
+  // Reset draft when wizard opens
   useEffect(() => {
     if (open) {
       setDraft(initialState)
-      setStep(0)
       leaderGrossRef.current = initialState.gross_annual
       leaderCurrencyRef.current = initialState.currency || "EUR"
     }
@@ -77,16 +80,13 @@ export function DestinationWizard({
   const { data: variants = [] } = useVariants(country, year)
   const { data: inputsData } = useInputs(country, year, variant || undefined)
 
-  const hasInitializedYearRef = useRef<string | null>(null)
-
-  // Auto-select latest year when country changes
+  // Auto-select latest year when country is set but year is empty
   useEffect(() => {
-    if (years.length > 0 && !year && hasInitializedYearRef.current !== country) {
-      const sorted = [...years].sort((a, b) => b.localeCompare(a))
-      setDraft(prev => ({ ...prev, year: sorted[0] }))
-      hasInitializedYearRef.current = country
+    if (country && years.length > 0 && !year) {
+      const latest = [...years].sort((a, b) => b.localeCompare(a))[0]
+      setDraft(prev => ({ ...prev, year: latest }))
     }
-  }, [years, year, country])
+  }, [country, years, year])
 
   // Convert synced salary to destination currency when inputs load
   const convertSyncedSalary = useCallback(
@@ -101,9 +101,7 @@ export function DestinationWizard({
           const converted = String(Math.round(sourceAmount * rate))
           setDraft(prev => ({ ...prev, gross_annual: converted }))
         })
-        .catch(() => {
-          // Leave as-is on error (already pre-filled with leader's amount)
-        })
+        .catch(() => {})
     },
     [salaryModeSynced, isLeader]
   )
@@ -141,6 +139,42 @@ export function DestinationWizard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputsData?.currency, country, year, variant])
 
+  // Live preview calculation
+  const [previewResult, setPreviewResult] = useState<CalculationResult | null>(null)
+  const previewAbortRef = useRef<AbortController | null>(null)
+
+  const previewCalcRequest = useMemo(
+    () => buildCalcRequest(
+      { country, year, variant, gross_annual, formValues },
+      inputsData?.inputs
+    ),
+    [country, year, variant, gross_annual, formValues, inputsData]
+  )
+
+  useEffect(() => {
+    if (!previewCalcRequest) {
+      setPreviewResult(null)
+      return
+    }
+
+    previewAbortRef.current?.abort()
+    const controller = new AbortController()
+    previewAbortRef.current = controller
+
+    const timer = setTimeout(() => {
+      calculateSalary(previewCalcRequest, controller.signal)
+        .then(result => {
+          if (!controller.signal.aborted) setPreviewResult(result)
+        })
+        .catch(() => {})
+    }, 500)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [previewCalcRequest])
+
   const inputDefs = inputsData?.inputs || {}
   const dynamicInputs = Object.entries(inputDefs).filter(([key]) => key !== "gross_annual")
   const enumInputs = dynamicInputs.filter(([, def]) => def.type === "enum")
@@ -154,25 +188,29 @@ export function DestinationWizard({
     }))
   }
 
-  const canAdvance = step === 0 ? !!(country && year && gross_annual) : true
+  const canSave = !!(country && year && gross_annual)
   const currencySymbol = getCurrencySymbol(currency || "EUR")
 
-  const handleNext = () => {
-    if (step < STEPS.length - 1) {
-      setStep(s => s + 1)
-    } else {
-      onSave(draft)
-      onClose()
-    }
-  }
-
-  const handleBack = () => {
-    if (step > 0) setStep(s => s - 1)
+  const handleSave = () => {
+    onSave(draft)
+    onClose()
   }
 
   const title = country
     ? `${getCountryFlag(country)} ${getCountryName(country)}`
     : "New Destination"
+
+  // Count active deductions for collapsible label
+  const activeDeductionCount = Object.entries(inputDefs)
+    .filter(([key, def]) => def.type === "number" && !def.group && key !== "gross_annual")
+    .filter(([key]) => {
+      const val = parseFloat(formValues[key] || "0")
+      return !isNaN(val) && val > 0
+    }).length
+
+  const totalMonthlyCosts = costOfLiving
+    ? Object.values(costOfLiving).reduce((sum, v) => sum + v, 0)
+    : 0
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
@@ -181,321 +219,278 @@ export function DestinationWizard({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        {/* Step indicator — div-based to avoid browser button hover/focus artifacts */}
-        <div className="flex items-center px-6 pb-4 shrink-0">
-          {STEPS.map((label, i) => {
-            const isCompleted = i < step
-            const isCurrent = i === step
-            const isClickable = i < step // only allow going back
-
-            return (
-              <div key={i} className="flex items-center flex-1 min-w-0">
-                <div
-                  role={isClickable ? "button" : undefined}
-                  tabIndex={isClickable ? 0 : undefined}
-                  onClick={() => isClickable && setStep(i)}
-                  onKeyDown={e => isClickable && e.key === "Enter" && setStep(i)}
-                  className={[
-                    "flex items-center gap-1.5 text-xs shrink-0 select-none outline-none",
-                    isClickable ? "cursor-pointer" : "cursor-default",
-                    isCompleted ? "text-primary" : isCurrent ? "text-foreground font-medium" : "text-muted-foreground",
-                    isClickable ? "hover:opacity-70 transition-opacity" : "",
-                  ].join(" ")}
+        {/* Single-step content */}
+        <div className="flex-1 overflow-y-auto px-6 min-h-0">
+          <div className="space-y-4 pb-2">
+            {/* Country & Year */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Country</Label>
+                <Select
+                  value={country}
+                  onValueChange={value =>
+                    setDraft(prev => ({ ...prev, country: value, year: "", variant: "" }))
+                  }
                 >
-                  <span
-                    className={[
-                      "flex h-5 w-5 items-center justify-center rounded-full text-[10px] border shrink-0 transition-colors",
-                      isCompleted
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : isCurrent
-                          ? "border-foreground text-foreground"
-                          : "border-muted-foreground/50 text-muted-foreground",
-                    ].join(" ")}
-                  >
-                    {isCompleted ? <Check className="h-3 w-3" /> : i + 1}
-                  </span>
-                  <span className="hidden sm:inline">{label}</span>
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div
-                    className={[
-                      "flex-1 mx-2 h-px transition-colors",
-                      isCompleted ? "bg-primary" : "bg-border",
-                    ].join(" ")}
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries
+                      .sort((a, b) => getCountryName(a).localeCompare(getCountryName(b)))
+                      .map(code => (
+                        <SelectItem key={code} value={code}>
+                          {getCountryFlag(code)} {getCountryName(code)}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Year</Label>
+                <Select
+                  value={year}
+                  onValueChange={value => setDraft(prev => ({ ...prev, year: value }))}
+                  disabled={!country || years.length === 0}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...years].sort((a, b) => b.localeCompare(a)).map(yr => (
+                      <SelectItem key={yr} value={yr}>
+                        {yr}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Gross Salary */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  {inputDefs.gross_annual?.label || "Gross Annual Salary"} ({currencySymbol})
+                </Label>
+                {inputsData?.notices && (
+                  <NoticeIcon
+                    notices={inputsData.notices}
+                    noticeId="salary_input"
+                    variant={variant}
                   />
                 )}
               </div>
-            )
-          })}
-        </div>
-
-        {/* Step content */}
-        <div className="flex-1 overflow-y-auto px-6 min-h-0">
-          {step === 0 && (
-            <div className="space-y-4 pb-2">
-              {/* Country & Year */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Country</Label>
-                  <Select
-                    value={country}
-                    onValueChange={value =>
-                      setDraft(prev => ({ ...prev, country: value, year: "", variant: "" }))
-                    }
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries
-                        .sort((a, b) => getCountryName(a).localeCompare(getCountryName(b)))
-                        .map(code => (
-                          <SelectItem key={code} value={code}>
-                            {getCountryFlag(code)} {getCountryName(code)}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Year</Label>
-                  <Select
-                    value={year}
-                    onValueChange={value => setDraft(prev => ({ ...prev, year: value }))}
-                    disabled={!country || years.length === 0}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[...years].sort((a, b) => b.localeCompare(a)).map(yr => (
-                        <SelectItem key={yr} value={yr}>
-                          {yr}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Gross Salary */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {inputDefs.gross_annual?.label || "Gross Annual Salary"} ({currencySymbol})
-                  </Label>
-                  {inputsData?.notices && (
-                    <NoticeIcon
-                      notices={inputsData.notices}
-                      noticeId="salary_input"
-                      variant={variant}
-                    />
-                  )}
-                </div>
-                {salaryModeSynced && !isLeader ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                            {currencySymbol}
-                          </span>
-                          <Input
-                            type="number"
-                            placeholder="100000"
-                            className="h-9 pl-10 opacity-60 cursor-not-allowed"
-                            value={gross_annual}
-                            disabled
-                            readOnly
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs text-xs">
-                          Salary is synced from the primary destination. Switch to{" "}
-                          <strong>Local salaries</strong> mode to set each country independently.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                      {currencySymbol}
-                    </span>
-                    <Input
-                      type="number"
-                      placeholder="100000"
-                      className="h-9 pl-10"
-                      value={gross_annual}
-                      onChange={e => updateFormValue("gross_annual", e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Enum inputs */}
-              {enumInputs.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  {enumInputs.map(([key, def]) => (
-                    <div key={key} className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">{def.label || key}</Label>
-                      <Select
-                        value={formValues[key] || (def.default ? String(def.default) : "__none__")}
-                        onValueChange={v => updateFormValue(key, v === "__none__" ? "" : v)}
-                      >
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {!def.required && (
-                            <SelectItem value="__none__">
-                              <span className="text-muted-foreground">None</span>
-                            </SelectItem>
-                          )}
-                          {def.options &&
-                            Object.entries(def.options).map(([optKey, opt]) => (
-                              <SelectItem key={optKey} value={optKey}>
-                                {(opt as { label: string }).label}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Boolean inputs */}
-              {booleanInputs.length > 0 && (
-                <div className="space-y-2">
-                  {booleanInputs.map(([key, def]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`wizard-${key}`}
-                        checked={formValues[key] === "true"}
-                        onCheckedChange={checked => updateFormValue(key, String(checked))}
-                      />
-                      <div className="flex items-center gap-1.5">
-                        <Label
-                          htmlFor={`wizard-${key}`}
-                          className="text-sm font-normal cursor-pointer"
-                        >
-                          {def.label || key}
-                        </Label>
-                        {def.description && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="h-3 w-3 text-muted-foreground" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs text-xs">{def.description}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
+              {salaryModeSynced && !isLeader ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                          {currencySymbol}
+                        </span>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="100000"
+                          className="h-9 pl-10 opacity-60 cursor-not-allowed"
+                          value={gross_annual}
+                          disabled
+                          readOnly
+                        />
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Tax variant */}
-              {variants.length > 0 && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Tax Variant</Label>
-                  <Select
-                    value={variant || "default"}
-                    onValueChange={v =>
-                      setDraft(prev => ({ ...prev, variant: v === "default" ? "" : v }))
-                    }
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Default" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      {variants.map(v => (
-                        <SelectItem key={v} value={v}>
-                          {v.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
-
-          {step === 1 && (
-            <div className="space-y-3 pb-2">
-              <p className="text-sm text-muted-foreground">
-                Add tax deductions applicable in{" "}
-                {country ? getCountryName(country) : "this country"}.
-              </p>
-              {Object.keys(inputDefs).length === 0 ? (
-                <div className="rounded-lg border border-dashed p-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    {country && year
-                      ? "No deductions available for this configuration."
-                      : "Select a country and year first."}
-                  </p>
-                </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs text-xs">
+                        Salary is synced from the primary destination. Switch to{" "}
+                        <strong>Local salaries</strong> mode to set each country independently.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               ) : (
-                <DeductionManager
-                  inputDefs={inputDefs}
-                  formValues={formValues}
-                  onUpdateFormValue={updateFormValue}
-                  columnIndex={draft.index}
-                  result={null}
-                  calcRequest={null}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {currencySymbol}
+                  </span>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="100000"
+                    className="h-9 pl-10"
+                    value={gross_annual}
+                    onChange={e => updateFormValue("gross_annual", e.target.value)}
+                  />
+                </div>
               )}
             </div>
-          )}
 
-          {step === 2 && (
-            <div className="space-y-3 pb-2">
-              <p className="text-sm text-muted-foreground">
-                Enter estimated monthly living costs in {currencySymbol} to see disposable income.
-              </p>
-              <CostOfLivingSection
-                value={costOfLiving}
-                currencySymbol={currencySymbol}
-                onChange={(col: CostOfLiving) => setDraft(prev => ({ ...prev, costOfLiving: col }))}
-                alwaysOpen
-              />
-            </div>
-          )}
+            {/* Tax variant */}
+            {variants.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Tax Variant</Label>
+                <Select
+                  value={variant || "default"}
+                  onValueChange={v =>
+                    setDraft(prev => ({ ...prev, variant: v === "default" ? "" : v }))
+                  }
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    {variants.map(v => (
+                      <SelectItem key={v} value={v}>
+                        {v.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Enum inputs */}
+            {enumInputs.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                {enumInputs.map(([key, def]) => (
+                  <div key={key} className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">{def.label || key}</Label>
+                    <Select
+                      value={formValues[key] || (def.default ? String(def.default) : "__none__")}
+                      onValueChange={v => updateFormValue(key, v === "__none__" ? "" : v)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {!def.required && (
+                          <SelectItem value="__none__">
+                            <span className="text-muted-foreground">None</span>
+                          </SelectItem>
+                        )}
+                        {def.options &&
+                          Object.entries(def.options).map(([optKey, opt]) => (
+                            <SelectItem key={optKey} value={optKey}>
+                              {(opt as { label: string }).label}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Boolean inputs */}
+            {booleanInputs.length > 0 && (
+              <div className="space-y-2">
+                {booleanInputs.map(([key, def]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`wizard-${key}`}
+                      checked={formValues[key] === "true"}
+                      onCheckedChange={checked => updateFormValue(key, String(checked))}
+                    />
+                    <div className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor={`wizard-${key}`}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {def.label || key}
+                      </Label>
+                      {def.description && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs text-xs">{def.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Collapsible: Deductions */}
+            {country && year && Object.keys(inputDefs).length > 0 && (
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between font-normal">
+                    <span>
+                      Tax Deductions
+                      <span className="text-muted-foreground ml-1.5">
+                        ({activeDeductionCount} active)
+                      </span>
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3">
+                  <DeductionManager
+                    inputDefs={inputDefs}
+                    formValues={formValues}
+                    onUpdateFormValue={updateFormValue}
+                    columnIndex={draft.index}
+                    previewResult={previewResult}
+                    calcRequest={previewCalcRequest}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Collapsible: Living Costs */}
+            <Collapsible>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="w-full justify-between font-normal">
+                  <span>
+                    Monthly Living Costs
+                    <span className="text-muted-foreground ml-1.5">
+                      ({totalMonthlyCosts > 0 ? `${currencySymbol}${totalMonthlyCosts.toLocaleString()}/mo` : "none"})
+                    </span>
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <CostOfLivingSection
+                  value={costOfLiving}
+                  currencySymbol={currencySymbol}
+                  onChange={(col: CostOfLiving) => setDraft(prev => ({ ...prev, costOfLiving: col }))}
+                  alwaysOpen
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer with live net preview */}
         <div className="flex items-center justify-between px-6 py-4 border-t shrink-0 mt-4">
-          <Button variant="outline" onClick={step === 0 ? onClose : handleBack}>
-            {step === 0 ? (
-              "Cancel"
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Back
-              </>
-            )}
-          </Button>
-          <Button onClick={handleNext} disabled={!canAdvance}>
-            {step === STEPS.length - 1 ? (
-              <>
-                <Check className="h-4 w-4 mr-1" />
-                Done
-              </>
-            ) : (
-              <>
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </>
-            )}
-          </Button>
+          {previewResult ? (
+            <div>
+              <div className="text-xs text-muted-foreground">Net Annual</div>
+              <div className="text-sm font-bold font-mono text-primary">
+                {formatCurrency(previewResult.net, previewResult.currency)}
+              </div>
+            </div>
+          ) : (
+            <div />
+          )}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={!canSave}>
+              <Check className="h-4 w-4 mr-1" />
+              Apply
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

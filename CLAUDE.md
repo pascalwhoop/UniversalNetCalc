@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+ALWAYS consider using one of the skills. They are there for a reason. If I ask you to do stuff that obviously matches a skill, use it!
+
 ## Project Overview
 
 This is a **Universal Gross-to-Net Salary Calculator** that provides accurate after-tax income calculations for multiple countries. The system is driven by YAML configuration files that define country-specific tax rules, calculations, and parameters.
