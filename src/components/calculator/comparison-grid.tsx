@@ -3,14 +3,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { Pin, Plus, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { ComparisonTable } from "./comparison-table"
 import { CountryCalculator } from "./country-calculator"
 import { Toggle } from "@/components/ui/toggle"
@@ -28,31 +20,14 @@ import { detectUserCountry } from "@/lib/detect-country"
 
 const MAX_COUNTRIES = 4
 
-function createEmptyCountryState(index: number): CountryColumnState {
+function createCountryState(index: number, country = "", gross_annual = ""): CountryColumnState {
   return {
     id: crypto.randomUUID(),
     index,
-    country: "",
+    country,
     year: "",
     variant: "",
-    gross_annual: "",
-    formValues: {},
-    currency: "EUR",
-    result: null,
-    isCalculating: false,
-    calculationError: null,
-    costOfLiving: { ...DEFAULT_COST_OF_LIVING },
-  }
-}
-
-function createDefaultCountryState(index: number, country?: string): CountryColumnState {
-  return {
-    id: crypto.randomUUID(),
-    index,
-    country: country || "",
-    year: "",
-    variant: "",
-    gross_annual: "100000",
+    gross_annual,
     formValues: {},
     currency: "EUR",
     result: null,
@@ -68,12 +43,11 @@ export function ComparisonGrid() {
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const [countries, setCountries] = useState<CountryColumnState[]>([
-    createEmptyCountryState(0),
+    createCountryState(0),
   ])
 
   const [isInitialized, setIsInitialized] = useState(false)
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
-  const [pinSalaryDialogOpen, setPinSalaryDialogOpen] = useState(false)
   const [salaryModeSynced, setSalaryModeSynced] = useState(true)
 
   // Wizard state: null = closed, '__new__' = adding, '<id>' = editing
@@ -81,9 +55,9 @@ export function ComparisonGrid() {
 
   const wizardInitialState = useMemo<CountryColumnState>(() => {
     if (wizardTargetId === "__new__") {
-      const newState = createEmptyCountryState(countries.length)
+      const newState = createCountryState(countries.length)
       if (salaryModeSynced) {
-        const leader = [...countries].sort((a, b) => a.index - b.index).find(c => c.index === 0)
+        const leader = countries.find(c => c.index === 0)
         if (leader?.gross_annual) {
           newState.gross_annual = leader.gross_annual
           newState.currency = leader.currency
@@ -91,7 +65,7 @@ export function ComparisonGrid() {
       }
       return newState
     }
-    return countries.find(c => c.id === wizardTargetId) ?? createEmptyCountryState(0)
+    return countries.find(c => c.id === wizardTargetId) ?? createCountryState(0)
   }, [wizardTargetId, countries, salaryModeSynced])
 
   const handleWizardSave = useCallback(
@@ -145,7 +119,7 @@ export function ComparisonGrid() {
       setCountries(entries)
     } else {
       const detectedCountry = detectUserCountry()
-      const initial = createDefaultCountryState(0, detectedCountry)
+      const initial = createCountryState(0, detectedCountry, "100000")
       setCountries([initial])
       setWizardTargetId(initial.id)
     }
@@ -207,7 +181,7 @@ export function ComparisonGrid() {
         setCountries(prev => {
           const me = prev.find(c => c.id === id)
           if (!me || me.index === 0) return prev
-          const leader = [...prev].sort((a, b) => a.index - b.index).find(c => c.index === 0)
+          const leader = prev.find(c => c.index === 0)
           if (!leader?.gross_annual) return prev
           const amount = parseFloat(leader.gross_annual)
           if (isNaN(amount)) return prev
@@ -472,43 +446,6 @@ export function ComparisonGrid() {
         normalizedDisplay={normalizedDisplay}
         baseCurrency={baseCurrency}
       />
-
-      {/* Mobile: Pin salary dialog */}
-      <Dialog open={pinSalaryDialogOpen} onOpenChange={setPinSalaryDialogOpen}>
-        <DialogContent className="sm:max-w-[280px]">
-          <DialogHeader>
-            <DialogTitle>Pin salary</DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-2 pt-1 text-left text-sm">
-                <p><strong>Pinned:</strong> One gross for all.</p>
-                <p><strong>Unpinned:</strong> One gross per country.</p>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-0">
-            <Button
-              variant={salaryModeSynced ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                handleSalaryModeChange(true)
-                setPinSalaryDialogOpen(false)
-              }}
-            >
-              Same salary
-            </Button>
-            <Button
-              variant={!salaryModeSynced ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                handleSalaryModeChange(false)
-                setPinSalaryDialogOpen(false)
-              }}
-            >
-              Local salaries
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Save Dialog */}
       <SaveDialog

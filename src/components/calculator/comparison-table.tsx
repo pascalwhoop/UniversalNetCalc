@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { ChevronRight, ChevronDown, Pencil, X, Settings } from "lucide-react"
+import { ChevronRight, ChevronDown, Crown, Pencil, X, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Crown } from "lucide-react"
 import type { CountryColumnState } from "@/lib/types"
 import type { BreakdownItem } from "@/lib/api"
 import { getCountryName } from "@/lib/api"
@@ -731,6 +730,12 @@ function LivingCostsRows({
   isExpanded: boolean
   onToggle: () => void
 }) {
+  const activeFields = isExpanded
+    ? LIVING_COST_CATEGORIES.filter(field =>
+        countries.some(c => (c.costOfLiving?.[field.id] || 0) > 0)
+      )
+    : []
+
   return (
     <>
       {/* Living costs total row */}
@@ -761,36 +766,26 @@ function LivingCostsRows({
       </tr>
 
       {/* Expanded living cost detail rows */}
-      {isExpanded && (() => {
-        // Collect all active category IDs across all countries
-        const activeIds = new Set<string>()
-        countries.forEach(c => {
-          if (c.costOfLiving) Object.keys(c.costOfLiving).forEach(k => {
-            if ((c.costOfLiving?.[k] || 0) > 0) activeIds.add(k)
-          })
-        })
-        const activeFields = LIVING_COST_CATEGORIES.filter(c => activeIds.has(c.id))
-        return activeFields.map(field => (
-          <tr key={field.id} className="border-b border-dashed">
-            <td className={`${stickyColClass} pl-9 pr-3 py-1.5 text-xs text-muted-foreground`}>
-              {field.emoji} {field.label}
-            </td>
-            {countries.map(c => {
-              const val = c.costOfLiving?.[field.id] || 0
-              const cur = c.result?.currency || c.currency || "EUR"
-              return (
-                <td key={c.id} className={`px-3 py-1.5 text-xs font-mono ${bestCountryId === c.id ? "bg-green-500/5" : ""}`}>
-                  {val > 0 ? (
-                    <span className="text-destructive">-{formatCurrency(val, cur)}</span>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </td>
-              )
-            })}
-          </tr>
-        ))
-      })()}
+      {activeFields.map(field => (
+        <tr key={field.id} className="border-b border-dashed">
+          <td className={`${stickyColClass} pl-9 pr-3 py-1.5 text-xs text-muted-foreground`}>
+            {field.emoji} {field.label}
+          </td>
+          {countries.map(c => {
+            const val = c.costOfLiving?.[field.id] || 0
+            const cur = c.result?.currency || c.currency || "EUR"
+            return (
+              <td key={c.id} className={`px-3 py-1.5 text-xs font-mono ${bestCountryId === c.id ? "bg-green-500/5" : ""}`}>
+                {val > 0 ? (
+                  <span className="text-destructive">-{formatCurrency(val, cur)}</span>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </td>
+            )
+          })}
+        </tr>
+      ))}
     </>
   )
 }
