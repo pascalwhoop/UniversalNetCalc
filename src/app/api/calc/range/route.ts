@@ -25,6 +25,52 @@ interface RangeDataPoint {
 // Singleton config loader
 const configLoader = new ConfigLoader(join(process.cwd(), "configs"))
 
+function computeDataPoint(
+  engine: InstanceType<typeof CalculationEngine>,
+  baseInputs: Record<string, unknown>,
+  gross: number
+): RangeDataPoint | null {
+  try {
+    const result = engine.calculate({ ...baseInputs, gross_annual: gross })
+
+    let taxTotal = 0
+    let socialTotal = 0
+
+    for (const item of result.breakdown) {
+      if (item.category === "income_tax" || item.category === "surtax") {
+        taxTotal += item.amount
+      } else if (item.category === "contribution") {
+        socialTotal += item.amount
+      }
+    }
+
+    // Credits reduce tax (but don't go negative)
+    for (const item of result.breakdown) {
+      if (item.category === "credit") {
+        taxTotal = Math.max(0, taxTotal - item.amount)
+      }
+    }
+
+    const netAmount = result.net
+    const grossAmount = result.gross
+
+    if (grossAmount === 0) return null
+
+    return {
+      gross: grossAmount,
+      net: netAmount,
+      tax: taxTotal,
+      social: socialTotal,
+      netPercent: (netAmount / grossAmount) * 100,
+      taxPercent: (taxTotal / grossAmount) * 100,
+      socialPercent: (socialTotal / grossAmount) * 100,
+    }
+  } catch (e) {
+    console.warn(`Skipping calculation for gross=${gross}:`, e)
+    return null
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: RangeCalcRequest = await request.json()
@@ -69,95 +115,15 @@ export async function POST(request: NextRequest) {
     // Calculate bars below/at current salary (20 bars)
     for (let i = 1; i <= barsBelow; i++) {
       const gross = (currentSalary / barsBelow) * i
-      try {
-        const inputs = { ...baseInputs, gross_annual: gross }
-        const result = engine.calculate(inputs)
-
-        // Calculate tax and social totals from breakdown
-        let taxTotal = 0
-        let socialTotal = 0
-
-        for (const item of result.breakdown) {
-          if (item.category === "income_tax" || item.category === "surtax") {
-            taxTotal += item.amount
-          } else if (item.category === "contribution") {
-            socialTotal += item.amount
-          }
-        }
-
-        // Credits reduce tax (but don't go negative)
-        for (const item of result.breakdown) {
-          if (item.category === "credit") {
-            taxTotal = Math.max(0, taxTotal - item.amount)
-          }
-        }
-
-        const netAmount = result.net
-        const grossAmount = result.gross
-
-        // Avoid division by zero
-        if (grossAmount === 0) continue
-
-        dataPoints.push({
-          gross: grossAmount,
-          net: netAmount,
-          tax: taxTotal,
-          social: socialTotal,
-          netPercent: (netAmount / grossAmount) * 100,
-          taxPercent: (taxTotal / grossAmount) * 100,
-          socialPercent: (socialTotal / grossAmount) * 100,
-        })
-      } catch (e) {
-        // Skip data points that fail (e.g., edge cases in calculation)
-        console.warn(`Skipping calculation for gross=${gross}:`, e)
-      }
+      const point = computeDataPoint(engine, baseInputs, gross)
+      if (point) dataPoints.push(point)
     }
 
     // Calculate bars above current salary (3 bars)
     for (let i = 1; i <= barsAbove; i++) {
       const gross = currentSalary + (rangeAbove / barsAbove) * i
-      try {
-        const inputs = { ...baseInputs, gross_annual: gross }
-        const result = engine.calculate(inputs)
-
-        // Calculate tax and social totals from breakdown
-        let taxTotal = 0
-        let socialTotal = 0
-
-        for (const item of result.breakdown) {
-          if (item.category === "income_tax" || item.category === "surtax") {
-            taxTotal += item.amount
-          } else if (item.category === "contribution") {
-            socialTotal += item.amount
-          }
-        }
-
-        // Credits reduce tax (but don't go negative)
-        for (const item of result.breakdown) {
-          if (item.category === "credit") {
-            taxTotal = Math.max(0, taxTotal - item.amount)
-          }
-        }
-
-        const netAmount = result.net
-        const grossAmount = result.gross
-
-        // Avoid division by zero
-        if (grossAmount === 0) continue
-
-        dataPoints.push({
-          gross: grossAmount,
-          net: netAmount,
-          tax: taxTotal,
-          social: socialTotal,
-          netPercent: (netAmount / grossAmount) * 100,
-          taxPercent: (taxTotal / grossAmount) * 100,
-          socialPercent: (socialTotal / grossAmount) * 100,
-        })
-      } catch (e) {
-        // Skip data points that fail (e.g., edge cases in calculation)
-        console.warn(`Skipping calculation for gross=${gross}:`, e)
-      }
+      const point = computeDataPoint(engine, baseInputs, gross)
+      if (point) dataPoints.push(point)
     }
 
     return NextResponse.json({

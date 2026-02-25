@@ -40,6 +40,36 @@ import { useCountries, useYears, useVariants, useInputs } from "@/lib/queries"
 import { buildCalcRequest } from "@/lib/calc-utils"
 import { formatCurrency } from "@/lib/formatters"
 
+function CurrencyInput({
+  currencySymbol,
+  value,
+  disabled,
+  onChange,
+}: {
+  currencySymbol: string
+  value: string
+  disabled?: boolean
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
+  return (
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+        {currencySymbol}
+      </span>
+      <Input
+        type="text"
+        inputMode="decimal"
+        placeholder="100000"
+        className={`h-9 pl-10${disabled ? " opacity-60 cursor-not-allowed" : ""}`}
+        value={value}
+        disabled={disabled}
+        readOnly={disabled}
+        onChange={onChange}
+      />
+    </div>
+  )
+}
+
 interface DestinationWizardProps {
   open: boolean
   onClose: () => void
@@ -286,20 +316,7 @@ export function DestinationWizard({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                          {currencySymbol}
-                        </span>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          placeholder="100000"
-                          className="h-9 pl-10 opacity-60 cursor-not-allowed"
-                          value={gross_annual}
-                          disabled
-                          readOnly
-                        />
-                      </div>
+                      <CurrencyInput currencySymbol={currencySymbol} value={gross_annual} disabled />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="max-w-xs text-xs">
@@ -310,19 +327,11 @@ export function DestinationWizard({
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                    {currencySymbol}
-                  </span>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="100000"
-                    className="h-9 pl-10"
-                    value={gross_annual}
-                    onChange={e => updateFormValue("gross_annual", e.target.value)}
-                  />
-                </div>
+                <CurrencyInput
+                  currencySymbol={currencySymbol}
+                  value={gross_annual}
+                  onChange={e => updateFormValue("gross_annual", e.target.value)}
+                />
               )}
             </div>
 
