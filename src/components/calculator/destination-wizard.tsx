@@ -10,6 +10,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -42,6 +50,7 @@ import { NoticeIcon, filterNoticesForVariant, NoticeRow, getSeverityIcon, getSev
 import { CountryColumnState, type CostOfLiving } from "@/lib/types"
 import { getCountryName, getCurrencySymbol, getExchangeRate, calculateSalary, type CalculationResult } from "@/lib/api"
 import { getCountryFlag } from "@/lib/country-metadata"
+import { useMediaQuery } from "@/lib/hooks"
 import { useCountries, useYears, useVariants, useInputs } from "@/lib/queries"
 import { buildCalcRequest } from "@/lib/calc-utils"
 import { formatCurrency } from "@/lib/formatters"
@@ -55,8 +64,8 @@ import {
 
 /**
  * Destination wizard layout:
- * - Whole wizard is a Sheet (right-side panel).
- * - Sheet content is broken into an Accordion of 3 sections: Basics, Deductions, Expenses.
+ * - Desktop (md+): Sheet (right-side panel). Mobile: Drawer (right) for better keyboard behavior.
+ * - Content is an Accordion of 3 sections: Basics, Deductions, Expenses.
  * - Within accordion sections we use Collapsibles for documentation/info (e.g. Notes & Sources in Basics).
  */
 
@@ -246,13 +255,9 @@ export function DestinationWizard({
     ? Object.values(costOfLiving).reduce((sum, v) => sum + v, 0)
     : 0
 
-  return (
-    <Sheet open={open} onOpenChange={v => !v && onClose()}>
-      <SheetContent side="right" className="flex flex-col gap-0 p-0 w-full max-w-[500px] sm:max-w-[500px] h-full">
-        <SheetHeader className="px-6 pt-6 pb-4 shrink-0">
-          <SheetTitle>{title}</SheetTitle>
-        </SheetHeader>
+  const isDesktop = useMediaQuery("(min-width: 768px)")
 
+  const scrollContent = (
         <div className="flex-1 overflow-y-auto min-h-0">
           {/* Notices, Notes, Sources (collapsed by default, above Accordion) */}
           <div className="px-6 space-y-2">
@@ -567,30 +572,77 @@ export function DestinationWizard({
           </Accordion>
           </div>
         </div>
+  )
 
-        {/* Footer with live net preview */}
-        <SheetFooter className="flex-row justify-between border-t shrink-0 px-6 py-4">
-          {previewResult ? (
-            <div>
-              <div className="text-xs text-muted-foreground">Net Annual</div>
-              <div className="text-sm font-bold font-mono text-primary">
-                {formatCurrency(previewResult.net, previewResult.currency)}
-              </div>
-            </div>
-          ) : (
-            <div />
-          )}
-          <div className="flex items-center gap-2">
-            <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </SheetClose>
-            <Button onClick={handleSave} disabled={!canSave}>
-              <Check className="h-4 w-4 mr-1" />
-              Apply
-            </Button>
+  const mobileFooter = (
+    <>
+      {previewResult ? (
+        <div>
+          <div className="text-xs text-muted-foreground">Net Annual</div>
+          <div className="text-sm font-bold font-mono text-primary">
+            {formatCurrency(previewResult.net, previewResult.currency)}
           </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </div>
+      ) : (
+        <div />
+      )}
+      <div className="flex items-center gap-2">
+        <DrawerClose asChild>
+          <Button variant="outline">Cancel</Button>
+        </DrawerClose>
+        <Button onClick={handleSave} disabled={!canSave}>
+          <Check className="h-4 w-4 mr-1" />
+          Apply
+        </Button>
+      </div>
+    </>
+  )
+
+  if (isDesktop) {
+    return (
+      <Sheet open={open} onOpenChange={v => !v && onClose()}>
+        <SheetContent side="right" className="flex flex-col gap-0 p-0 w-full max-w-[500px] sm:max-w-[500px] h-full">
+          <SheetHeader className="px-6 pt-6 pb-4 shrink-0">
+            <SheetTitle>{title}</SheetTitle>
+          </SheetHeader>
+          {scrollContent}
+          <SheetFooter className="flex-row justify-between border-t shrink-0 px-6 py-4">
+            {previewResult ? (
+              <div>
+                <div className="text-xs text-muted-foreground">Net Annual</div>
+                <div className="text-sm font-bold font-mono text-primary">
+                  {formatCurrency(previewResult.net, previewResult.currency)}
+                </div>
+              </div>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-center gap-2">
+              <SheetClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </SheetClose>
+              <Button onClick={handleSave} disabled={!canSave}>
+                <Check className="h-4 w-4 mr-1" />
+                Apply
+              </Button>
+            </div>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={v => !v && onClose()} direction="right">
+      <DrawerContent className="flex flex-col gap-0 p-0 w-full max-w-[500px] h-full border-l [&>.bg-muted]:hidden">
+        <DrawerHeader className="px-6 pt-6 pb-4 shrink-0">
+          <DrawerTitle>{title}</DrawerTitle>
+        </DrawerHeader>
+        {scrollContent}
+        <DrawerFooter className="flex-row justify-between border-t shrink-0 px-6 py-4">
+          {mobileFooter}
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }

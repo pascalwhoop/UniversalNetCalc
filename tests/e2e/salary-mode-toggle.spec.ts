@@ -1,34 +1,65 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
+
+/**
+ * Tests for the salary mode toggle (Pin salary button).
+ *
+ * The UI was redesigned from a two-tab control ("Same salary" / "Local salaries")
+ * to a single Toggle button labeled "Pin salary". When pressed (aria-pressed=true)
+ * the same gross is applied to all columns; when unpressed each column has its own.
+ * The tooltip was also replaced by a HoverCard.
+ */
+
+/** Dismiss any open wizard Sheet by pressing Escape and waiting for it to close */
+async function dismissSheet(page: Page) {
+  const overlay = page.locator('[data-slot="sheet-overlay"]')
+  if (await overlay.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.keyboard.press('Escape')
+    await overlay.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+    await page.waitForTimeout(200)
+  }
+}
+
+// Use a URL with pre-configured state so the wizard doesn't auto-open
+const CALC_URL = '/calculator?c=nl-2025--100000'
 
 test.describe('Salary mode toggle', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/calculator')
+    await page.goto(CALC_URL)
+    await page.waitForLoadState('domcontentloaded')
+    await page.waitForTimeout(800)
+    await dismissSheet(page)
   })
 
-  test('renders both mode options', async ({ page }) => {
-    await expect(page.getByRole('tab', { name: 'Same salary' })).toBeVisible()
-    await expect(page.getByRole('tab', { name: 'Local salaries' })).toBeVisible()
+  test('renders the Pin salary toggle button', async ({ page }) => {
+    await expect(page.locator('button:has-text("Pin salary")')).toBeVisible()
   })
 
-  test('defaults to Same salary mode', async ({ page }) => {
-    const sameSalary = page.getByRole('tab', { name: 'Same salary' })
-    await expect(sameSalary).toHaveAttribute('aria-selected', 'true')
+  test('defaults to pinned state (aria-pressed=true)', async ({ page }) => {
+    const pinBtn = page.locator('button:has-text("Pin salary")')
+    await expect(pinBtn).toHaveAttribute('aria-pressed', 'true')
   })
 
-  test('switches to Local salaries mode on click', async ({ page }) => {
-    await page.getByRole('tab', { name: 'Local salaries' }).click()
-    await expect(page.getByRole('tab', { name: 'Local salaries' })).toHaveAttribute('aria-selected', 'true')
-    await expect(page.getByRole('tab', { name: 'Same salary' })).toHaveAttribute('aria-selected', 'false')
+  test('clicking the button unpins salary (aria-pressed=false)', async ({ page }) => {
+    const pinBtn = page.locator('button:has-text("Pin salary")')
+    await pinBtn.click()
+    await expect(pinBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
-  test('switching back to Same salary works', async ({ page }) => {
-    await page.getByRole('tab', { name: 'Local salaries' }).click()
-    await page.getByRole('tab', { name: 'Same salary' }).click()
-    await expect(page.getByRole('tab', { name: 'Same salary' })).toHaveAttribute('aria-selected', 'true')
+  test('clicking twice returns to pinned state', async ({ page }) => {
+    const pinBtn = page.locator('button:has-text("Pin salary")')
+    await pinBtn.click()
+    await expect(pinBtn).toHaveAttribute('aria-pressed', 'false')
+    // Dismiss any sheet that may have appeared, then click again
+    await dismissSheet(page)
+    await pinBtn.click()
+    await expect(pinBtn).toHaveAttribute('aria-pressed', 'true')
   })
 
-  test('shows tooltip on hover', async ({ page }) => {
-    await page.getByRole('tab', { name: 'Same salary' }).hover()
-    await expect(page.getByRole('tooltip').first()).toBeVisible()
+  test('hovering shows HoverCard content', async ({ page }) => {
+    const pinBtn = page.locator('button:has-text("Pin salary")')
+    await pinBtn.hover()
+    // HoverCard has openDelay=300ms; wait beyond that
+    await page.waitForTimeout(600)
+    await expect(page.locator('[data-slot="hover-card-content"]')).toBeVisible({ timeout: 3000 })
   })
 })

@@ -17,9 +17,10 @@ import { test, expect, Page } from '@playwright/test'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** The wizard dialog opens automatically on load — dismiss it first */
+/** The wizard Sheet opens automatically on load — dismiss it first */
 async function dismissDialog(page: Page) {
-  const overlay = page.locator('[data-slot="dialog-overlay"]')
+  // Wizard is now a Sheet (right-side panel) instead of a centered Dialog
+  const overlay = page.locator('[data-slot="sheet-overlay"]')
   if (await overlay.isVisible().catch(() => false)) {
     await page.keyboard.press('Escape')
     await page.waitForTimeout(400)
@@ -215,10 +216,11 @@ test.describe('Comparison table view', () => {
 
   // ── Section 8: Living costs ───────────────────────────────────────────────
 
-  test('"Monthly Living Costs" section is accessible in wizard', async ({ page }) => {
+  test('"Expenses" section is accessible in wizard', async ({ page }) => {
     await page.locator('button:has-text("Edit")').first().click()
     await page.waitForTimeout(600)
-    await expect(page.locator('button:has-text("Monthly Living Costs")')).toBeVisible()
+    // Living costs are now in an "Expenses" accordion section (redesigned from "Monthly Living Costs" collapsible)
+    await expect(page.locator('button:has-text("Expenses")')).toBeVisible()
     await page.keyboard.press('Escape')
     await page.waitForTimeout(400)
   })
