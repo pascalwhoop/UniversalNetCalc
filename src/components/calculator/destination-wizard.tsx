@@ -634,7 +634,7 @@ export function DestinationWizard({
 
   return (
     <Drawer open={open} onOpenChange={v => !v && onClose()} direction="right">
-      <DrawerContent className="flex flex-col gap-0 p-0 w-full max-w-[500px] h-full border-l [&>.bg-muted]:hidden">
+      <DrawerContent className="flex flex-col gap-0 p-0 inset-0 w-full min-h-dvh h-full max-w-none border-0 [&>.bg-muted]:hidden data-[vaul-drawer-direction=right]:w-full! data-[vaul-drawer-direction=right]:max-w-none! data-[vaul-drawer-direction=right]:left-0!">
         <DrawerHeader className="px-6 pt-6 pb-4 shrink-0">
           <DrawerTitle>{title}</DrawerTitle>
         </DrawerHeader>
