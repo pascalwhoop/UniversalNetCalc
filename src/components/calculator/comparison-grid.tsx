@@ -8,6 +8,7 @@ import { CountryCalculator } from "./country-calculator"
 import { Toggle } from "@/components/ui/toggle"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { ShareButton } from "./share-button"
+import { BugReportButton } from "./bug-report-button"
 import { SaveDialog } from "./save-dialog"
 import { DestinationWizard } from "./destination-wizard"
 import { CountryColumnState, DEFAULT_COST_OF_LIVING } from "@/lib/types"
@@ -391,6 +392,7 @@ export function ComparisonGrid() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <BugReportButton />
           <HoverCard openDelay={300} closeDelay={100}>
             <HoverCardTrigger asChild>
               <span>

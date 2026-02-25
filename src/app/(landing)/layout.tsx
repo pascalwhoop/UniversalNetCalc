@@ -49,7 +49,7 @@ export default function LandingLayout({
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
                   <a
-                    href="https://github.com"
+                    href="https://github.com/pascalwhoop/universalNetCalc"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-foreground"
@@ -59,7 +59,7 @@ export default function LandingLayout({
                 </li>
                 <li>
                   <a
-                    href="https://github.com/issues"
+                    href="https://github.com/pascalwhoop/universalNetCalc/issues/new"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-foreground"
