@@ -24,7 +24,7 @@ export class CalculationEngine {
     for (const [key, def] of Object.entries(this.config.inputs)) {
       if (inputs[key] !== undefined) {
         inputsWithDefaults[key] = inputs[key]
-      } else if ('default' in def && def.default !== undefined) {
+      } else if (def != null && 'default' in def && def.default !== undefined) {
         inputsWithDefaults[key] = def.default as string | number | boolean
       }
     }
@@ -94,7 +94,7 @@ export class CalculationEngine {
               id,
               label: node.label || id,
               amount,
-              category: (node.category || 'deduction') as NodeCategory,
+              category: (node.category ?? 'deduction') as NonNullable<NodeCategory>,
               description: node.description,
             })
           }
