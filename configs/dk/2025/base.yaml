@@ -3,11 +3,21 @@ meta:
   label: "Denmark"
   currency: "DKK"
   year: 2025
+  version: "1.0.0"
+  updated_at: "2026-01-23"
   sources:
-    - "https://skat.dk/en-us/individuals/labour-market-contribution"
-    - "https://skat.dk/en-us/help/botton-bracket-middle-bracket-top-bracket-and-additional-top-bracket-tax"
-    - "https://www.thelocal.dk/20241030/danish-municipalities-announce-new-tax-rates-for-2025"
-    - "https://taxsummaries.pwc.com/denmark/individual/taxes-on-personal-income"
+    - url: "https://skat.dk/en-us/individuals/labour-market-contribution"
+      description: "Danish Tax Authority (SKAT)"
+      retrieved_at: "2026-01-23"
+    - url: "https://skat.dk/en-us/help/botton-bracket-middle-bracket-top-bracket-and-additional-top-bracket-tax"
+      description: "SKAT income tax brackets guide"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.thelocal.dk/20241030/danish-municipalities-announce-new-tax-rates-for-2025"
+      description: "Danish municipal tax rates 2025"
+      retrieved_at: "2026-01-23"
+    - url: "https://taxsummaries.pwc.com/denmark/individual/taxes-on-personal-income"
+      description: "PwC Denmark tax summary"
+      retrieved_at: "2026-01-23"
 
 inputs:
   gross_annual:
@@ -160,9 +170,15 @@ outputs:
       - "$employment_deduction"
 
 notices:
-  - type: info
-    message: "Denmark has one of the highest tax rates in the world, but this includes comprehensive healthcare, education, and social benefits at no additional cost."
-  - type: info
-    message: "This calculation does not include ATP (Labour Market Supplementary Pension) contributions, which are approximately DKK 1,100-1,200 per year."
-  - type: info
-    message: "Municipal tax rates vary by municipality. Copenhagen (23.5%) has one of the lowest rates in Denmark."
+  - id: "high_tax_context"
+    title: "High Tax, High Benefits"
+    body: "Denmark has one of the highest tax rates in the world, but this includes comprehensive healthcare, education, and social benefits at no additional cost."
+    severity: info
+  - id: "atp_not_included"
+    title: "ATP Not Included"
+    body: "This calculation does not include ATP (Labour Market Supplementary Pension) contributions, which are approximately DKK 1,100-1,200 per year."
+    severity: info
+  - id: "municipal_rates"
+    title: "Municipal Tax Rates"
+    body: "Municipal tax rates vary by municipality. Copenhagen (23.5%) has one of the lowest rates in Denmark."
+    severity: info

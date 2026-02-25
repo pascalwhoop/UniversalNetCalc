@@ -6,29 +6,36 @@ meta:
   frequency: "annual"
   description: "Ireland income tax, USC, and PRSI for 2025"
   sources:
-    - "https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/tax-relief-charts/index.aspx"
-    - "https://www.citizensinformation.ie/en/money-and-tax/tax/income-tax/universal-social-charge/"
-    - "https://www.gov.ie/en/department-of-social-protection/publications/prsi-class-a-rates/"
-  last_updated: "2026-01-23"
+    - url: "https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/tax-relief-charts/index.aspx"
+      description: "Irish Revenue tax relief charts"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.citizensinformation.ie/en/money-and-tax/tax/income-tax/universal-social-charge/"
+      description: "Citizens Information USC guide"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.gov.ie/en/department-of-social-protection/publications/prsi-class-a-rates/"
+      description: "Irish government PRSI Class A rates"
+      retrieved_at: "2026-01-23"
+  version: "1.0.0"
+  updated_at: "2026-01-23"
 
 inputs:
-  - id: "gross_annual"
-    label: "Annual Gross Salary"
-    type: "currency"
+  gross_annual:
+    type: number
     required: true
-    default: 50000
     min: 0
     max: 2000000
+    default: 50000
+    label: "Annual Gross Salary"
 
-  - id: "filing_status"
-    label: "Filing Status"
-    type: "select"
+  filing_status:
+    type: enum
     required: true
     default: "single"
+    label: "Filing Status"
     options:
-      - value: "single"
+      single:
         label: "Single"
-      - value: "married"
+      married:
         label: "Married/Civil Partners"
 
 parameters:
@@ -283,11 +290,17 @@ outputs:
       - "$employee_credit"
 
 notices:
-  - type: "info"
-    message: "PRSI rate shown is 4.2% (effective October 1, 2025). The rate was 4.1% from January-September 2025."
+  - id: "prsi_rate"
+    title: "PRSI Rate"
+    body: "PRSI rate shown is 4.2% (effective October 1, 2025). The rate was 4.1% from January-September 2025."
+    severity: info
 
-  - type: "info"
-    message: "Standard tax credits include Personal Credit and Employee Tax Credit, totaling €4,000 for single filers."
+  - id: "tax_credits"
+    title: "Standard Tax Credits"
+    body: "Standard tax credits include Personal Credit and Employee Tax Credit, totaling €4,000 for single filers."
+    severity: info
 
-  - type: "info"
-    message: "USC (Universal Social Charge) is calculated on gross income with no reliefs or credits."
+  - id: "usc_basis"
+    title: "USC Calculation Basis"
+    body: "USC (Universal Social Charge) is calculated on gross income with no reliefs or credits."
+    severity: info

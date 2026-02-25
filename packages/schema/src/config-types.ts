@@ -1,330 +1,406 @@
 /**
- * TypeScript types for the Universal Salary Calculator configuration schema
- * Based on DATA_SPEC.md v1
+ * Zod schemas for the Universal Salary Calculator configuration.
+ * Source of truth for all config file structure.
+ * TypeScript types are derived via z.infer<>.
  */
+import { z } from 'zod'
 
 // ============================================================================
-// Meta Section
+// Meta
 // ============================================================================
 
-export interface ConfigMeta {
-  country: string // ISO 3166-1 alpha-2
-  year: number
-  currency: string // ISO 4217
-  version: string // Semver
-  sources: ConfigSource[]
-  updated_at: string // ISO 8601 date
-  notes?: string
+export const ConfigSourceSchema = z.object({
+  url: z.string(),
+  description: z.string(),
+  retrieved_at: z.string(), // ISO 8601 date
+})
 
-  // For variants only
-  variant?: string
-  label?: string
-  description?: string
-  base?: string // Path to base config
-}
+export const ConfigMetaSchema = z.object({
+  country: z.string(), // ISO 3166-1 alpha-2
+  year: z.number().int(),
+  currency: z.string(), // ISO 4217
+  version: z.string(), // semver
+  sources: z.array(ConfigSourceSchema),
+  updated_at: z.string(), // ISO 8601 date
+  notes: z.string().optional(),
 
-export interface ConfigSource {
-  url: string
-  description: string
-  retrieved_at: string // ISO 8601 date
-}
-
-// ============================================================================
-// Notices Section
-// ============================================================================
-
-export interface Notice {
-  id: string
-  title: string
-  body: string
-  severity?: 'info' | 'warning' | 'error'
-  show_for_variants?: string[]
-}
+  // Variant-only fields
+  variant: z.string().optional(),
+  label: z.string().optional(),
+  description: z.string().optional(),
+  base: z.string().optional(),
+})
 
 // ============================================================================
-// Inputs Section
+// Notices
 // ============================================================================
 
-export type InputType = 'number' | 'enum' | 'boolean'
-
-export interface BaseInput {
-  type: InputType
-  required: boolean
-  label?: string
-  description?: string
-}
-
-export interface NumberInput extends BaseInput {
-  type: 'number'
-  min?: number
-  max?: number
-  default?: number
-  group?: string // If set, this is a secondary field belonging to the named primary input's group
-}
-
-export interface EnumOption {
-  label: string
-  description?: string
-  [key: string]: unknown // Allow additional properties for metadata
-}
-
-export interface EnumInput extends BaseInput {
-  type: 'enum'
-  default?: string
-  options: Record<string, EnumOption>
-  depends_on?: string // Field that must be set first
-  options_by_parent?: Record<string, Record<string, EnumOption>> // For cascading selects
-}
-
-export interface BooleanInput extends BaseInput {
-  type: 'boolean'
-  default?: boolean
-}
-
-export type Input = NumberInput | EnumInput | BooleanInput
-
-export type InputDefinitions = Record<string, Input>
+export const NoticeSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  body: z.string(),
+  severity: z.enum(['info', 'warning', 'error']).optional(),
+  show_for_variants: z.array(z.string()).optional(),
+})
 
 // ============================================================================
-// Parameters Section
+// Inputs
 // ============================================================================
 
-export interface BracketEntry {
-  threshold: number
-  rate: number
-  base_amount?: number // German-style brackets
-}
+// EnumOption allows arbitrary extra properties (e.g. metadata)
+export const EnumOptionSchema = z
+  .object({
+    label: z.string(),
+    description: z.string().optional(),
+  })
+  .passthrough()
 
-export interface PhaseoutConfig {
-  base: string // Reference to income field
-  start: number
-  end: number
-  rate: number
-}
+export const NumberInputSchema = z.object({
+  type: z.literal('number'),
+  required: z.boolean(),
+  label: z.string().optional(),
+  description: z.string().optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  default: z.number().optional(),
+  group: z.string().optional(),
+})
 
-export type ParameterValue =
-  | number
-  | string
-  | boolean
-  | BracketEntry[]
-  | Record<string, unknown>
-  | unknown[]
+export const EnumInputSchema = z.object({
+  type: z.literal('enum'),
+  required: z.boolean(),
+  label: z.string().optional(),
+  description: z.string().optional(),
+  default: z.string().optional(),
+  options: z.record(z.string(), EnumOptionSchema),
+  depends_on: z.string().optional(),
+  options_by_parent: z
+    .record(z.string(), z.record(z.string(), EnumOptionSchema))
+    .optional(),
+})
 
-export type Parameters = Record<string, ParameterValue>
+export const BooleanInputSchema = z.object({
+  type: z.literal('boolean'),
+  required: z.boolean(),
+  label: z.string().optional(),
+  description: z.string().optional(),
+  default: z.boolean().optional(),
+})
 
-// ============================================================================
-// Calculations Section (DAG Nodes)
-// ============================================================================
+export const InputSchema = z.discriminatedUnion('type', [
+  NumberInputSchema,
+  EnumInputSchema,
+  BooleanInputSchema,
+])
 
-export type NodeCategory = 'income_tax' | 'contribution' | 'credit' | 'deduction' | 'surtax'
-
-export interface BaseNode {
-  id: string
-  type: string
-  category?: NodeCategory
-  label?: string
-  description?: string
-}
-
-// Arithmetic Nodes
-export interface IdentityNode extends BaseNode {
-  type: 'identity'
-  value: string | number
-}
-
-export interface SumNode extends BaseNode {
-  type: 'sum'
-  values: (string | number | InlineNode)[]
-}
-
-export interface SubNode extends BaseNode {
-  type: 'sub'
-  values: (string | number | InlineNode)[]
-}
-
-export interface MulNode extends BaseNode {
-  type: 'mul'
-  values: (string | number | InlineNode)[]
-}
-
-export interface DivNode extends BaseNode {
-  type: 'div'
-  values: (string | number | InlineNode)[]
-}
-
-export interface MinNode extends BaseNode {
-  type: 'min'
-  values: (string | number | InlineNode)[]
-}
-
-export interface MaxNode extends BaseNode {
-  type: 'max'
-  values: (string | number | InlineNode)[]
-}
-
-export interface ClampNode extends BaseNode {
-  type: 'clamp'
-  value: string | number
-  min: string | number
-  max: string | number
-}
-
-// Tax Nodes
-export interface BracketTaxNode extends BaseNode {
-  type: 'bracket_tax'
-  base: string | number
-  brackets: string | BracketEntry[]
-  category?: NodeCategory
-  label?: string
-}
-
-export interface PercentOfNode extends BaseNode {
-  type: 'percent_of'
-  base: string | number
-  rate: number
-  category?: NodeCategory
-  label?: string
-  condition?: ConditionConfig
-}
-
-// Credit and Deduction Nodes
-export interface CreditNode extends BaseNode {
-  type: 'credit'
-  amount: string | number
-  refundable: boolean
-  phaseout?: PhaseoutConfig
-  category?: NodeCategory
-  label?: string
-}
-
-export interface ThresholdConfig {
-  amount: string | number // Threshold value (can be reference or inline calc)
-  mode: 'above' | 'below' // Deduct only amount above or below threshold
-}
-
-export interface DeductionNode extends BaseNode {
-  type: 'deduction'
-  amount: string | number | InlineNode
-  cap?: string | number
-  threshold?: ThresholdConfig // Only amounts above/below threshold are deductible
-  phaseout?: PhaseoutConfig // Reduce deduction based on income
-  category?: NodeCategory
-  label?: string
-}
-
-// Control Flow Nodes
-export interface SwitchNode extends BaseNode {
-  type: 'switch'
-  on: string // Input or parameter to switch on
-  cases: Record<string, unknown>
-  default?: unknown
-}
-
-export interface LookupNode extends BaseNode {
-  type: 'lookup'
-  table: string // Reference to parameter
-  key: string // Input or calculated value
-  subkey?: string // For nested lookups
-  default?: unknown
-}
-
-export interface ConditionalNode extends BaseNode {
-  type: 'conditional'
-  condition: ConditionConfig
-  then: string | number | InlineNode
-  else: string | number | InlineNode
-}
-
-export interface ConditionConfig {
-  type: 'gt' | 'lt' | 'gte' | 'lte' | 'eq' | 'neq'
-  left: string | number
-  right: string | number
-}
-
-// Utility Nodes
-export interface RoundNode extends BaseNode {
-  type: 'round'
-  value: string | number
-  precision: number
-  mode: 'half_up' | 'half_down' | 'floor' | 'ceil'
-}
-
-// Function Node (Escape Hatch)
-export interface FunctionNode extends BaseNode {
-  type: 'function'
-  name: string // Registered function name
-  inputs: Record<string, string | number>
-  category?: NodeCategory
-  label?: string
-}
-
-// Inline nodes (can be nested in other nodes)
-export type InlineNode =
-  | Omit<SumNode, 'id' | 'category' | 'label'>
-  | Omit<SubNode, 'id' | 'category' | 'label'>
-  | Omit<MulNode, 'id' | 'category' | 'label'>
-  | Omit<DivNode, 'id' | 'category' | 'label'>
-  | Omit<MinNode, 'id' | 'category' | 'label'>
-  | Omit<MaxNode, 'id' | 'category' | 'label'>
-
-// Union of all node types
-export type CalculationNode =
-  | IdentityNode
-  | SumNode
-  | SubNode
-  | MulNode
-  | DivNode
-  | MinNode
-  | MaxNode
-  | ClampNode
-  | BracketTaxNode
-  | PercentOfNode
-  | CreditNode
-  | DeductionNode
-  | SwitchNode
-  | LookupNode
-  | ConditionalNode
-  | RoundNode
-  | FunctionNode
+// Null entries allowed as a way to "unset" an inherited input in some configs.
+// {$delete: true} entries allowed in variant configs to remove base inputs.
+export const DeleteInputSchema = z.object({ $delete: z.literal(true) })
+export const InputDefinitionsSchema = z.record(
+  z.string(),
+  z.union([InputSchema, DeleteInputSchema, z.null()])
+)
 
 // ============================================================================
-// Outputs Section
+// Parameters — flexible by design (scalars, arrays, nested objects)
 // ============================================================================
 
-export interface OutputDefinition {
-  gross: string | number | InlineNode
-  net: string | number | InlineNode
-  effective_rate: string | number | InlineNode
-  breakdown: {
-    taxes?: string[]
-    contributions?: string[]
-    credits?: string[]
-    deductions?: string[]
-    surtaxes?: string[]
-  }
+export const BracketEntrySchema = z
+  .object({
+    threshold: z.number(),
+    rate: z.number(),
+    base_amount: z.number().optional(),
+  })
+  .passthrough() // Allow extra fields like 'max', 'base' in some country configs
+
+export const ParametersSchema = z.record(z.string(), z.unknown())
+
+// ============================================================================
+// Inline Expressions
+//
+// Inline nodes can appear as values inside other nodes (no required `id`).
+// We use a lazy passthrough schema to handle deep recursion without fighting
+// Zod's type system — structural correctness is caught by the engine at runtime,
+// while the schema ensures every top-level calc node is well-formed.
+// ============================================================================
+
+type AnyInlineExpr = { type: string; [key: string]: unknown }
+
+export const AnyInlineExprSchema: z.ZodType<AnyInlineExpr> = z.lazy(() =>
+  z.object({ type: z.string() }).passthrough()
+)
+
+// A value accepted wherever string | number | inline-expression is valid
+export const ValueOrExprSchema: z.ZodType<string | number | AnyInlineExpr> =
+  z.union([z.string(), z.number(), AnyInlineExprSchema])
+
+// ============================================================================
+// Shared sub-schemas
+// ============================================================================
+
+export const ConditionConfigSchema = z.object({
+  type: z.enum(['gt', 'lt', 'gte', 'lte', 'eq', 'neq']),
+  left: z.union([z.string(), z.number()]),
+  right: z.union([z.string(), z.number()]),
+})
+
+export const PhaseoutConfigSchema = z.object({
+  base: z.string(),
+  start: z.number(),
+  end: z.number(),
+  rate: z.number(),
+})
+
+export const ThresholdConfigSchema = z.object({
+  amount: z.union([z.string(), z.number()]),
+  mode: z.enum(['above', 'below']),
+})
+
+// ============================================================================
+// Calculation Nodes (top-level, discriminated by `type`)
+// ============================================================================
+
+// Shared base fields for all named nodes
+const baseNodeFields = {
+  id: z.string(),
+  category: z
+    .enum(['income_tax', 'contribution', 'credit', 'deduction', 'surtax'])
+    .optional(),
+  label: z.string().optional(),
+  description: z.string().optional(),
 }
 
+export const IdentityNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('identity'),
+  value: z.union([z.string(), z.number()]),
+})
+
+export const SumNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('sum'),
+  values: z.array(ValueOrExprSchema),
+})
+
+export const SubNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('sub'),
+  values: z.array(ValueOrExprSchema),
+})
+
+export const MulNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('mul'),
+  values: z.array(ValueOrExprSchema),
+})
+
+export const DivNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('div'),
+  values: z.array(ValueOrExprSchema),
+})
+
+export const MinNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('min'),
+  values: z.array(ValueOrExprSchema),
+})
+
+export const MaxNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('max'),
+  values: z.array(ValueOrExprSchema),
+})
+
+export const ClampNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('clamp'),
+  value: z.union([z.string(), z.number()]),
+  min: z.union([z.string(), z.number()]),
+  max: z.union([z.string(), z.number()]),
+})
+
+export const BracketTaxNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('bracket_tax'),
+  base: z.union([z.string(), z.number()]),
+  brackets: z.union([z.string(), z.array(BracketEntrySchema)]),
+})
+
+export const PercentOfNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('percent_of'),
+  base: z.union([z.string(), z.number()]),
+  rate: z.union([z.string(), z.number()]), // Allows references like "$rate_param"
+  condition: ConditionConfigSchema.optional(),
+})
+
+export const CreditNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('credit'),
+  amount: ValueOrExprSchema,
+  refundable: z.boolean(),
+  phaseout: PhaseoutConfigSchema.optional(),
+})
+
+export const DeductionNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('deduction'),
+  amount: ValueOrExprSchema,
+  cap: z.union([z.string(), z.number()]).optional(),
+  threshold: ThresholdConfigSchema.optional(),
+  phaseout: PhaseoutConfigSchema.optional(),
+})
+
+export const SwitchNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('switch'),
+  on: z.string(),
+  cases: z.record(z.string(), z.unknown()),
+  default: z.unknown().optional(),
+})
+
+export const LookupNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('lookup'),
+  table: z.string(),
+  key: z.string(),
+  subkey: z.string().optional(),
+  default: z.unknown().optional(),
+})
+
+export const ConditionalNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('conditional'),
+  condition: ConditionConfigSchema,
+  then: ValueOrExprSchema,
+  else: ValueOrExprSchema,
+})
+
+export const RoundNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('round'),
+  value: z.union([z.string(), z.number()]),
+  precision: z.number().int(),
+  mode: z.enum(['half_up', 'half_down', 'floor', 'ceil']),
+})
+
+export const FunctionNodeSchema = z.object({
+  ...baseNodeFields,
+  type: z.literal('function'),
+  name: z.string(),
+  inputs: z.record(z.string(), z.union([z.string(), z.number()])),
+})
+
+export const CalculationNodeSchema = z.discriminatedUnion('type', [
+  IdentityNodeSchema,
+  SumNodeSchema,
+  SubNodeSchema,
+  MulNodeSchema,
+  DivNodeSchema,
+  MinNodeSchema,
+  MaxNodeSchema,
+  ClampNodeSchema,
+  BracketTaxNodeSchema,
+  PercentOfNodeSchema,
+  CreditNodeSchema,
+  DeductionNodeSchema,
+  SwitchNodeSchema,
+  LookupNodeSchema,
+  ConditionalNodeSchema,
+  RoundNodeSchema,
+  FunctionNodeSchema,
+])
+
+// Variant configs may include $delete markers to remove base nodes
+export const DeleteNodeSchema = z.object({
+  id: z.string(),
+  $delete: z.literal(true),
+})
+
+export const VariantCalculationNodeSchema = z.union([
+  CalculationNodeSchema,
+  DeleteNodeSchema,
+])
+
 // ============================================================================
-// Complete Config
+// Outputs
 // ============================================================================
 
-export interface TaxConfig {
-  meta: ConfigMeta
-  notices?: Notice[]
-  inputs: InputDefinitions
-  parameters: Parameters
-  calculations: CalculationNode[]
-  outputs: OutputDefinition
-}
+export const BreakdownDefinitionSchema = z.object({
+  taxes: z.array(z.string()).optional(),
+  contributions: z.array(z.string()).optional(),
+  credits: z.array(z.string()).optional(),
+  deductions: z.array(z.string()).optional(),
+  surtaxes: z.array(z.string()).optional(),
+})
+
+export const OutputDefinitionSchema = z.object({
+  gross: ValueOrExprSchema,
+  net: ValueOrExprSchema,
+  effective_rate: ValueOrExprSchema,
+  breakdown: BreakdownDefinitionSchema,
+})
 
 // ============================================================================
-// Calculation Context and Results
+// Complete Base Config (all required sections present)
+// ============================================================================
+
+export const TaxConfigSchema = z.object({
+  meta: ConfigMetaSchema,
+  notices: z.array(NoticeSchema).optional(),
+  inputs: InputDefinitionsSchema,
+  parameters: ParametersSchema,
+  calculations: z.array(CalculationNodeSchema),
+  outputs: OutputDefinitionSchema,
+})
+
+// ============================================================================
+// Variant Config (only override sections needed)
+// ============================================================================
+
+export const VariantConfigSchema = z.object({
+  meta: ConfigMetaSchema.partial().extend({ variant: z.string() }),
+  notices: z.array(NoticeSchema).optional(),
+  inputs: InputDefinitionsSchema.optional(),
+  parameters: ParametersSchema.optional(),
+  calculations: z.array(VariantCalculationNodeSchema).optional(),
+  outputs: OutputDefinitionSchema.partial().optional(),
+})
+
+// ============================================================================
+// Exported TypeScript types (derived from schemas — single source of truth)
+// ============================================================================
+
+export type ConfigSource = z.infer<typeof ConfigSourceSchema>
+export type ConfigMeta = z.infer<typeof ConfigMetaSchema>
+export type Notice = z.infer<typeof NoticeSchema>
+export type NumberInput = z.infer<typeof NumberInputSchema>
+export type EnumInput = z.infer<typeof EnumInputSchema>
+export type BooleanInput = z.infer<typeof BooleanInputSchema>
+export type Input = z.infer<typeof InputSchema>
+export type InputType = Input['type']
+export type InputDefinitions = z.infer<typeof InputDefinitionsSchema>
+export type BracketEntry = z.infer<typeof BracketEntrySchema>
+export type Parameters = z.infer<typeof ParametersSchema>
+export type ParameterValue = unknown
+export type NodeCategory = z.infer<typeof baseNodeFields.category>
+export type ConditionConfig = z.infer<typeof ConditionConfigSchema>
+export type PhaseoutConfig = z.infer<typeof PhaseoutConfigSchema>
+export type InlineNode = AnyInlineExpr
+export type CalculationNode = z.infer<typeof CalculationNodeSchema>
+export type OutputDefinition = z.infer<typeof OutputDefinitionSchema>
+export type TaxConfig = z.infer<typeof TaxConfigSchema>
+export type VariantConfig = z.infer<typeof VariantConfigSchema>
+
+// ============================================================================
+// Runtime types (not part of the YAML schema — no Zod schema needed)
 // ============================================================================
 
 export interface CalculationContext {
   inputs: Record<string, unknown>
   parameters: Parameters
-  nodes: Record<string, unknown> // Computed node values (can be number, string, array, etc.)
+  nodes: Record<string, unknown>
   config?: {
     meta?: {
       year?: number
@@ -337,7 +413,7 @@ export interface BreakdownItem {
   id: string
   label: string
   amount: number
-  category: NodeCategory
+  category: NonNullable<NodeCategory>
   description?: string
 }
 
@@ -346,14 +422,10 @@ export interface CalculationResult {
   net: number
   effective_rate: number
   breakdown: BreakdownItem[]
-  currency: string // ISO 4217 currency code
+  currency: string
   config_version_hash: string
   config_last_updated: string
 }
-
-// ============================================================================
-// Test Vectors
-// ============================================================================
 
 export interface TestVector {
   name: string

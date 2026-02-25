@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ComparisonTable } from "./comparison-table"
 import { CountryCalculator } from "./country-calculator"
 import { Toggle } from "@/components/ui/toggle"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { ShareButton } from "./share-button"
 import { SaveDialog } from "./save-dialog"
 import { DestinationWizard } from "./destination-wizard"
@@ -68,6 +68,9 @@ export function ComparisonGrid() {
     return countries.find(c => c.id === wizardTargetId) ?? createCountryState(0)
   }, [wizardTargetId, countries, salaryModeSynced])
 
+  // Stable ref so handleWizardSave (defined before updateCountry) can call it
+  const updateCountryRef = useRef<(id: string, updates: Partial<CountryColumnState>) => void>(() => {})
+
   const handleWizardSave = useCallback(
     (saved: CountryColumnState) => {
       if (wizardTargetId === "__new__") {
@@ -80,14 +83,16 @@ export function ComparisonGrid() {
           calculationError: null,
         }
         setCountries(prev => [...prev, newEntry])
-      } else {
-        setCountries(prev =>
-          prev.map(c =>
-            c.id === wizardTargetId
-              ? { ...saved, id: c.id, index: c.index, result: null, isCalculating: false, calculationError: null }
-              : c
-          )
-        )
+      } else if (wizardTargetId) {
+        updateCountryRef.current(wizardTargetId, {
+          country: saved.country,
+          year: saved.year,
+          variant: saved.variant,
+          gross_annual: saved.gross_annual,
+          formValues: saved.formValues,
+          currency: saved.currency,
+          costOfLiving: saved.costOfLiving,
+        })
       }
       setWizardTargetId(null)
     },
@@ -257,17 +262,20 @@ export function ComparisonGrid() {
     [salaryModeSynced]
   )
 
+  // Keep ref in sync so handleWizardSave can call updateCountry
+  updateCountryRef.current = updateCountry
+
   const handleSalaryModeChange = useCallback((synced: boolean) => {
     setSalaryModeSynced(synced)
     if (synced) {
-      setCountries(prev => {
-        const sorted = [...prev].sort((a, b) => a.index - b.index)
-        const source = sorted.find(c => c.gross_annual)
-        if (!source) return prev
-        return prev.map(c => ({ ...c, gross_annual: source.gross_annual }))
-      })
+      // Re-pinning: find leader and propagate via updateCountry (handles FX conversion)
+      const sorted = [...countries].sort((a, b) => a.index - b.index)
+      const leader = sorted.find(c => c.gross_annual)
+      if (leader) {
+        updateCountry(leader.id, { gross_annual: leader.gross_annual })
+      }
     }
-  }, [])
+  }, [countries, updateCountry])
 
   const addCountry = useCallback(() => {
     if (countries.length >= MAX_COUNTRIES) return
@@ -383,28 +391,25 @@ export function ComparisonGrid() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Toggle
-                    variant="outline"
-                    size="sm"
-                    pressed={salaryModeSynced}
-                    onPressedChange={handleSalaryModeChange}
-                    aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
-                  >
-                    <Pin className="h-3.5 w-3.5" />
-                    Pin salary
-                  </Toggle>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[200px]">
-                <p><strong>Pinned:</strong> One gross for all.</p>
-                <p className="mt-1"><strong>Unpinned:</strong> One gross per country.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <HoverCard openDelay={300} closeDelay={100}>
+            <HoverCardTrigger asChild>
+              <span>
+                <Toggle
+                  variant="outline"
+                  size="sm"
+                  pressed={salaryModeSynced}
+                  onPressedChange={handleSalaryModeChange}
+                  aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
+                >
+                  <Pin className="h-3.5 w-3.5" />
+                  Pin salary
+                </Toggle>
+              </span>
+            </HoverCardTrigger>
+            <HoverCardContent side="bottom">
+              <p className="text-sm">Pinned: one gross for all. Unpinned: one gross per country.</p>
+            </HoverCardContent>
+          </HoverCard>
           <Button
             onClick={() => setSaveDialogOpen(true)}
             disabled={countryResults.size === 0}
@@ -466,20 +471,23 @@ export function ComparisonGrid() {
       />
 
       {/* Destination Wizard */}
-      {wizardTargetId && (
-        <DestinationWizard
-          open={!!wizardTargetId}
-          onClose={() => setWizardTargetId(null)}
-          initialState={wizardInitialState}
-          onSave={handleWizardSave}
-          salaryModeSynced={salaryModeSynced}
-          isLeader={
-            wizardTargetId === "__new__"
-              ? false
-              : (countries.find(c => c.id === wizardTargetId)?.index ?? 1) === 0
-          }
-        />
-      )}
+      {wizardTargetId && (() => {
+        const target = countries.find(c => c.id === wizardTargetId)
+        const leader = countries.find(c => c.index === 0)
+        const isLeader = wizardTargetId === "__new__" ? false : (target?.index ?? 1) === 0
+        return (
+          <DestinationWizard
+            open={!!wizardTargetId}
+            onClose={() => setWizardTargetId(null)}
+            initialState={wizardInitialState}
+            onSave={handleWizardSave}
+            salaryModeSynced={salaryModeSynced}
+            isLeader={isLeader}
+            leaderGrossAnnual={!isLeader ? leader?.gross_annual : undefined}
+            leaderCurrency={!isLeader ? leader?.currency : undefined}
+          />
+        )
+      })()}
     </div>
   )
 }

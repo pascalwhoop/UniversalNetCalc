@@ -353,11 +353,22 @@ calculations:
 
 **Don't forget**: Variants need their own test vectors too! Run `npm run test:configs` to ensure variant tests pass.
 
-## Detailed Specification
+## Formal Schema
 
-See [references/DATA_SPEC.md](references/DATA_SPEC.md) for:
-- Complete node type reference
-- All input types and options
-- Bracket table formats
-- Overlay merge rules
-- Validation requirements
+The canonical, machine-verified spec is `packages/schema/src/config-types.ts`.
+Every exported Zod schema is the source of truth for that section of the config:
+
+| Section | Schema |
+|---|---|
+| `meta` | `ConfigMetaSchema` |
+| `meta.sources[]` | `ConfigSourceSchema` |
+| `notices[]` | `NoticeSchema` |
+| `inputs` | `InputDefinitionsSchema` / `InputSchema` |
+| `parameters` | `ParametersSchema` (flexible, any values) |
+| `calculations[]` | `CalculationNodeSchema` (discriminated union on `type`) |
+| `outputs` | `OutputDefinitionSchema` |
+| Full base config | `TaxConfigSchema` |
+| Variant config | `VariantConfigSchema` |
+
+When in doubt about field names, types, or required vs optional — read the schema directly.
+The schema validates every config on every `npm run test:configs` run.

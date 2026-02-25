@@ -217,7 +217,7 @@ calculations:
     values:
       - "$ni_main_band"
       - "$ni_additional_band"
-    category: social_security
+    category: contribution
     label: "National Insurance"
     description: "Class 1 Employee National Insurance contributions"
 

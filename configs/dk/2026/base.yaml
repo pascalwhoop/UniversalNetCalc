@@ -3,11 +3,21 @@ meta:
   label: "Denmark"
   currency: "DKK"
   year: 2026
+  version: "1.0.0"
+  updated_at: "2026-02-22"
   sources:
-    - "https://skat.dk/hjaelp/bundskat-mellemskat-topskat-og-toptopskat"
-    - "https://skm.dk/tal-og-metode/satser/regulering-af-beloebsgraenser/beloebsgraenser-i-skattelovgivningen-der-reguleres-efter-personskattelovens-20-2025-2026"
-    - "https://skm.dk/tal-og-metode/satser/statistik-i-kommunerne/kommuneskatteaendringer-i-2026"
-    - "https://taxsummaries.pwc.com/denmark/individual/taxes-on-personal-income"
+    - url: "https://skat.dk/hjaelp/bundskat-mellemskat-topskat-og-toptopskat"
+      description: "SKAT tax bracket guide"
+      retrieved_at: "2026-01-23"
+    - url: "https://skm.dk/tal-og-metode/satser/regulering-af-beloebsgraenser/beloebsgraenser-i-skattelovgivningen-der-reguleres-efter-personskattelovens-20-2025-2026"
+      description: "Danish Ministry of Taxation thresholds"
+      retrieved_at: "2026-01-23"
+    - url: "https://skm.dk/tal-og-metode/satser/statistik-i-kommunerne/kommuneskatteaendringer-i-2026"
+      description: "Danish municipal tax changes 2026"
+      retrieved_at: "2026-01-23"
+    - url: "https://taxsummaries.pwc.com/denmark/individual/taxes-on-personal-income"
+      description: "PwC Denmark tax summary"
+      retrieved_at: "2026-01-23"
 
 inputs:
   gross_annual:
@@ -204,11 +214,19 @@ outputs:
       - "$employment_deduction"
 
 notices:
-  - type: info
-    message: "Denmark has one of the highest tax rates in the world, but this includes comprehensive healthcare, education, and social benefits at no additional cost."
-  - type: info
-    message: "From 2026, the tax system has four brackets: bundskat (12.01%), mellemskat (7.5% above 641,200 DKK), topskat (7.5% above 777,900 DKK), and toptopskat (5% above 2,592,700 DKK) - all applied on income after AM-bidrag."
-  - type: info
-    message: "This calculation does not include ATP (Labour Market Supplementary Pension) contributions, which are approximately DKK 1,100-1,200 per year."
-  - type: info
-    message: "Municipal tax rates vary by municipality. Copenhagen (23.39%) reduced its rate in 2026 to become the lowest in Denmark."
+  - id: "high_tax_context"
+    title: "High Tax, High Benefits"
+    body: "Denmark has one of the highest tax rates in the world, but this includes comprehensive healthcare, education, and social benefits at no additional cost."
+    severity: info
+  - id: "2026_brackets"
+    title: "2026 Tax Bracket Changes"
+    body: "From 2026, the tax system has four brackets: bundskat (12.01%), mellemskat (7.5% above 641,200 DKK), topskat (7.5% above 777,900 DKK), and toptopskat (5% above 2,592,700 DKK) - all applied on income after AM-bidrag."
+    severity: info
+  - id: "atp_not_included"
+    title: "ATP Not Included"
+    body: "This calculation does not include ATP (Labour Market Supplementary Pension) contributions, which are approximately DKK 1,100-1,200 per year."
+    severity: info
+  - id: "municipal_rates"
+    title: "Municipal Tax Rates"
+    body: "Municipal tax rates vary by municipality. Copenhagen (23.39%) reduced its rate in 2026 to become the lowest in Denmark."
+    severity: info

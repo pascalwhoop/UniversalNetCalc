@@ -1,17 +1,24 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
-import { Check, Info, ChevronDown } from "lucide-react"
+import { Check, Info, ChevronDown, FileText, Link2 } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group"
 import {
   Select,
   SelectContent,
@@ -20,11 +27,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import {
   Collapsible,
   CollapsibleContent,
@@ -32,43 +38,27 @@ import {
 } from "@/components/ui/collapsible"
 import { DeductionManager } from "./deduction-manager"
 import { CostOfLivingSection } from "./cost-of-living-section"
-import { NoticeIcon } from "./notices"
+import { NoticeIcon, filterNoticesForVariant, NoticeRow, getSeverityIcon, getSeverityColor } from "./notices"
 import { CountryColumnState, type CostOfLiving } from "@/lib/types"
 import { getCountryName, getCurrencySymbol, getExchangeRate, calculateSalary, type CalculationResult } from "@/lib/api"
 import { getCountryFlag } from "@/lib/country-metadata"
 import { useCountries, useYears, useVariants, useInputs } from "@/lib/queries"
 import { buildCalcRequest } from "@/lib/calc-utils"
 import { formatCurrency } from "@/lib/formatters"
+import ReactMarkdown from "react-markdown"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
-function CurrencyInput({
-  currencySymbol,
-  value,
-  disabled,
-  onChange,
-}: {
-  currencySymbol: string
-  value: string
-  disabled?: boolean
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-}) {
-  return (
-    <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-        {currencySymbol}
-      </span>
-      <Input
-        type="text"
-        inputMode="decimal"
-        placeholder="100000"
-        className={`h-9 pl-10${disabled ? " opacity-60 cursor-not-allowed" : ""}`}
-        value={value}
-        disabled={disabled}
-        readOnly={disabled}
-        onChange={onChange}
-      />
-    </div>
-  )
-}
+/**
+ * Destination wizard layout:
+ * - Whole wizard is a Sheet (right-side panel).
+ * - Sheet content is broken into an Accordion of 3 sections: Basics, Deductions, Expenses.
+ * - Within accordion sections we use Collapsibles for documentation/info (e.g. Notes & Sources in Basics).
+ */
 
 interface DestinationWizardProps {
   open: boolean
@@ -77,6 +67,9 @@ interface DestinationWizardProps {
   onSave: (state: CountryColumnState) => void
   salaryModeSynced?: boolean
   isLeader?: boolean
+  /** When editing a follower column, pass leader's gross/currency so conversion uses the right source */
+  leaderGrossAnnual?: string
+  leaderCurrency?: string
 }
 
 export function DestinationWizard({
@@ -86,22 +79,22 @@ export function DestinationWizard({
   onSave,
   salaryModeSynced = false,
   isLeader = true,
+  leaderGrossAnnual,
+  leaderCurrency: leaderCurrencyProp,
 }: DestinationWizardProps) {
   const [draft, setDraft] = useState<CountryColumnState>(initialState)
 
-  // Track the leader's gross/currency so we can convert when destination currency loads
   const leaderGrossRef = useRef<string>(initialState.gross_annual)
   const leaderCurrencyRef = useRef<string>(initialState.currency || "EUR")
 
-  // Reset draft when wizard opens
   useEffect(() => {
     if (open) {
       setDraft(initialState)
-      leaderGrossRef.current = initialState.gross_annual
-      leaderCurrencyRef.current = initialState.currency || "EUR"
+      leaderGrossRef.current = isLeader ? initialState.gross_annual : (leaderGrossAnnual ?? initialState.gross_annual)
+      leaderCurrencyRef.current = isLeader ? (initialState.currency || "EUR") : (leaderCurrencyProp ?? initialState.currency ?? "EUR")
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, isLeader, leaderGrossAnnual, leaderCurrencyProp])
 
   const { country, year, variant, gross_annual, formValues, currency, costOfLiving } = draft
 
@@ -145,6 +138,8 @@ export function DestinationWizard({
     if (inputsData.currency && inputsData.currency !== currency) {
       updates.currency = inputsData.currency
       convertSyncedSalary(inputsData.currency)
+    } else if (inputsData.currency && !isLeader && inputsData.currency === leaderCurrencyRef.current) {
+      updates.gross_annual = leaderGrossRef.current
     }
 
     const newFormValues = { ...formValues }
@@ -206,6 +201,15 @@ export function DestinationWizard({
   }, [previewCalcRequest])
 
   const inputDefs = inputsData?.inputs || {}
+  const filteredNotices = useMemo(() => {
+    const list = filterNoticesForVariant(inputsData?.notices ?? [], variant)
+    const severityRank = { error: 0, warning: 1, info: 2 } as const
+    return [...list].sort((a, b) => {
+      const ra = severityRank[a.severity ?? "info"] ?? 2
+      const rb = severityRank[b.severity ?? "info"] ?? 2
+      return ra - rb
+    })
+  }, [inputsData?.notices, variant])
   const dynamicInputs = Object.entries(inputDefs).filter(([key]) => key !== "gross_annual")
   const enumInputs = dynamicInputs.filter(([, def]) => def.type === "enum")
   const booleanInputs = dynamicInputs.filter(([, def]) => def.type === "boolean")
@@ -243,15 +247,98 @@ export function DestinationWizard({
     : 0
 
   return (
-    <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col gap-0 p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={v => !v && onClose()}>
+      <SheetContent side="right" className="flex flex-col gap-0 p-0 w-full max-w-[500px] sm:max-w-[500px] h-full">
+        <SheetHeader className="px-6 pt-6 pb-4 shrink-0">
+          <SheetTitle>{title}</SheetTitle>
+        </SheetHeader>
 
-        {/* Single-step content */}
-        <div className="flex-1 overflow-y-auto px-6 min-h-0">
-          <div className="space-y-4 pb-2">
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Notices, Notes, Sources (collapsed by default, above Accordion) */}
+          <div className="px-6 space-y-2">
+          {filteredNotices.length > 0 && (
+            <Collapsible className="rounded-lg border bg-background/50 dark:bg-muted/20">
+              <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-medium hover:bg-muted/30 rounded-md transition-colors data-[state=open]:rounded-b-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="flex items-center gap-2">
+                  <span className={getSeverityColor(filteredNotices[0]?.severity)}>
+                    {getSeverityIcon(filteredNotices[0]?.severity, "h-4 w-4 shrink-0")}
+                  </span>
+                  Notices
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="px-3 pb-3 pt-1 border-t border-border/50 space-y-3 text-muted-foreground">
+                  <ul className="space-y-3 list-none pl-0">
+                    {filteredNotices.map(n => (
+                      <li key={n.id}>
+                        <NoticeRow notice={n} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+          {inputsData?.notes?.trim() && (
+            <Collapsible className="rounded-lg border bg-background/50 dark:bg-muted/20">
+              <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-medium hover:bg-muted/30 rounded-md transition-colors data-[state=open]:rounded-b-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  Notes
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="px-3 pb-3 pt-1 border-t border-border/50 text-muted-foreground">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{inputsData.notes.trim()}</ReactMarkdown>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+          {inputsData?.sources && inputsData.sources.length > 0 && (
+            <Collapsible className="rounded-lg border bg-background/50 dark:bg-muted/20">
+              <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2.5 text-left text-sm font-medium hover:bg-muted/30 rounded-md transition-colors data-[state=open]:rounded-b-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  Sources
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="px-3 pb-3 pt-1 border-t border-border/50 text-muted-foreground">
+                  <ul className="space-y-1 list-disc pl-4 prose prose-sm dark:prose-invert max-w-none">
+                    {inputsData.sources.map((s, i) => (
+                      <li key={i}>
+                        <a
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {s.description || s.url}
+                        </a>
+                        {s.retrieved_at && (
+                          <span className="ml-1.5">(retrieved {s.retrieved_at})</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+          </div>
+
+          {/* Accordion: Basics, Deductions, Expenses */}
+          <div className="px-6 pt-4 pb-4">
+            <Accordion type="single" defaultValue="basics" collapsible>
+            <AccordionItem value="basics">
+              <AccordionTrigger>Basics</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4">
             {/* Country & Year */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -313,25 +400,42 @@ export function DestinationWizard({
                 )}
               </div>
               {salaryModeSynced && !isLeader ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <CurrencyInput currencySymbol={currencySymbol} value={gross_annual} disabled />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs text-xs">
-                        Salary is synced from the primary destination. Switch to{" "}
-                        <strong>Local salaries</strong> mode to set each country independently.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <HoverCard openDelay={200} closeDelay={100}>
+                  <HoverCardTrigger asChild>
+                    <InputGroup data-disabled>
+                      <InputGroupInput
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="100000"
+                        value={gross_annual}
+                        disabled
+                        readOnly
+                      />
+                      <InputGroupAddon align="inline-start">
+                        <InputGroupText>{currencySymbol}</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </HoverCardTrigger>
+                  <HoverCardContent side="top" className="max-w-xs">
+                    <p className="text-xs">
+                      Salary is synced from the primary destination. Switch to{" "}
+                      <strong>Local salaries</strong> mode to set each country independently.
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
               ) : (
-                <CurrencyInput
-                  currencySymbol={currencySymbol}
-                  value={gross_annual}
-                  onChange={e => updateFormValue("gross_annual", e.target.value)}
-                />
+                <InputGroup>
+                  <InputGroupInput
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="100000"
+                    value={gross_annual}
+                    onChange={e => updateFormValue("gross_annual", e.target.value)}
+                  />
+                  <InputGroupAddon align="inline-start">
+                    <InputGroupText>{currencySymbol}</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
               )}
             </div>
 
@@ -410,16 +514,16 @@ export function DestinationWizard({
                         {def.label || key}
                       </Label>
                       {def.description && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
+                        <HoverCard openDelay={200} closeDelay={100}>
+                          <HoverCardTrigger asChild>
+                            <span className="inline-flex cursor-help">
                               <Info className="h-3 w-3 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs text-xs">{def.description}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                            </span>
+                          </HoverCardTrigger>
+                          <HoverCardContent side="top" className="max-w-xs">
+                            <p className="text-xs">{def.description}</p>
+                          </HoverCardContent>
+                        </HoverCard>
                       )}
                     </div>
                   </div>
@@ -427,21 +531,14 @@ export function DestinationWizard({
               </div>
             )}
 
-            {/* Collapsible: Deductions */}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
             {country && year && Object.keys(inputDefs).length > 0 && (
-              <Collapsible>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between font-normal">
-                    <span>
-                      Tax Deductions
-                      <span className="text-muted-foreground ml-1.5">
-                        ({activeDeductionCount} active)
-                      </span>
-                    </span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-3">
+              <AccordionItem value="deductions">
+                <AccordionTrigger>Tax Deductions ({activeDeductionCount} active)</AccordionTrigger>
+                <AccordionContent>
                   <DeductionManager
                     inputDefs={inputDefs}
                     formValues={formValues}
@@ -450,37 +547,29 @@ export function DestinationWizard({
                     previewResult={previewResult}
                     calcRequest={previewCalcRequest}
                   />
-                </CollapsibleContent>
-              </Collapsible>
+                </AccordionContent>
+              </AccordionItem>
             )}
 
-            {/* Collapsible: Living Costs */}
-            <Collapsible>
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-between font-normal">
-                  <span>
-                    Monthly Living Costs
-                    <span className="text-muted-foreground ml-1.5">
-                      ({totalMonthlyCosts > 0 ? `${currencySymbol}${totalMonthlyCosts.toLocaleString()}/mo` : "none"})
-                    </span>
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]>&]:rotate-180" />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-3">
+            <AccordionItem value="expenses">
+              <AccordionTrigger>
+                Expenses ({totalMonthlyCosts > 0 ? `${currencySymbol}${totalMonthlyCosts.toLocaleString()}/mo` : "none"})
+              </AccordionTrigger>
+              <AccordionContent>
                 <CostOfLivingSection
                   value={costOfLiving}
                   currencySymbol={currencySymbol}
                   onChange={(col: CostOfLiving) => setDraft(prev => ({ ...prev, costOfLiving: col }))}
                   alwaysOpen
                 />
-              </CollapsibleContent>
-            </Collapsible>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
           </div>
         </div>
 
         {/* Footer with live net preview */}
-        <div className="flex items-center justify-between px-6 py-4 border-t shrink-0 mt-4">
+        <SheetFooter className="flex-row justify-between border-t shrink-0 px-6 py-4">
           {previewResult ? (
             <div>
               <div className="text-xs text-muted-foreground">Net Annual</div>
@@ -492,16 +581,16 @@ export function DestinationWizard({
             <div />
           )}
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
+            <SheetClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </SheetClose>
             <Button onClick={handleSave} disabled={!canSave}>
               <Check className="h-4 w-4 mr-1" />
               Apply
             </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

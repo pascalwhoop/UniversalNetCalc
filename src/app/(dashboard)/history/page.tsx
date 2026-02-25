@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { Button } from "@/components/ui/button"
 import { HistoryItem } from "@/components/history/history-item"
 import { loadHistory, deleteCalculation, clearHistory } from "@/lib/storage"
@@ -77,15 +81,16 @@ export default function HistoryPage() {
 
       {calculations.length > 0 && (
         <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-4 md:mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
+          <InputGroup className="flex-1 h-10 md:h-9">
+            <InputGroupInput
               placeholder="Search calculations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10 md:h-9"
             />
-          </div>
+            <InputGroupAddon align="inline-start">
+              <Search className="h-4 w-4 text-muted-foreground" />
+            </InputGroupAddon>
+          </InputGroup>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="default" className="w-full md:w-auto">

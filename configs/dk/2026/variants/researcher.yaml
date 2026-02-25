@@ -4,9 +4,15 @@ meta:
   description: "Flat 27% tax rate plus 8% AM-bidrag for foreign researchers and highly-paid employees. From 2026, the minimum monthly salary threshold is reduced to DKK 65,400/month."
   base: "base.yaml"
   sources:
-    - "https://skat.dk/en-us/businesses/employees-and-pay/non-danish-labour/tax-scheme-for-researchers"
-    - "https://info.skat.dk/data.aspx?oid=1977289"
-    - "https://www.azets.com/da-dk/indsigt/blog/forskerskatteordningen-2026"
+    - url: "https://skat.dk/en-us/businesses/employees-and-pay/non-danish-labour/tax-scheme-for-researchers"
+      description: "SKAT researcher tax scheme"
+      retrieved_at: "2026-01-23"
+    - url: "https://info.skat.dk/data.aspx?oid=1977289"
+      description: "SKAT researcher scheme details"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.azets.com/da-dk/indsigt/blog/forskerskatteordningen-2026"
+      description: "Azets researcher scheme 2026"
+      retrieved_at: "2026-01-23"
 
 # Remove inputs that are not needed for the flat rate scheme
 inputs:
@@ -94,11 +100,19 @@ outputs:
       - "$bottom_tax"
 
 notices:
-  - type: info
-    message: "This calculation uses the Researcher Tax Scheme (Forskerordningen): 27% flat tax + 8% AM-bidrag = 35% total effective rate (32.84% after rounding)."
-  - type: warning
-    message: "Eligibility requirements: (1) Minimum monthly salary of DKK 65,400 (2026) - reduced from 78,000 in 2025, (2) Not a Danish tax resident in the previous 10 years, (3) Must apply within 1 month of employment start."
-  - type: info
-    message: "The scheme can be used for up to 7 years total (can be split across multiple employment periods) and can only be used once in a lifetime."
-  - type: info
-    message: "This scheme is available to both researchers with PhD-level education and highly-paid key employees meeting the salary threshold."
+  - id: "researcher_rate"
+    title: "Researcher Tax Scheme Rate"
+    body: "This calculation uses the Researcher Tax Scheme (Forskerordningen): 27% flat tax + 8% AM-bidrag = 35% total effective rate (32.84% after rounding)."
+    severity: info
+  - id: "researcher_eligibility"
+    title: "Eligibility Requirements"
+    body: "Eligibility requirements: (1) Minimum monthly salary of DKK 65,400 (2026) - reduced from 78,000 in 2025, (2) Not a Danish tax resident in the previous 10 years, (3) Must apply within 1 month of employment start."
+    severity: warning
+  - id: "researcher_duration"
+    title: "Scheme Duration"
+    body: "The scheme can be used for up to 7 years total (can be split across multiple employment periods) and can only be used once in a lifetime."
+    severity: info
+  - id: "researcher_who_qualifies"
+    title: "Who Qualifies"
+    body: "This scheme is available to both researchers with PhD-level education and highly-paid key employees meeting the salary threshold."
+    severity: info

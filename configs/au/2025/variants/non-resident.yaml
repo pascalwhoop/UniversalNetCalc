@@ -4,7 +4,9 @@ meta:
   description: "Foreign residents (non-residents) taxed only on Australian-sourced income"
   base: "base.yaml"
   sources:
-    - "ATO Non-Resident Tax Rates: https://www.ato.gov.au/tax-rates-and-codes/tax-rates-foreign-residents"
+    - url: "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-foreign-residents"
+      description: "ATO Non-Resident Tax Rates"
+      retrieved_at: "2026-01-23"
 
 # Non-residents:
 # - No tax-free threshold (tax from first dollar)
@@ -66,14 +68,17 @@ outputs:
     - $employer_super
 
 notices:
-  - type: info
+  - id: "non_resident_taxation"
     title: "Non-Resident Taxation"
-    message: "As a non-resident, you pay tax from the first dollar earned (no tax-free threshold) and do NOT pay the Medicare levy."
+    body: "As a non-resident, you pay tax from the first dollar earned (no tax-free threshold) and do NOT pay the Medicare levy."
+    severity: info
 
-  - type: info
+  - id: "superannuation_non_resident"
     title: "Superannuation"
-    message: "If employed in Australia, your employer must still contribute 11.5% (or 12% from 1 July 2025) to superannuation, regardless of residency status."
+    body: "If employed in Australia, your employer must still contribute 11.5% (or 12% from 1 July 2025) to superannuation, regardless of residency status."
+    severity: info
 
-  - type: info
+  - id: "tax_treaties"
     title: "Tax Treaties"
-    message: "Tax treaties between Australia and your home country may affect your tax obligations. Consult a tax professional for treaty benefits."
+    body: "Tax treaties between Australia and your home country may affect your tax obligations. Consult a tax professional for treaty benefits."
+    severity: info

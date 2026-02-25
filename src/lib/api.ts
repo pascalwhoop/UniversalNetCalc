@@ -62,10 +62,18 @@ export interface Notice {
   show_for_variants?: string[]
 }
 
+export interface ConfigSource {
+  url: string
+  description: string
+  retrieved_at: string
+}
+
 export interface ConfigInputs {
   inputs: Record<string, InputDefinition>
   currency: string
   notices: Notice[]
+  notes?: string
+  sources?: ConfigSource[]
 }
 
 const API_BASE = "/api/calc"

@@ -182,6 +182,8 @@ export async function GET(request: NextRequest) {
         inputs: config.inputs,
         currency: config.meta.currency,
         notices: config.notices || [],
+        notes: config.meta.notes,
+        sources: config.meta.sources || [],
       })
     }
 

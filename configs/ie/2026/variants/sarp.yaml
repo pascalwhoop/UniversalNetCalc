@@ -4,8 +4,12 @@ meta:
   description: "30% relief on income above €125,000 for qualifying foreign assignees. Relief applies only to income tax calculation; USC and PRSI still apply to full income. Minimum salary threshold increased from €100,000 to €125,000 from 1 January 2026."
   base: "base.yaml"
   sources:
-    - "https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/income-and-employment/special-assignee-relief-programme/index.aspx"
-    - "https://kpmg.com/ie/en/insights/tax/budget-2026/employment-tax.html"
+    - url: "https://www.revenue.ie/en/personal-tax-credits-reliefs-and-exemptions/income-and-employment/special-assignee-relief-programme/index.aspx"
+      description: "Irish Revenue SARP guidance"
+      retrieved_at: "2026-01-23"
+    - url: "https://kpmg.com/ie/en/insights/tax/budget-2026/employment-tax.html"
+      description: "KPMG Budget 2026 employment tax"
+      retrieved_at: "2026-01-23"
 
 parameters:
   sarp_threshold: 125000
@@ -102,14 +106,22 @@ outputs:
       - "$sarp_relief"
 
 notices:
-  - type: "warning"
-    message: "SARP relief only reduces income tax. USC and PRSI are still calculated on your full gross income."
+  - id: "sarp_scope"
+    title: "SARP Scope"
+    body: "SARP relief only reduces income tax. USC and PRSI are still calculated on your full gross income."
+    severity: warning
 
-  - type: "info"
-    message: "SARP provides 30% relief on income between €125,000 and €1,000,000. Minimum salary of €125,000 required for eligibility (increased from €100,000 in 2025)."
+  - id: "sarp_relief"
+    title: "SARP Relief"
+    body: "SARP provides 30% relief on income between €125,000 and €1,000,000. Minimum salary of €125,000 required for eligibility (increased from €100,000 in 2025)."
+    severity: info
 
-  - type: "info"
-    message: "SARP has been extended to 31 December 2030 for new entrants (Budget 2026)."
+  - id: "sarp_extension"
+    title: "SARP Extension"
+    body: "SARP has been extended to 31 December 2030 for new entrants (Budget 2026)."
+    severity: info
 
-  - type: "info"
-    message: "Additional eligibility requirements apply: prior 6-month employment abroad, 12-month assignment duration, and employer notification within 90 days of arrival."
+  - id: "sarp_eligibility"
+    title: "Additional Eligibility"
+    body: "Additional eligibility requirements apply: prior 6-month employment abroad, 12-month assignment duration, and employer notification within 90 days of arrival."
+    severity: info

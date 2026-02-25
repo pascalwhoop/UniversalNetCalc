@@ -16,6 +16,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group"
 import { CostOfLiving, LIVING_COST_CATEGORIES } from "@/lib/types"
 
 interface CostOfLivingSectionProps {
@@ -100,11 +106,8 @@ export function CostOfLivingSection({ value, currencySymbol, onChange, alwaysOpe
                     <X className="h-3 w-3" />
                   </Button>
                 </div>
-                <div className="flex items-center h-8 rounded-md border border-input bg-background text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                  <span className="pl-3 pr-1 text-muted-foreground whitespace-nowrap shrink-0">
-                    {currencySymbol}
-                  </span>
-                  <input
+                <InputGroup className="h-8">
+                  <InputGroupInput
                     id={`col-${cat.id}`}
                     type="text"
                     inputMode="decimal"
@@ -112,11 +115,15 @@ export function CostOfLivingSection({ value, currencySymbol, onChange, alwaysOpe
                     step={50}
                     value={value[cat.id] || ""}
                     onChange={e => handleChange(cat.id, e.target.value)}
-                    className="flex-1 min-w-0 bg-transparent py-1 outline-none placeholder:text-muted-foreground"
                     placeholder="0"
                   />
-                  <span className="pr-2.5 text-muted-foreground text-xs whitespace-nowrap shrink-0">/mo</span>
-                </div>
+                  <InputGroupAddon align="inline-start">
+                    <InputGroupText>{currencySymbol}</InputGroupText>
+                  </InputGroupAddon>
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupText className="text-xs">/mo</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
                 {monthly > 0 && (
                   <p className="text-[11px] text-muted-foreground">
                     = {currencySymbol}{Math.round(annual).toLocaleString()}/yr

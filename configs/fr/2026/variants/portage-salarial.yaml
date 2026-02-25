@@ -14,6 +14,7 @@ meta:
   sources:
     - url: "https://www.portagesalarial.org/"
       description: "French Portage Salarial Federation information"
+      retrieved_at: "2026-02-22"
 
 inputs:
   portage_fee_rate:

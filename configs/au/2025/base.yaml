@@ -4,11 +4,21 @@ meta:
   label: "Australia 2025"
   description: "Australian tax system for residents with Stage 3 tax cuts"
   currency: AUD
+  version: "1.0.0"
+  updated_at: "2026-01-23"
   sources:
-    - "Australian Taxation Office: https://www.ato.gov.au"
-    - "Individual income tax rates: https://www.ato.gov.au/rates/individual-income-tax-rates"
-    - "Medicare levy: https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy"
-    - "Low Income Tax Offset: https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/offsets-and-rebates/income-offsets/low-income-tax-offset"
+    - url: "https://www.ato.gov.au"
+      description: "Australian Taxation Office"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.ato.gov.au/rates/individual-income-tax-rates"
+      description: "Individual income tax rates"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy"
+      description: "Medicare levy"
+      retrieved_at: "2026-01-23"
+    - url: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/offsets-and-rebates/income-offsets/low-income-tax-offset"
+      description: "Low Income Tax Offset"
+      retrieved_at: "2026-01-23"
 
 # Financial year runs from 1 July 2024 to 30 June 2025
 # Stage 3 tax cuts implemented from 1 July 2024
@@ -16,11 +26,11 @@ meta:
 inputs:
   gross_annual:
     type: number
+    required: true
+    min: 0
+    max: 10000000
     label: "Gross Annual Salary"
     description: "Annual salary before tax (in AUD)"
-    validation:
-      min: 0
-      max: 10000000
 
 parameters:
   # Tax brackets (Stage 3 tax cuts) - using threshold/rate structure
@@ -55,7 +65,6 @@ calculations:
   - id: taxable_income
     type: sum
     values: ["@gross_annual"]
-    category: income
 
   # Income tax calculation using progressive brackets
   - id: income_tax
@@ -165,22 +174,27 @@ outputs:
     - $employer_super
 
 notices:
-  - type: info
+  - id: "stage_3_cuts"
     title: "Stage 3 Tax Cuts"
-    message: "These rates reflect the Stage 3 tax cuts implemented from 1 July 2024, which reduced the 19% rate to 16% and merged tax brackets for middle-income earners."
+    body: "These rates reflect the Stage 3 tax cuts implemented from 1 July 2024, which reduced the 19% rate to 16% and merged tax brackets for middle-income earners."
+    severity: info
 
-  - type: info
+  - id: "superannuation"
     title: "Superannuation"
-    message: "Your employer must contribute 11.5% of your salary to superannuation (retirement savings). This is paid ON TOP of your gross salary, not deducted from it. From 1 July 2025, this increases to 12%."
+    body: "Your employer must contribute 11.5% of your salary to superannuation (retirement savings). This is paid ON TOP of your gross salary, not deducted from it. From 1 July 2025, this increases to 12%."
+    severity: info
 
-  - type: info
+  - id: "future_tax_cuts"
     title: "Future Tax Cuts"
-    message: "Further tax cuts are scheduled: the 16% rate reduces to 15% from 1 July 2026, and to 14% from 1 July 2027."
+    body: "Further tax cuts are scheduled: the 16% rate reduces to 15% from 1 July 2026, and to 14% from 1 July 2027."
+    severity: info
 
-  - type: warning
+  - id: "medicare_levy_surcharge"
     title: "Medicare Levy Surcharge"
-    message: "If you earn over $97,000 (singles) or $194,000 (families) without appropriate private health insurance, you may owe an additional Medicare Levy Surcharge of 1-1.5%. This calculator does not include MLS."
+    body: "If you earn over $97,000 (singles) or $194,000 (families) without appropriate private health insurance, you may owe an additional Medicare Levy Surcharge of 1-1.5%. This calculator does not include MLS."
+    severity: warning
 
-  - type: info
+  - id: "tax_free_threshold"
     title: "Tax-Free Threshold"
-    message: "Australian residents receive a tax-free threshold of $18,200. This means you pay no tax on the first $18,200 of income."
+    body: "Australian residents receive a tax-free threshold of $18,200. This means you pay no tax on the first $18,200 of income."
+    severity: info
