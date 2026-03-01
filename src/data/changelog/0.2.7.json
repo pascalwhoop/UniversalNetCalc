@@ -1,0 +1,15 @@
+{
+  "version": "0.2.7",
+  "date": "2026-02-22",
+  "highlight": "Enter your monthly living costs to see true disposable income side-by-side across countries, and enter country-specific deductions to get exact after-tax figures.",
+  "improvements": [
+    "You can now enter monthly living costs — rent, groceries, healthcare, transport, and more — directly in each country column. The calculator shows your disposable income (net salary minus annual costs) so you can compare how far your take-home pay actually goes in each location",
+    "When any column has living-cost data, the best-country highlight uses disposable income instead of raw net salary, giving you a more honest comparison",
+    "Netherlands: mortgage interest (hypotheekrente), pension and annuity contributions (lijfrentepremies), and out-of-pocket healthcare costs can now be entered as optional deductions. Each deduction shows exactly how much it saves you in taxes per year",
+    "Netherlands: the mortgage interest deduction is correctly capped at the 37.48% rate for top-bracket earners, matching the Dutch aftrekbeperking rule",
+    "Deduction fields are grouped logically — for example, mortgage start year appears as a sub-field under mortgage interest — keeping the form clean when you do not need extra detail",
+    "A bug in the generic tax bracket engine that caused it to apply a hardcoded German tax formula to all countries has been fixed. Bracket calculations now use only the rates defined in each country's configuration",
+    "A second bracket-tax bug where the base amount was counted multiple times across brackets has been fixed, improving accuracy for all multi-bracket tax calculations",
+    "The hero section now cycles through real city names — Amsterdam, Berlin, Zurich, London, and others — so the core question reads naturally as you consider your next move"
+  ]
+}

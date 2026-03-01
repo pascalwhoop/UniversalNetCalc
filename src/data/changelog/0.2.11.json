@@ -1,0 +1,50 @@
+{
+  "version": "0.2.11",
+  "date": "2026-03-01",
+  "highlight": "Six new countries join the calculator, bringing total coverage to 27 countries with 2026 tax data for all major destinations.",
+  "new_countries": [
+    { "code": "at", "name": "Austria" },
+    { "code": "fi", "name": "Finland" },
+    { "code": "gr", "name": "Greece" },
+    { "code": "hk", "name": "Hong Kong" },
+    { "code": "mx", "name": "Mexico" },
+    { "code": "pl", "name": "Poland" }
+  ],
+  "new_variants": [
+    { "country_code": "at", "country": "Austria", "label": "Researcher/Scientist Tax Relief (Zuzugsfreibetrag)" },
+    { "country_code": "au", "country": "Australia", "label": "Working Holiday Maker" },
+    { "country_code": "fi", "country": "Finland", "label": "Key Employee (Avainhenkilovero)" },
+    { "country_code": "gb", "country": "United Kingdom", "label": "Scotland" },
+    { "country_code": "gr", "country": "Greece", "label": "Article 5C - 50% Tax Exemption" },
+    { "country_code": "jp", "country": "Japan", "label": "Non-Resident (20.42% Flat Rate)" },
+    { "country_code": "mx", "country": "Mexico", "label": "Non-Resident" },
+    { "country_code": "nz", "country": "New Zealand", "label": "Non-Resident" },
+    { "country_code": "pl", "country": "Poland", "label": "B2B Flat Tax 19% (Podatek liniowy)" },
+    { "country_code": "pl", "country": "Poland", "label": "B2B Lump Sum IT (Ryczalt 12%)" },
+    { "country_code": "pl", "country": "Poland", "label": "Return Relief (Ulga na powrot)" }
+  ],
+  "new_year_data": [
+    {
+      "year": 2026,
+      "countries": [
+        { "code": "ae", "name": "United Arab Emirates" },
+        { "code": "au", "name": "Australia" },
+        { "code": "gb", "name": "United Kingdom" },
+        { "code": "jp", "name": "Japan" },
+        { "code": "nz", "name": "New Zealand" }
+      ]
+    }
+  ],
+  "improvements": [
+    "The country configuration panel now opens as a full-height side sheet on desktop and a bottom drawer on mobile, making it much easier to set up a destination on a phone without the keyboard covering inputs",
+    "Tax notices and warnings in the configuration panel are now shown inline with expandable detail, so you can read the full context without losing your place in the form",
+    "Official tax sources and methodology notes for each country are now accessible directly from the configuration panel, letting you verify the numbers behind a calculation",
+    "A bug report button has been added to the calculator toolbar, pre-filling a GitHub issue with the current page URL so you can flag calculation errors in seconds",
+    "Landing page preset cards now link directly to the correct calculator configuration, including regional variants such as the Dutch 30% Ruling in the Expat Havens preset",
+    "Portugal 2026 now correctly applies the mandatory specific employment income deduction (dedução específica) — the greater of €4,104 or 11% of gross — before computing IRS, matching how Portuguese tax law actually works",
+    "Italy 2026 now models the INPS contribution cut (cuneo fiscale), which reduces employee social security rates for lower and middle earners in line with 2026 legislation"
+  ],
+  "fixes": [
+    "Corrected the Spain Beckham Law calculation: the personal allowance credit and intermediate deduction node are now properly removed under the flat-rate regime, so net income figures match the actual 24%/47% structure"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "version": "0.2.10",
+  "date": "2026-02-25",
+  "improvements": [
+    "The comparison view now shows a dedicated card layout on mobile instead of a cramped horizontal table, making it much easier to read results on a phone",
+    "A TL;DR summary bar appears at the top of the mobile comparison view, letting you see all net salaries and effective rates at a glance and tap to scroll to any country card",
+    "When comparing countries with different currencies, net salaries are now shown in a common base currency alongside the original local amount, so you can make apples-to-apples comparisons",
+    "Salary sync across destinations now fetches all currency conversions in a single batch instead of one request per country, making updates faster when you type a new gross salary",
+    "Exchange rate lookups are now cached in the browser for one hour and de-duplicated, so switching between currencies does not trigger redundant network requests",
+    "The add-destination wizard form fields now stack to a single column on small screens, preventing cramped two-column layouts on narrow devices",
+    "The sticky row-label column in the desktop comparison table now has a subtle shadow to visually separate it from the scrollable data columns"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "version": "0.2.4",
+  "date": "2026-02-22",
+  "improvements": [
+    "New salary mode toggle: choose \"Same salary\" to apply one gross figure across all destinations with automatic currency conversion, or \"Local salaries\" to enter independent offers per destination",
+    "Adding a new destination in Same salary mode pre-fills the gross amount and re-converts it to the correct currency once you pick a country",
+    "Renamed \"Add Country\" to \"Add Destination\" throughout the interface for clearer language"
+  ]
+}

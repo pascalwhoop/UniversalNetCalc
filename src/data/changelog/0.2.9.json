@@ -1,0 +1,13 @@
+{
+  "version": "0.2.9",
+  "date": "2026-02-24",
+  "highlight": "The calculator now uses a side-by-side comparison table so you can scan all countries and their tax breakdowns in a single glance.",
+  "improvements": [
+    "Replaced the old column-per-country layout with a structured comparison table: rows are tax categories, columns are destinations, making it easy to compare line items across countries at a glance",
+    "Tax breakdown rows (income tax, contributions, credits, etc.) are now collapsible — click a category to expand it and see the individual line items for every country simultaneously",
+    "The row-label column stays fixed when you scroll horizontally, so you always know which row you are looking at even with four destinations open",
+    "The 'Best' country is highlighted in green across every row of the table, not just the total, making it visually obvious which destination wins",
+    "Country configuration now opens in a focused wizard panel (a side sheet on desktop, a bottom drawer on mobile) instead of editing inline, reducing clutter while you compare",
+    "The landing page hero section was refreshed with a cleaner feature grid and updated copy"
+  ]
+}

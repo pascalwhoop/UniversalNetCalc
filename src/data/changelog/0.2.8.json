@@ -1,0 +1,44 @@
+{
+  "version": "0.2.8",
+  "date": "2026-02-22",
+  "highlight": "2026 tax data for 14 countries, plus a new destination wizard that makes it much easier to add and edit countries in your comparison",
+  "new_year_data": [
+    {
+      "year": 2026,
+      "countries": [
+        { "code": "ca", "name": "Canada" },
+        { "code": "ch", "name": "Switzerland" },
+        { "code": "de", "name": "Germany" },
+        { "code": "dk", "name": "Denmark" },
+        { "code": "es", "name": "Spain" },
+        { "code": "fr", "name": "France" },
+        { "code": "ie", "name": "Ireland" },
+        { "code": "kr", "name": "South Korea" },
+        { "code": "nl", "name": "Netherlands" },
+        { "code": "no", "name": "Norway" },
+        { "code": "pt", "name": "Portugal" },
+        { "code": "se", "name": "Sweden" },
+        { "code": "sg", "name": "Singapore" },
+        { "code": "us", "name": "United States" }
+      ]
+    }
+  ],
+  "new_variants": [
+    { "country_code": "nl", "country": "Netherlands", "label": "30% Ruling" },
+    { "country_code": "fr", "country": "France", "label": "Impatrié (Article 155B)" },
+    { "country_code": "fr", "country": "France", "label": "Portage Salarial" },
+    { "country_code": "ie", "country": "Ireland", "label": "SARP (Special Assignee Relief Programme)" },
+    { "country_code": "dk", "country": "Denmark", "label": "Researcher Tax Scheme (Forskerordning)" },
+    { "country_code": "es", "country": "Spain", "label": "Beckham Law" },
+    { "country_code": "kr", "country": "South Korea", "label": "Foreign Flat Tax (19%)" },
+    { "country_code": "pt", "country": "Portugal", "label": "IFICI (Non-Habitual Resident successor)" },
+    { "country_code": "se", "country": "Sweden", "label": "Expert Tax (30% exemption)" }
+  ],
+  "improvements": [
+    "A new destination wizard replaces the old inline form — a 3-step dialog guides you through country, tax options, and living costs, making it much easier to add or edit a destination",
+    "You can now toggle between a single shared gross salary for all destinations or individual salaries per country, with a confirmation step to avoid accidental changes",
+    "The edit (pencil) button in each country header opens the wizard so you can reconfigure any destination without removing and re-adding it",
+    "Country auto-detection now reads your timezone first (physical location) rather than your browser language, so an English-language browser in the Netherlands correctly defaults to the Netherlands",
+    "Salary amounts entered for one destination are automatically converted to the local currency when you add a new destination with a different currency"
+  ]
+}

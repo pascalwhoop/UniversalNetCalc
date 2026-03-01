@@ -72,5 +72,5 @@ bundle-analysis*.html
 
 # convx history
 history/
-data/
+/data/
 public/generated/
