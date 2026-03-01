@@ -1,0 +1,290 @@
+meta:
+  country: "gr"
+  year: 2026
+  currency: "EUR"
+  version: "1.0.0"
+  sources:
+    - url: "https://minfin.gov.gr/en/tax-policy/tax-guide/income-taxation/"
+      description: "Greek Ministry of Finance - Income Taxation (official 2026 tax scale with child-dependent rates)"
+      retrieved_at: "2026-03-01"
+    - url: "https://kpmg.com/xx/en/our-insights/gms-flash-alert/flash-alert-2025-277.html"
+      description: "KPMG Flash Alert - Greece New Tax Law 5246/2025 affecting individuals from 2026"
+      retrieved_at: "2026-03-01"
+    - url: "https://taxsummaries.pwc.com/greece/individual/taxes-on-personal-income"
+      description: "PwC Tax Summaries - Greece Personal Income Tax (2026 brackets)"
+      retrieved_at: "2026-03-01"
+    - url: "https://taxsummaries.pwc.com/greece/individual/other-taxes"
+      description: "PwC Tax Summaries - Greece Social Security Contributions (EFKA rates and cap)"
+      retrieved_at: "2026-03-01"
+    - url: "https://taxsummaries.pwc.com/greece/individual/deductions"
+      description: "PwC Tax Summaries - Greece Deductions and Tax Credits (EUR 777 credit with phaseout)"
+      retrieved_at: "2026-03-01"
+    - url: "https://www.grantthornton.global/en/insights/articles/expatriate-tax-Greece/"
+      description: "Grant Thornton - Expatriate Tax Greece (2026 tax scale confirmation)"
+      retrieved_at: "2026-03-01"
+    - url: "https://ypergasias.gov.gr/en/social-security/insured-persons/insurance-contributions/"
+      description: "Greek Ministry of Labour - Official EFKA insurance contribution rates"
+      retrieved_at: "2026-03-01"
+  updated_at: "2026-03-01"
+  notes: |
+    Greece 2026 tax system - Key changes from Law 5246/2025:
+    - New 6-bracket income tax scale (was 5 brackets) with new 39% bracket for EUR 40,001-60,000
+    - Rates reduced: 22%->20% (2nd bracket), 28%->26% (3rd), 36%->34% (4th)
+    - Child-dependent reduced rates for first two brackets (not modeled in base; would need filing_status variant)
+    - Under-25 and 26-30 age exemptions (not modeled in base)
+    - Solidarity contribution abolished since 2023 (no longer applies)
+    - EFKA employee rate: 13.37% (after 2025 reduction of 0.5pp)
+    - Monthly EFKA cap: EUR 7,761.94 (annual EUR 93,143.28)
+    - Tax credit: EUR 777 reduced by EUR 20 per EUR 1,000 above EUR 12,000
+
+notices:
+  - id: "salary_input"
+    title: "Annual Gross Salary"
+    body: "Enter your total annual gross salary before any deductions. In Greece, employees typically receive 14 monthly payments (12 months + 13th Christmas bonus + 14th vacation bonus). Enter the full annual total including all bonus payments."
+    severity: "info"
+  - id: "efka_not_deductible"
+    title: "Important: EFKA NOT Deducted from Income Tax"
+    body: "Unlike many other European countries, Greece does NOT deduct social security (EFKA) contributions from your taxable income base. Both income tax and EFKA are separate, parallel deductions calculated independently on your full gross salary. This is correct per Greek law. Example: EUR 30,000 gross has both income tax and EFKA calculated on the full EUR 30,000, not on EUR 30,000 minus EFKA."
+    severity: "info"
+  - id: "solidarity_abolished"
+    title: "Solidarity Contribution Abolished"
+    body: "The special solidarity contribution (eidiki eisfora allileggyis) has been abolished for all income types since January 1, 2023 (Law 4972/2022). It is no longer applicable."
+    severity: "info"
+  - id: "tax_credit"
+    title: "Personal Tax Credit Applied"
+    body: "A personal tax credit of EUR 777 is automatically applied, reducing your income tax. This credit phases out for incomes above EUR 12,000 (reduced by EUR 20 per additional EUR 1,000 of income)."
+    severity: "info"
+  - id: "child_rates"
+    title: "Reduced Rates for Families"
+    body: "From 2026, taxpayers with dependent children benefit from reduced income tax rates on the first two brackets. Select the appropriate number of children to apply reduced rates. Workers under 25 pay 0% on income up to EUR 20,000; those aged 26-30 pay 9% on the second bracket."
+    severity: "info"
+  - id: "efka_cap"
+    title: "Social Security Cap"
+    body: "EFKA social security contributions are capped at a monthly gross salary of EUR 7,761.94 (annual EUR 93,143.28). Earnings above this cap are not subject to social security contributions."
+    severity: "info"
+
+inputs:
+  gross_annual:
+    type: number
+    required: true
+    min: 0
+    label: "Annual Gross Salary"
+    description: "Your total annual gross salary including 13th and 14th month bonuses"
+
+  filing_status:
+    type: enum
+    required: true
+    default: "single"
+    label: "Family Status"
+    description: "Select your family status to determine applicable tax rates and credits"
+    options:
+      single:
+        label: "Single / No Children"
+        description: "Unmarried or married without dependent children"
+      one_child:
+        label: "1 Dependent Child"
+        description: "Taxpayer with one dependent child (reduced rates on first two brackets)"
+      two_children:
+        label: "2 Dependent Children"
+        description: "Taxpayer with two dependent children (further reduced rates)"
+      three_children:
+        label: "3+ Dependent Children"
+        description: "Taxpayer with three or more dependent children (most reduced rates)"
+
+parameters:
+  # Income Tax Brackets for 2026 - No children (standard)
+  # Source: Ministry of Finance / KPMG / PwC
+  tax_brackets_single:
+    - { threshold: 0, rate: 0.09 }
+    - { threshold: 10000, rate: 0.20 }
+    - { threshold: 20000, rate: 0.26 }
+    - { threshold: 30000, rate: 0.34 }
+    - { threshold: 40000, rate: 0.39 }
+    - { threshold: 60000, rate: 0.44 }
+
+  # Brackets with 1 dependent child
+  # First bracket: 9%, Second bracket: 18% (reduced from 20%)
+  tax_brackets_one_child:
+    - { threshold: 0, rate: 0.09 }
+    - { threshold: 10000, rate: 0.18 }
+    - { threshold: 20000, rate: 0.24 }
+    - { threshold: 30000, rate: 0.34 }
+    - { threshold: 40000, rate: 0.39 }
+    - { threshold: 60000, rate: 0.44 }
+
+  # Brackets with 2 dependent children
+  # First bracket: 9%, Second bracket: 16% (reduced from 20%), Third: 22%
+  tax_brackets_two_children:
+    - { threshold: 0, rate: 0.09 }
+    - { threshold: 10000, rate: 0.16 }
+    - { threshold: 20000, rate: 0.22 }
+    - { threshold: 30000, rate: 0.34 }
+    - { threshold: 40000, rate: 0.39 }
+    - { threshold: 60000, rate: 0.44 }
+
+  # Brackets with 3+ dependent children
+  # First bracket: 9%, Second bracket: 9% (reduced from 20%), Third: 20%
+  tax_brackets_three_children:
+    - { threshold: 0, rate: 0.09 }
+    - { threshold: 10000, rate: 0.09 }
+    - { threshold: 20000, rate: 0.20 }
+    - { threshold: 30000, rate: 0.34 }
+    - { threshold: 40000, rate: 0.39 }
+    - { threshold: 60000, rate: 0.44 }
+
+  # Personal tax credit (tax reduction)
+  # EUR 777 for no children, EUR 900 for 1 child, EUR 1,120 for 2 children, EUR 1,340 for 3+ children
+  tax_credit_single: 777
+  tax_credit_one_child: 900
+  tax_credit_two_children: 1120
+  tax_credit_three_children: 1340
+
+  # Tax credit phaseout: reduced by EUR 20 per EUR 1,000 above EUR 12,000
+  tax_credit_phaseout_start: 12000
+  tax_credit_phaseout_rate: 0.02   # EUR 20 per EUR 1,000 = 0.02 per EUR 1
+
+  # EFKA (Social Security) - Employee contribution rate
+  # Total employee rate: 13.37% (after 2025 reduction)
+  # Breakdown: Main Pension 6.67% + Supplementary 3.00% + Healthcare 2.15% + Other 1.55%
+  efka_employee_rate: 0.1337
+
+  # Monthly EFKA contribution cap: EUR 7,761.94
+  # Annual cap: EUR 7,761.94 * 12 = EUR 93,143.28
+  efka_annual_cap: 93143.28
+
+calculations:
+  # Taxable income (same as gross for employment income)
+  - id: taxable_income
+    type: identity
+    value: "@gross_annual"
+
+  # Select appropriate tax brackets based on family status
+  - id: income_tax_gross
+    type: switch
+    on: "@filing_status"
+    cases:
+      single:
+        type: bracket_tax
+        base: "$taxable_income"
+        brackets: "$tax_brackets_single"
+      one_child:
+        type: bracket_tax
+        base: "$taxable_income"
+        brackets: "$tax_brackets_one_child"
+      two_children:
+        type: bracket_tax
+        base: "$taxable_income"
+        brackets: "$tax_brackets_two_children"
+      three_children:
+        type: bracket_tax
+        base: "$taxable_income"
+        brackets: "$tax_brackets_three_children"
+    default:
+      type: bracket_tax
+      base: "$taxable_income"
+      brackets: "$tax_brackets_single"
+
+  # Select appropriate tax credit based on family status
+  - id: base_tax_credit
+    type: switch
+    on: "@filing_status"
+    cases:
+      single: "$tax_credit_single"
+      one_child: "$tax_credit_one_child"
+      two_children: "$tax_credit_two_children"
+      three_children: "$tax_credit_three_children"
+    default: "$tax_credit_single"
+
+  # Tax credit phaseout: reduced by EUR 20 per EUR 1,000 above EUR 12,000
+  # Phaseout amount = max(0, (income - 12,000)) * 0.02
+  - id: income_above_phaseout
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "@gross_annual"
+          - "$tax_credit_phaseout_start"
+
+  - id: phaseout_reduction
+    type: mul
+    values:
+      - "$income_above_phaseout"
+      - "$tax_credit_phaseout_rate"
+
+  # Effective tax credit after phaseout (minimum 0)
+  - id: tax_credit
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$base_tax_credit"
+          - "$phaseout_reduction"
+
+  # Net income tax after credit (cannot go below 0)
+  - id: income_tax
+    type: max
+    values:
+      - 0
+      - type: sub
+        values:
+          - "$income_tax_gross"
+          - "$tax_credit"
+    category: income_tax
+    label: "Income Tax (Forologhia Eisodimatos)"
+
+  # Tax credit display (as negative value for breakdown)
+  - id: tax_credit_display
+    type: credit
+    amount: "$tax_credit"
+    refundable: false
+    category: credit
+    label: "Personal Tax Credit (Meion Forou)"
+    description: "Tax reduction of EUR 777 (varies by family status), phasing out above EUR 12,000"
+
+  # EFKA Social Security - base subject to contributions (capped)
+  - id: efka_base
+    type: min
+    values:
+      - "@gross_annual"
+      - "$efka_annual_cap"
+
+  # EFKA Employee contribution
+  - id: efka_employee
+    type: percent_of
+    base: "$efka_base"
+    rate: "$efka_employee_rate"
+    category: contribution
+    label: "Social Security (EFKA - Employee)"
+    description: "Employee EFKA contributions (pension, health, unemployment)"
+
+  # Total deductions
+  - id: total_deductions
+    type: sum
+    values:
+      - "$income_tax"
+      - "$efka_employee"
+
+  # Net Annual Salary
+  - id: net_annual
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$total_deductions"
+
+outputs:
+  gross: "@gross_annual"
+  net: "$net_annual"
+  effective_rate:
+    type: div
+    values:
+      - "$total_deductions"
+      - "@gross_annual"
+  breakdown:
+    taxes:
+      - "$income_tax"
+    contributions:
+      - "$efka_employee"
+    credits:
+      - "$tax_credit_display"
