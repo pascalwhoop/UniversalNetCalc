@@ -2,12 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '.github/**'
+    tags:
+      - 'v*.*.*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,114 +13,74 @@ permissions:
   contents: write
 
 jobs:
-  test:
-    name: Run tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: make install
-
-      - name: Lint
-        run: npm run lint
-
-      - name: TypeScript check
-        run: npx tsc --noEmit
-
-      - name: Run tests
-        run: make test-ci
-
-      - name: Run config tests
-        run: make test-configs
-
-  version:
-    name: Bump version and create tag
-    needs: test
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.versioning.outputs.version }}
-      tag: ${{ steps.versioning.outputs.tag }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump version and create tag
-        id: versioning
-        run: |
-          npm version patch --no-git-tag-version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          TAG="v$NEW_VERSION"
-
-          git add package.json package-lock.json
-          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
-          git tag -a "$TAG" -m "Release $TAG"
-
-          git pull --rebase origin main
-          git push origin main
-          git push origin "$TAG"
-
-          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-
   github-release:
     name: Create GitHub Release
-    needs: version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.version.outputs.tag }}
 
       - name: Generate release notes
         id: release-notes
         run: |
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${{ needs.version.outputs.tag }}^" 2>/dev/null || echo "")
+          VERSION="${GITHUB_REF_NAME#v}"
+          CHANGELOG_FILE="src/data/changelog/${VERSION}.json"
 
-          if [ -z "$PREVIOUS_TAG" ]; then
-            CHANGELOG=$(git log --oneline --pretty=format:"- %s" | head -20)
-          else
-            CHANGELOG=$(git log "$PREVIOUS_TAG..${{ needs.version.outputs.tag }}" --oneline --pretty=format:"- %s")
-          fi
+          NOTES=$(node -e "
+          const fs = require('fs');
+          const file = process.argv[1];
+          if (!fs.existsSync(file)) {
+            console.log('See commit history for changes.');
+            process.exit(0);
+          }
+          const e = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const lines = [];
+          if (e.highlight) { lines.push(e.highlight); lines.push(''); }
+          if (e.new_countries?.length) {
+            lines.push('### New Countries');
+            e.new_countries.forEach(c => lines.push('- ' + c.name));
+            lines.push('');
+          }
+          if (e.new_variants?.length) {
+            lines.push('### New Expat Variants');
+            e.new_variants.forEach(v => lines.push('- ' + v.country + ' \u2014 ' + v.label));
+            lines.push('');
+          }
+          if (e.new_year_data?.length) {
+            lines.push('### Tax Year Data');
+            e.new_year_data.forEach(yd => lines.push('- ' + yd.year + ': ' + yd.countries.map(c => c.name).join(', ')));
+            lines.push('');
+          }
+          if (e.improvements?.length) {
+            lines.push('### Improvements');
+            e.improvements.forEach(i => lines.push('- ' + i));
+            lines.push('');
+          }
+          if (e.fixes?.length) {
+            lines.push('### Fixes');
+            e.fixes.forEach(f => lines.push('- ' + f));
+          }
+          console.log(lines.join('\n').trimEnd());
+          " "$CHANGELOG_FILE")
 
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo ""
+            echo "---"
+            echo ""
+            echo "**Production:** https://universal-net-calc.reconnct.workers.dev"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create \
-            '${{ needs.version.outputs.tag }}' \
-            --repo '${{ github.repository }}' \
-            --title 'Release ${{ needs.version.outputs.tag }}' \
-            --notes "## Changes in this release
-
-          ${{ steps.release-notes.outputs.changelog }}
-
-          ---
-
-          **Deployed to production:** https://universal-net-calc.reconnct.workers.dev"
+            "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Release $GITHUB_REF_NAME" \
+            --notes "${{ steps.release-notes.outputs.notes }}"
