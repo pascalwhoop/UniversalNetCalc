@@ -1,6 +1,14 @@
 # CI/CD System
 
-Automated workflows for testing, validation, and deployment.
+Automated workflows for testing and releases. Cloudflare handles deployments natively.
+
+## How it works
+
+```
+push to main  →  Cloudflare deploys automatically (continuous)
+push a tag    →  GitHub Actions creates a GitHub release
+/release skill →  generates changelog, bumps version, commits, tags, pushes
+```
 
 ## Quick Start
 
@@ -10,247 +18,88 @@ Automated workflows for testing, validation, and deployment.
 npm run lint && npm run test:run && npm run test:configs
 ```
 
-**For Testing PR Preview:**
-1. Create a pull request
-2. Comment `/release-preview` on the PR
-3. Wait for deployment (2-3 minutes)
-4. Click the preview link in the bot comment
-5. Test your changes in the preview environment
-
-**For Creating a Release:**
-```bash
-make release  # Automated release process:
-              # - Validates git status
-              # - Pulls latest
-              # - Runs tests
-              # - Prompts for version (patch/minor/major)
-              # - Updates CHANGELOG
-              # - Creates tag and pushes
-              # → GitHub Actions deploys to production
+**For Creating a Release (use Claude Code):**
 ```
-
-**For Maintainers:**
-1. Configure GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-2. Set up branch protection (Settings → Branches → Add rule for `main`)
-3. Create "production" environment with required reviewers (optional)
+/release
+```
+The skill will:
+1. Analyse what changed since the last tag
+2. Suggest a version bump (patch/minor/major) with reasoning
+3. Generate the changelog entry
+4. Bump `package.json`, commit, tag, and push
+5. GitHub Actions creates the GitHub release automatically
 
 ## Workflows
 
 ### PR Validation (`pr.yml`)
 **Triggers:** All pull requests
-**Duration:** 3-7 minutes
-**Jobs:**
-- `validate` - ESLint, TypeScript, Vitest, config tests, build check
+**Jobs:** ESLint, TypeScript check, Vitest unit tests, config tests, build validation
 
-**Features:**
-- Runs on every PR to ensure code quality
-- Validates configurations and test vectors
-- Cancels stale runs on new commits
+### Release (`release.yml`)
+**Triggers:** Tag push matching `v*.*.*`
+**Jobs:** Create GitHub release with formatted notes from `src/data/changelog/<version>.json`
 
-### PR Preview Deployment (`pr-preview.yml`)
-**Triggers:** Comment with `/release-preview` on a pull request
-**Duration:** 2-3 minutes
-**Requirements:**
-- User must have write access to the repository
-- Comment must be on a pull request (not an issue)
+Note: The release.yml no longer runs tests or bumps versions — both are handled before the tag is pushed (tests by `pr.yml` on the PR, versioning by the `/release` skill).
 
-**Actions:**
-1. Checks permission (only collaborators/members can trigger)
-2. Checks out PR branch
-3. Builds for Cloudflare
-4. Deploys to PR-specific preview: `https://universal-net-calc-pr-{PR_NUMBER}.reconnct.workers.dev`
-5. Comments back with preview link
-6. Available until PR is closed
-
-**Usage:**
-```
-Comment on PR:  /release-preview
-```
-
-### Production Release Deployment (`release.yml`)
-**Triggers:** Push of a git tag matching `v*` (e.g., `v1.0.0`)
-**Duration:** 3-5 minutes
-**Requirements:**
-- All tests must pass
-- Tag must exist in `production` environment (with optional required reviewers)
-
-**Actions:**
-1. Validates all tests pass
-2. Builds for Cloudflare
-3. Deploys to production: `https://universal-net-calc.reconnct.workers.dev`
-4. Generates changelog from commits since last tag
-5. Creates GitHub release with auto-generated notes
-6. Release is immutable and tied to git tag
-
-**Creating a release:**
-```bash
-make release  # Interactive process handles everything
-```
-
-### Maintenance
-- `welcome.yml` - Welcome first-time contributors
-- `stale-configs.yml` - Monthly check for outdated configs (>2 years)
+### Agent Workflows
+- `claude.yml` — Claude Code GitHub integration (PR comments, issue automation)
+- `claude-code-review.yml` — Automated code review on PRs
+- `agent-product-manager.yml` — Scheduled PM agent
+- `agent-architect.yml` — Scheduled architect/refactor agent
 
 ## Workflow Files
 
-| File | Purpose | Trigger | Environment |
-|------|---------|---------|-------------|
-| `.github/workflows/pr.yml` | PR validation | All pull requests | None |
-| `.github/workflows/pr-preview.yml` | PR preview deploy | Comment `/release-preview` | preview |
-| `.github/workflows/release.yml` | Production release | Tag push (`v*`) | production |
-| `.github/workflows/deploy.yml` | Reusable deploy | Called by other workflows | preview or production |
+| File | Purpose | Trigger |
+|------|---------|---------|
+| `pr.yml` | PR validation (lint, tests, build) | All pull requests |
+| `release.yml` | GitHub release creation | Tag push (`v*.*.*`) |
+| `claude.yml` | Claude Code GitHub integration | PR/issue events |
+| `claude-code-review.yml` | Automated code review | PR events |
 
-## Branch Protection Setup
+## Changelog
 
-**Required settings for `main` branch:**
+The user-facing changelog lives at `/changelog` in the app and is driven by static JSON files:
 
-1. Go to Settings → Branches → Add rule
-2. Branch name pattern: `main`
-3. Enable:
-   - ✅ Require a pull request before merging
-   - ✅ Require approvals: 1
-   - ✅ Require status checks to pass: `code-quality`, `unit-tests`, `build-validation`
-   - ✅ Require branches to be up to date: No (allows parallel PRs)
-   - ✅ Include administrators
-4. Save
+```
+src/data/changelog/
+  index.ts          ← imports all versions in order
+  0.2.11.json       ← one file per release
+  0.2.10.json
+  ...
+```
 
-**GitHub Secrets (for deployment):**
-- Settings → Secrets → Actions → New repository secret
-- Add: `CLOUDFLARE_API_TOKEN` (from Cloudflare dashboard)
-- Add: `CLOUDFLARE_ACCOUNT_ID` (from Cloudflare dashboard)
+The `/release` skill generates the JSON entry automatically. To manually add or edit a changelog entry without releasing, use `/changelog-entry`.
 
-**GitHub Environment (for production):**
-- Settings → Environments → New environment: "production"
-- Add required reviewers (your team)
-- Save
-
-## Performance
-
-| Workflow | Duration | Notes |
-|----------|----------|-------|
-| PR Validation | 3-7 min | Runs on every PR, code quality + tests + build |
-| PR Preview | 2-3 min | On-demand via `/release-preview` comment |
-| Production Release | 3-5 min | Tag-triggered, includes tests + build + deploy |
-
-**Cache hit rate:** 70-90% (based on package-lock.json hash)
-
-**Optimization tips:**
-- Use conventional commits (feat:, fix:, etc.) for better changelog generation
-- PR previews are opt-in to save resources
-- Production deploys use the same build as PR validation
+**Schema:** `src/types/changelog.ts`
 
 ## Troubleshooting
 
-### Release Process
+**Tag push triggers no GitHub release**
+- Confirm the tag matches `v*.*.*` (e.g. `v0.2.12`)
+- Check the Actions tab for the `Release` workflow run
+- Verify `GITHUB_TOKEN` permissions (contents: write is set in `release.yml`)
 
-**`make release` fails with "working directory has uncommitted changes"**
-- Commit or stash all changes before releasing
-- Run `git status` to see what's uncommitted
+**Release notes show "See commit history for changes"**
+- The `src/data/changelog/<version>.json` file is missing for that version
+- Add it manually or run `/changelog-entry` to generate it
 
-**`make release` fails with "Not on main branch"**
-- Switch to main: `git checkout main`
-- Ensure you're on the correct branch
-
-**Tag push failed**
-- Check that you have push permission to the repository
-- Verify git is configured: `git config user.email` and `git config user.name`
-- If tag already exists, delete locally and on remote: `git tag -d v1.0.0 && git push origin :v1.0.0`
-
-**Production deployment stuck**
-- Check GitHub Actions tab for workflow errors
-- Verify `production` environment exists (Settings → Environments)
-- If using required reviewers, ensure someone approves the deployment
-
-### PR Preview
-
-**`/release-preview` comment doesn't trigger workflow**
-- Only collaborators/members can trigger previews
-- Check that you have write access to the repository
-- Make sure the comment text is exactly `/release-preview`
-
-**PR preview deployment failed**
-- Check GitHub Actions tab for the `PR Preview` workflow
-- Look for build errors or Cloudflare deployment issues
-- Verify `preview` environment exists and has valid secrets
-
-**Preview URL doesn't work**
-- Wait a few seconds after deployment completes
-- Check that the URL follows pattern: `https://universal-net-calc-pr-{PR_NUMBER}.reconnct.workers.dev`
-- Verify Cloudflare account has workers enabled
-
-### General
-
-**Build fails with "manifest out of sync"**
-```bash
-npm run generate:manifest
-git add configs-manifest.json
-git commit -m "chore: regenerate manifest"
-```
+**Cloudflare not deploying**
+- Cloudflare native CI watches `main` — check the Cloudflare dashboard for build logs
+- No GitHub secrets or Actions setup needed for Cloudflare deployments
 
 **Tests fail locally but pass in CI**
-- Clear cache: `npm ci --force`
-- Clear node_modules: `rm -rf node_modules && npm ci`
-- Run same test command as CI: `npm run test:run`
-
-**Deployment stuck waiting for approval**
-- Check Settings → Environments
-- Verify reviewer has permission
-- Check that environment has valid secrets
-
-## Local Testing & Release
-
 ```bash
-# Linting
-npm run lint
-
-# Unit tests
-npm run test
-
-# Config tests only
-npm run test:configs
-
-# E2E tests
-npm run test:e2e
-
-# Type check
-npx tsc --noEmit
-
-# Full build
-npm run build
-
-# Preview deployment (local Cloudflare)
-npm run preview
-
-# Create production release (interactive)
-make release
-  # - Validates clean git state
-  # - Runs all tests
-  # - Prompts for version (patch/minor/major)
-  # - Updates CHANGELOG
-  # - Creates tag
-  # - Pushes to remote → triggers GitHub Actions deployment
+npm ci --force      # clear cache
+npm run test:run    # same command as CI
 ```
 
-## Release Checklist
+## Local Commands
 
-Before running `make release`:
-
-- [ ] All changes are committed and pushed to `main`
-- [ ] Latest changes are pulled: `git pull origin main`
-- [ ] All tests pass locally: `npm run test:run && npm run test:configs`
-- [ ] CHANGELOG is up to date (the script will update it automatically)
-- [ ] Version bump type is decided (patch/minor/major)
-- [ ] Ready to deploy to production (the change will go live after push)
-
-## Cost Optimization
-
-- Single Node.js version (no matrix builds)
-- Conditional E2E tests
-- Cancel in-progress runs
-- Aggressive caching (50-70% faster builds)
-
-## References
-
-- [GitHub Actions Docs](https://docs.github.com/en/actions)
-- [Workflow Syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
-- [Cloudflare Wrangler](https://developers.cloudflare.com/workers/wrangler/)
+```bash
+npm run dev           # Dev server (http://localhost:3000)
+npm run lint          # ESLint
+npm run test:run      # Unit + config tests (CI mode)
+npm run test:configs  # Config tests only
+npm run build         # Build Next.js
+npm run preview       # Local Cloudflare preview
+```

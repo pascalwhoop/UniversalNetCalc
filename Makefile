@@ -117,7 +117,5 @@ clean:
 	@rm -f configs-manifest.json
 	@echo "✓ Clean complete"
 
-# Release - use the /release skill in Claude Code instead
 release:
-	@echo "Use the /release skill in Claude Code to create a release."
-	@echo "It will analyse changes, suggest a version bump, generate the changelog, and push the tag."
+	claude --skill /release

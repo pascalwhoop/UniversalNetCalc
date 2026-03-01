@@ -37,7 +37,7 @@ npm run deploy                 # Build and deploy to Cloudflare
 npm run upload                 # Build and upload to Cloudflare (no deploy)
 
 # Release Management
-make release                   # Interactive release creation (version bump, tag, push)
+make release                   # Launches /release skill in Claude Code (or run /release directly)
 
 # Other
 npm run lint                   # Run ESLint
@@ -48,21 +48,19 @@ npm run cf-typegen             # Generate Cloudflare environment types
 
 ### Release Workflow
 
-To create a production release:
-```bash
-make release  # Interactive process:
-              # - Validates you're on main branch
-              # - Pulls latest changes
-              # - Runs all tests
-              # - Prompts for version bump (patch/minor/major)
-              # - Updates CHANGELOG.md
-              # - Creates git tag
-              # - Pushes to remote
-              # → GitHub Actions automatically deploys to production
+Releases are managed via the `/release` skill in Claude Code (or `make release` which invokes it):
+
+```
+/release  →  analyses changes since last tag
+          →  suggests patch/minor/major with reasoning
+          →  generates src/data/changelog/<version>.json
+          →  bumps package.json, commits, tags, pushes
+          →  GitHub Actions creates the GitHub release automatically
+          →  Cloudflare deploys (watches main continuously)
 ```
 
-PR preview deployments happen automatically when a pull request is opened or updated.
-The preview URL is posted as a comment on the PR.
+The changelog page at `/changelog` in the app is automatically updated as part of each release.
+See `docs/ci-cd.md` for the full CI/CD reference.
 
 **Note:** The developer often runs the server on port 3000 already. When 3000 is occupied assume the server is already running and use the existing service instead of trying to spin up your own
 
