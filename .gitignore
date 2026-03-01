@@ -65,6 +65,10 @@ cloudflare-env.d.ts
 bundle-analysis*.html
 
 .claude/settings.local.json
+.claude/worktrees/
+
+# Packaged skill artifacts
+*.skill
 
 # convx history
 history/
