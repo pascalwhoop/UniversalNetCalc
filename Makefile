@@ -179,12 +179,8 @@ release:
 	echo "✓ Version bumped to $$NEW_VERSION"; \
 	echo ""; \
 	\
-	echo "→ Generating changelog..."; \
-	node scripts/generate-changelog.mjs update $$NEW_VERSION; \
-	echo ""; \
-	\
-	echo "→ Committing version and changelog..."; \
-	git add package.json package-lock.json CHANGELOG.md; \
+	echo "→ Committing version..."; \
+	git add package.json package-lock.json; \
 	git commit -m "chore: release v$$NEW_VERSION"; \
 	echo "✓ Committed"; \
 	echo ""; \

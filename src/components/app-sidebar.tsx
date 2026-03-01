@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Calculator, History, Settings, HelpCircle, Home } from "lucide-react"
+import { Calculator, History, Settings, HelpCircle, Home, ScrollText } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -41,6 +41,11 @@ const navMain = [
 ]
 
 const navSecondary = [
+  {
+    title: "Changelog",
+    url: "/changelog",
+    icon: ScrollText,
+  },
   {
     title: "Settings",
     url: "/settings",
@@ -115,7 +120,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
         <div className="px-2 py-1.5 text-xs text-sidebar-foreground/70">
-          v{packageJson.version}
+          <Link
+            href="/changelog"
+            className="hover:text-sidebar-foreground transition-colors cursor-pointer"
+          >
+            v{packageJson.version}
+          </Link>
         </div>
       </SidebarFooter>
 
