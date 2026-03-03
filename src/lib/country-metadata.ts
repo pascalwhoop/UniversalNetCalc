@@ -30,6 +30,9 @@ export const COUNTRY_FLAGS: Record<string, string> = {
   nz: "🇳🇿",
   se: "🇸🇪",
   mx: "🇲🇽",
+  at: "🇦🇹",
+  fi: "🇫🇮",
+  pl: "🇵🇱",
 }
 
 /**
@@ -61,6 +64,9 @@ export const COUNTRY_NAMES: Record<string, string> = {
   nz: "New Zealand",
   se: "Sweden",
   mx: "Mexico",
+  at: "Austria",
+  fi: "Finland",
+  pl: "Poland",
 }
 
 /**
@@ -92,6 +98,9 @@ export const CURRENCY_BY_COUNTRY: Record<string, string> = {
   nz: "NZD",
   se: "SEK",
   mx: "MXN",
+  at: "EUR",
+  fi: "EUR",
+  pl: "PLN",
 }
 
 /**
@@ -115,6 +124,7 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   NZD: "NZ$",
   SEK: "kr",
   MXN: "MX$",
+  PLN: "zł",
 }
 
 /**

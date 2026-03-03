@@ -6,8 +6,8 @@ export const runtime = "edge"
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { feedback } = body
+    const body = await request.json() as { feedback?: string }
+    const feedback = body.feedback
 
     if (!feedback || typeof feedback !== "string") {
       return NextResponse.json({ error: "Feedback is required" }, { status: 400 })
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const userEmail = session?.user?.email || "anonymous"
 
     const ctx = getCloudflareContext()
-    const kv = ctx.env.FEEDBACK as KVNamespace
+    const kv = (ctx.env as any).FEEDBACK as KVNamespace
 
     if (!kv) {
       console.warn("FEEDBACK KV binding not found, logging to console only")

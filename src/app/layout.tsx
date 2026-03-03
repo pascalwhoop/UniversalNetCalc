@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: "%s | Decidere",
   },
   description:
-    "Starting with tax-advisor-level salary comparisons across 15+ countries. Decidere helps you decide where to live — financial clarity is just the beginning. Free, open-source, community-driven.",
+    "Starting with tax-advisor-level salary comparisons across 25+ countries. Decidere helps you decide where to live — financial clarity is just the beginning. Free, open-source, community-driven.",
   keywords: [
     "decidere",
     "relocation decision",
@@ -64,23 +64,14 @@ export const metadata: Metadata = {
     url: siteUrl,
     title: "Decidere — Decide Where to Live",
     description:
-      "Compare real after-tax income across 15+ countries. Starting with financial clarity — more dimensions coming soon. Free and open-source.",
+      "Compare real after-tax income across 25+ countries. Starting with financial clarity — more dimensions coming soon. Free and open-source.",
     siteName: "Decidere",
-    images: [
-      {
-        url: `${siteUrl}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: "Decidere — Decide Where to Live",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Decidere — Decide Where to Live",
     description:
-      "Compare real after-tax income across 15+ countries. Starting with financial clarity — more dimensions coming soon. Free and open-source.",
-    images: [`${siteUrl}/og-image.png`],
+      "Compare real after-tax income across 25+ countries. Starting with financial clarity — more dimensions coming soon. Free and open-source.",
   },
   robots: {
     index: true,
@@ -112,7 +103,7 @@ export default function RootLayout({
     "@type": "WebApplication",
     "name": "Decidere",
     "alternateName": "Decide Where to Live",
-    "description": "Compare real after-tax income across 15+ countries. Decidere helps you decide where to live, starting with financial clarity.",
+    "description": "Compare real after-tax income across 25+ countries. Decidere helps you decide where to live, starting with financial clarity.",
     "url": siteUrl,
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web",
@@ -128,7 +119,7 @@ export default function RootLayout({
       "Effective and marginal tax rates",
       "Currency conversion",
       "Shareable URLs",
-      "Support for 15+ countries",
+      "Support for 25+ countries",
       "Tax variants (30% ruling, impatriate regime, etc.)",
     ],
     "author": {
