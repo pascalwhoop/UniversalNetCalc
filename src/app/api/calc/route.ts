@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { CalculationEngine, ConfigLoader } from "../../../../packages/engine/src"
 import { join } from "path"
+import { logAPIRequest } from "@/lib/analytics-logger"
 
 interface CalcRequest {
   country: string
@@ -32,17 +33,28 @@ const configsPath = isCloudflareWorkers ? "configs" : join(process.cwd(), "confi
 const configLoader = new ConfigLoader(configsPath)
 
 export async function POST(request: NextRequest) {
+  const start = Date.now()
+  let body: CalcRequest | undefined
   try {
-    const body: CalcRequest = await request.json()
+    body = await request.json() as CalcRequest
 
     // Validate required fields
     if (!body.country || !body.year || body.gross_annual === undefined) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         {
           error: "Missing required fields: country, year, gross_annual",
         },
         { status: 400 }
       )
+      void logAPIRequest({
+        request,
+        endpoint: "/api/calc",
+        method: "POST",
+        requestData: body,
+        status: 400,
+        responseTime: Date.now() - start,
+      }).catch(() => {})
+      return res
     }
 
     // Load configuration (input validation happens inside loadConfig)
@@ -71,16 +83,39 @@ export async function POST(request: NextRequest) {
     // Calculate marginal rate
     const marginal_rate = engine.calculateMarginalRate(inputs as Record<string, string | number | boolean | Record<string, unknown> | undefined>)
 
-    return NextResponse.json({ ...result, marginal_rate })
+    const response = NextResponse.json({ ...result, marginal_rate })
+    void logAPIRequest({
+      request,
+      endpoint: "/api/calc",
+      method: "POST",
+      requestData: body,
+      result: { ...result, marginal_rate },
+      status: 200,
+      responseTime: Date.now() - start,
+    }).catch(() => {})
+    return response
   } catch (error: unknown) {
     console.error("Calculation error:", error)
 
     const err = error as { code?: string; name?: string; message?: string }
+    const responseTime = Date.now() - start
+    const log = (status: number) => {
+      void logAPIRequest({
+        request,
+        endpoint: "/api/calc",
+        method: "POST",
+        requestData: body ?? {},
+        error: error instanceof Error ? error : new Error(String(error)),
+        status,
+        responseTime,
+      }).catch(() => {})
+    }
 
     // Handle input validation errors (path traversal prevention)
     if (err.message?.includes("Invalid country") ||
         err.message?.includes("Invalid year") ||
         err.message?.includes("Invalid variant")) {
+      log(400)
       return NextResponse.json(
         {
           error: "Invalid input",
@@ -91,6 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (err.code === "ENOENT") {
+      log(404)
       return NextResponse.json(
         {
           error: "Configuration not found",
@@ -102,6 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Handle YAML parsing errors
     if (err.name === "YAMLException" || err.message?.includes("YAML")) {
+      log(500)
       return NextResponse.json(
         {
           error: "Invalid configuration",
@@ -113,6 +150,7 @@ export async function POST(request: NextRequest) {
 
     // Handle calculation engine errors
     if (err.message?.includes("not found") || err.message?.includes("undefined")) {
+      log(500)
       return NextResponse.json(
         {
           error: "Configuration error",
@@ -122,6 +160,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    log(500)
     return NextResponse.json(
       {
         error: "Calculation failed",

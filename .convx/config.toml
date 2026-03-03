@@ -1,0 +1,3 @@
+# convx configuration
+# Reference: https://github.com/pascalwhoop/convx/blob/main/src/convx_ai/config.py
+# Add sections like [sync], [backup], [sanitize] to override defaults.

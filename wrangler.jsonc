@@ -56,6 +56,16 @@
 			"binding": "EXCHANGE_RATES_CACHE",
 			"id": "23769d8b2bf540acb3f6118c87e45f29"
 		}
+	],
+	/**
+	 * Analytics Engine: server-side usage analytics (country, year, variant, gross, etc.)
+	 * Dataset is created automatically on first write. Query via Cloudflare dashboard or SQL API.
+	 */
+	"analytics_engine_datasets": [
+		{
+			"binding": "ANALYTICS_ENGINE",
+			"dataset": "calc_requests"
+		}
 	]
 	/**
 	 * Smart Placement

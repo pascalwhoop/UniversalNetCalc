@@ -53,16 +53,33 @@ function getAnalyticsEngine(): unknown {
   }
 }
 
-/**
- * Extract geographic region from Cloudflare headers
- */
-function getGeoRegion(request: NextRequest): string {
+/** Cloudflare geo on the request (present when running on Workers) */
+interface RequestCfGeo {
+  country?: string | null
+  city?: string | null
+  region?: string | null
+  regionCode?: string | null
+}
+
+function getRequestCf(request: NextRequest): RequestCfGeo | undefined {
   try {
-    const cfCountry = request.headers.get("cf-ipcountry")
-    return cfCountry || ""
+    return (request as NextRequest & { cf?: RequestCfGeo }).cf
   } catch {
-    return ""
+    return undefined
   }
+}
+
+/** Visitor geo: country, city, region. Uses request.cf on Workers; falls back to CF-IPCountry header. */
+function getVisitorGeo(request: NextRequest): {
+  country: string
+  city: string
+  region: string
+} {
+  const cf = getRequestCf(request)
+  const country = (cf?.country ?? request.headers.get("cf-ipcountry") ?? "").toUpperCase() || ""
+  const city = (cf?.city ?? "").trim() || ""
+  const region = (cf?.regionCode ?? cf?.region ?? "").trim() || ""
+  return { country, city, region }
 }
 
 /**
@@ -124,7 +141,7 @@ export async function logAPIRequest(
     const net = result?.net || 0
     const effectiveRate = result?.effective_rate || 0
     const errorType = error ? categorizeError(error) : ""
-    const originCountry = getGeoRegion(request)
+    const visitor = getVisitorGeo(request)
     const regionLevel1 = (requestData.region_level_1 || "").toLowerCase()
     const regionLevel2 = (requestData.region_level_2 || "").toLowerCase()
     const configVersionHash = (result?.config_version_hash || "") as string
@@ -133,13 +150,15 @@ export async function logAPIRequest(
     // Index positions matter - document them for SQL queries
     const indexes = [
       endpoint, // 0: "/api/calc"
-      country, // 1: "nl", "ch", etc
+      country, // 1: "nl", "ch", etc (calculated country)
       year, // 2: "2025"
       variant, // 3: "30-ruling" or ""
       String(status), // 4: "200", "400", "500"
       errorType, // 5: error category or ""
-      originCountry, // 6: "US", "NL", "DE"
+      visitor.country, // 6: visitor country "US", "NL", "DE"
       method, // 7: "POST", "GET"
+      visitor.region, // 8: visitor region/state e.g. "TX", "California"
+      visitor.city, // 9: visitor city e.g. "Austin"
     ]
 
     // Build blobs array (additional string dimensions)
@@ -176,36 +195,43 @@ export async function logAPIRequest(
  *
  * List all requests to /api/calc:
  * SELECT COUNT(*) as total_requests
- * FROM calc
+ * FROM calc_requests
  * WHERE indexes[0] = '/api/calc'
  * AND timestamp > NOW() - INTERVAL '24' HOUR
  *
  * Top calculation countries:
  * SELECT indexes[1] as country, COUNT(*) as requests
- * FROM calc
+ * FROM calc_requests
  * WHERE indexes[0] = '/api/calc' AND indexes[4] = '200'
  * GROUP BY indexes[1]
  * ORDER BY requests DESC
  *
- * Geographic distribution:
- * SELECT indexes[6] as origin_country, COUNT(*) as total_requests
- * FROM calc
+ * Geographic distribution (visitor country):
+ * SELECT indexes[6] as visitor_country, COUNT(*) as total_requests
+ * FROM calc_requests
  * WHERE indexes[0] = '/api/calc'
  * GROUP BY indexes[6]
  * ORDER BY total_requests DESC
+ *
+ * By visitor region (index 8) or city (index 9):
+ * SELECT indexes[6] as country, indexes[8] as region, indexes[9] as city, COUNT(*) as n
+ * FROM calc_requests
+ * WHERE indexes[0] = '/api/calc' AND indexes[4] = '200'
+ * GROUP BY indexes[6], indexes[8], indexes[9]
+ * ORDER BY n DESC
  *
  * Average salary by country:
  * SELECT indexes[1] as country,
  *        AVG(doubles[0]) as avg_gross,
  *        AVG(doubles[1]) as avg_net,
  *        AVG(doubles[2]) as avg_effective_rate
- * FROM calc
+ * FROM calc_requests
  * WHERE indexes[0] = '/api/calc' AND indexes[4] = '200'
  * GROUP BY indexes[1]
  *
  * Error analysis:
  * SELECT indexes[5] as error_type, COUNT(*) as error_count
- * FROM calc
+ * FROM calc_requests
  * WHERE indexes[5] != ''
  * GROUP BY indexes[5]
  * ORDER BY error_count DESC
@@ -215,7 +241,7 @@ export async function logAPIRequest(
  *        PERCENTILE_CONT(doubles[3], 0.5) as p50_ms,
  *        PERCENTILE_CONT(doubles[3], 0.95) as p95_ms,
  *        MAX(doubles[3]) as max_ms
- * FROM calc
+ * FROM calc_requests
  * WHERE indexes[0] = '/api/calc'
  * GROUP BY indexes[1]
  */

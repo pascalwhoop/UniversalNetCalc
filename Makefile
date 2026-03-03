@@ -118,4 +118,4 @@ clean:
 	@echo "✓ Clean complete"
 
 release:
-	claude --skill /release
+	claude "/release this"
