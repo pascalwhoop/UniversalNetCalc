@@ -145,34 +145,34 @@ export async function logAPIRequest(
     const regionLevel2 = (requestData.region_level_2 || "").toLowerCase()
     const configVersionHash = (result?.config_version_hash || "") as string
 
-    // Build indexes array (strings, max 20 for querying)
-    // Index positions matter - document them for SQL queries
+    // Analytics Engine limits: exactly 1 index (sampling key), up to 20 blobs (string dims),
+    // up to 20 doubles (numeric metrics). SQL columns: blob1..blob20, double1..double20, index1.
     const indexes = [
-      endpoint, // 0: "/api/calc"
-      country, // 1: "nl", "ch", etc (calculated country)
-      year, // 2: "2025"
-      variant, // 3: "30-ruling" or ""
-      String(status), // 4: "200", "400", "500"
-      errorType, // 5: error category or ""
-      visitor.country, // 6: visitor country "US", "NL", "DE"
-      method, // 7: "POST", "GET"
-      visitor.region, // 8: visitor region/state e.g. "TX", "California"
-      visitor.city, // 9: visitor city e.g. "Austin"
+      endpoint, // index1: sampling key — "/api/calc"
     ]
 
-    // Build blobs array (additional string dimensions)
+    // Blobs are the queryable string dimensions (referenced as blob1, blob2, ... in SQL)
     const blobs = [
-      regionLevel1, // 0: canton, state, or ""
-      regionLevel2, // 1: municipality or ""
-      configVersionHash, // 2: for debugging config versions
+      country,               // blob1:  calculated country e.g. "nl", "ch"
+      year,                  // blob2:  tax year e.g. "2025"
+      variant,               // blob3:  variant e.g. "30-ruling" or ""
+      String(status),        // blob4:  HTTP status "200", "400", "500"
+      errorType,             // blob5:  error category or ""
+      visitor.country,       // blob6:  visitor country "US", "NL", "DE"
+      method,                // blob7:  "POST", "GET"
+      visitor.region,        // blob8:  visitor region/state e.g. "TX", "California"
+      visitor.city,          // blob9:  visitor city e.g. "Austin"
+      regionLevel1,          // blob10: canton, state, or ""
+      regionLevel2,          // blob11: municipality or ""
+      configVersionHash,     // blob12: config version for debugging
     ]
 
-    // Build doubles array (numeric metrics)
+    // Doubles are numeric metrics (referenced as double1, double2, ... in SQL)
     const doubles = [
-      gross, // 0: gross salary
-      net, // 1: net salary
-      effectiveRate, // 2: effective tax rate
-      responseTime, // 3: response time in ms
+      gross,        // double1: gross salary
+      net,          // double2: net salary
+      effectiveRate, // double3: effective tax rate
+      responseTime, // double4: response time in ms
     ]
 
     // Write to Analytics Engine
@@ -190,57 +190,58 @@ export async function logAPIRequest(
 }
 
 /**
- * SQL query examples for Analytics Engine:
+ * SQL query examples for Analytics Engine (columns are 1-indexed):
+ * blob1=country, blob2=year, blob3=variant, blob4=status, blob5=error_type,
+ * blob6=visitor_country, blob7=method, blob8=visitor_region, blob9=visitor_city,
+ * blob10=region_level_1, blob11=region_level_2, blob12=config_version_hash
+ * double1=gross, double2=net, double3=effective_rate, double4=response_time_ms
  *
- * List all requests to /api/calc:
+ * Count all requests in last 24h:
  * SELECT COUNT(*) as total_requests
  * FROM calc_requests
- * WHERE indexes[0] = '/api/calc'
- * AND timestamp > NOW() - INTERVAL '24' HOUR
+ * WHERE timestamp > NOW() - INTERVAL '24' HOUR
  *
  * Top calculation countries:
- * SELECT indexes[1] as country, COUNT(*) as requests
+ * SELECT blob1 as country, COUNT(*) as requests
  * FROM calc_requests
- * WHERE indexes[0] = '/api/calc' AND indexes[4] = '200'
- * GROUP BY indexes[1]
+ * WHERE blob4 = '200'
+ * GROUP BY blob1
  * ORDER BY requests DESC
  *
  * Geographic distribution (visitor country):
- * SELECT indexes[6] as visitor_country, COUNT(*) as total_requests
+ * SELECT blob6 as visitor_country, COUNT(*) as total_requests
  * FROM calc_requests
- * WHERE indexes[0] = '/api/calc'
- * GROUP BY indexes[6]
+ * GROUP BY blob6
  * ORDER BY total_requests DESC
  *
- * By visitor region (index 8) or city (index 9):
- * SELECT indexes[6] as country, indexes[8] as region, indexes[9] as city, COUNT(*) as n
+ * By visitor region and city:
+ * SELECT blob6 as country, blob8 as region, blob9 as city, COUNT(*) as n
  * FROM calc_requests
- * WHERE indexes[0] = '/api/calc' AND indexes[4] = '200'
- * GROUP BY indexes[6], indexes[8], indexes[9]
+ * WHERE blob4 = '200'
+ * GROUP BY blob6, blob8, blob9
  * ORDER BY n DESC
  *
  * Average salary by country:
- * SELECT indexes[1] as country,
- *        AVG(doubles[0]) as avg_gross,
- *        AVG(doubles[1]) as avg_net,
- *        AVG(doubles[2]) as avg_effective_rate
+ * SELECT blob1 as country,
+ *        AVG(double1) as avg_gross,
+ *        AVG(double2) as avg_net,
+ *        AVG(double3) as avg_effective_rate
  * FROM calc_requests
- * WHERE indexes[0] = '/api/calc' AND indexes[4] = '200'
- * GROUP BY indexes[1]
+ * WHERE blob4 = '200'
+ * GROUP BY blob1
  *
  * Error analysis:
- * SELECT indexes[5] as error_type, COUNT(*) as error_count
+ * SELECT blob5 as error_type, COUNT(*) as error_count
  * FROM calc_requests
- * WHERE indexes[5] != ''
- * GROUP BY indexes[5]
+ * WHERE blob5 != ''
+ * GROUP BY blob5
  * ORDER BY error_count DESC
  *
- * Response time analysis:
- * SELECT indexes[1] as country,
- *        PERCENTILE_CONT(doubles[3], 0.5) as p50_ms,
- *        PERCENTILE_CONT(doubles[3], 0.95) as p95_ms,
- *        MAX(doubles[3]) as max_ms
+ * Response time by country (p50/p95):
+ * SELECT blob1 as country,
+ *        PERCENTILE_CONT(double4, 0.5) as p50_ms,
+ *        PERCENTILE_CONT(double4, 0.95) as p95_ms,
+ *        MAX(double4) as max_ms
  * FROM calc_requests
- * WHERE indexes[0] = '/api/calc'
- * GROUP BY indexes[1]
+ * GROUP BY blob1
  */
