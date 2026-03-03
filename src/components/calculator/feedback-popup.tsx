@@ -16,6 +16,8 @@ export function FeedbackPopup() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
+    if (!isFeatureEnabled("FeedbackCTA")) return
+
     // Check if user has already submitted feedback (permanent)
     const hasSubmittedFeedback = localStorage.getItem("has-submitted-feedback")
     if (hasSubmittedFeedback) return

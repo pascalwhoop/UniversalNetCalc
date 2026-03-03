@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	/* config options here */
+	serverExternalPackages: ["preact-render-to-string"],
 };
 
 export default nextConfig;

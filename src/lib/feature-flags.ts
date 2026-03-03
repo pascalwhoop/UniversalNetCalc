@@ -13,6 +13,7 @@ export type FeatureFlag =
   | "AccountView"
   | "UpgradeToProFlow"
   | "GoogleAuth"
+  | "FeedbackCTA"
 
 const FLAGS: Record<FeatureFlag, boolean> = {
   History: false,
@@ -21,7 +22,8 @@ const FLAGS: Record<FeatureFlag, boolean> = {
   Notifications: false,
   AccountView: false,
   UpgradeToProFlow: false,
-  GoogleAuth: true,
+  GoogleAuth: false,
+  FeedbackCTA: false,
 }
 
 /**
