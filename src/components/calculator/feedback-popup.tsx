@@ -1,5 +1,6 @@
 "use client"
-
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth"
+import { auth } from "@/lib/firebase/client"
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { isFeatureEnabled } from "@/lib/feature-flags"
-import { signIn } from "next-auth/react"
 import { toast } from "sonner"
 
 export function FeedbackPopup() {
@@ -68,8 +68,13 @@ export function FeedbackPopup() {
     }
   }
 
-  const handleSocialLogin = (provider: 'google') => {
-    signIn(provider)
+  const handleSocialLogin = async () => {
+    const provider = new GoogleAuthProvider()
+    try {
+      await signInWithPopup(auth, provider)
+    } catch (error) {
+      console.error("Error signing in with Google", error)
+    }
   }
 
   return (
@@ -96,7 +101,7 @@ export function FeedbackPopup() {
                         variant="outline" 
                         type="button"
                         className="w-full gap-2 h-11"
-                        onClick={() => handleSocialLogin('google')}
+                        onClick={handleSocialLogin}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="size-4">
                           <path

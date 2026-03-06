@@ -133,7 +133,7 @@ function MobileCountryCard({
   return (
     <div
       ref={cardRef}
-      className={`rounded-lg border divide-y ${isBest ? "ring-1 ring-green-500/30" : ""}`}
+      className={`rounded-lg border divide-y bg-card text-card-foreground shadow-sm ${isBest ? "ring-1 ring-green-500/30" : ""}`}
     >
       <div className={`flex items-center justify-between p-3 ${isBest ? "bg-green-500/5" : "bg-muted/20"}`}>
         <div className="min-w-0">
@@ -332,7 +332,7 @@ export function ComparisonTable({
     c.costOfLiving && Object.values(c.costOfLiving).some(v => v > 0)
   )
 
-  const stickyColClass = "sticky left-0 z-10 bg-background border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
+  const stickyColClass = "sticky left-0 z-10 bg-card border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
 
   if (!isMd) {
     return (
@@ -369,7 +369,7 @@ export function ComparisonTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border">
+    <div className="overflow-x-auto rounded-lg border bg-card text-card-foreground shadow-sm">
       <table className="w-full border-collapse text-sm">
         {/* Header */}
         <thead>
@@ -429,7 +429,7 @@ export function ComparisonTable({
         <tbody>
           {/* GROSS INCOME */}
           <tr className="border-b bg-muted/30">
-            <td className={`${stickyColClass} p-3 font-semibold bg-muted/30`}>Gross Income</td>
+            <td className={`${stickyColClass} p-3 font-semibold bg-muted`}>Gross Income</td>
             {countries.map(c => (
               <td key={c.id} className={`p-3 font-mono font-semibold ${bestCountryId === c.id ? "bg-green-500/5" : ""}`}>
                 {c.isCalculating ? (
@@ -565,7 +565,7 @@ export function ComparisonTable({
 
               {/* DISPOSABLE */}
               <tr className="bg-muted/30">
-                <td className={`${stickyColClass} p-3 font-semibold bg-muted/30`}>
+                <td className={`${stickyColClass} p-3 font-semibold bg-muted`}>
                   Disposable /mo
                 </td>
                 {countries.map(c => {
@@ -705,7 +705,7 @@ function SummaryRow({
 }) {
   return (
     <tr className={highlight ? "bg-muted/30" : ""}>
-      <td className={`${stickyColClass} p-3 ${highlight ? "font-semibold bg-muted/30" : ""}`}>
+      <td className={`${stickyColClass} p-3 ${highlight ? "font-semibold bg-muted" : ""}`}>
         {label}
       </td>
       {countries.map(c => (

@@ -5,8 +5,8 @@ import { Pin, Plus, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { ComparisonTable } from "./comparison-table"
+import { ComparisonChart } from "./comparison-chart"
 import { CountryCalculator } from "./country-calculator"
-import { Toggle } from "@/components/ui/toggle"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { ShareButton } from "./share-button"
 import { BugReportButton } from "./bug-report-button"
@@ -397,16 +397,15 @@ export function ComparisonGrid() {
           <HoverCard openDelay={300} closeDelay={100}>
             <HoverCardTrigger asChild>
               <span>
-                <Toggle
-                  variant="outline"
+                <Button
+                  variant={salaryModeSynced ? "default" : "outline"}
                   size="sm"
-                  pressed={salaryModeSynced}
-                  onPressedChange={handleSalaryModeChange}
+                  onClick={() => handleSalaryModeChange(!salaryModeSynced)}
                   aria-label={salaryModeSynced ? "Same salary for all (pinned)" : "Local salaries (unpinned)"}
                 >
-                  <Pin className="h-3.5 w-3.5" />
-                  Pin salary
-                </Toggle>
+                  <Pin className="mr-2 h-4 w-4" />
+                  {salaryModeSynced ? "Pinned" : "Pin Salary"}
+                </Button>
               </span>
             </HoverCardTrigger>
             <HoverCardContent side="bottom">
@@ -456,6 +455,11 @@ export function ComparisonGrid() {
         normalizedDisplay={normalizedDisplay}
         baseCurrency={baseCurrency}
       />
+
+      {/* Comparison Chart */}
+      {countries.filter(c => c.result).length > 0 && (
+        <ComparisonChart countries={sortedCountries} baseCurrency={baseCurrency} />
+      )}
 
       {/* Save Dialog */}
       {isFeatureEnabled("History") && (

@@ -1,0 +1,10 @@
+{
+  "version": "0.3.1",
+  "date": "2026-03-06",
+  "improvements": [
+    "Updated theme with new color palette and typography for improved visual consistency",
+    "Refined OpenGraph and Twitter card generation for better social media previews",
+    "Enhanced bento-style design with brand colors throughout the interface",
+    "Disabled login and feedback features via feature flags to resolve production issues"
+  ]
+}

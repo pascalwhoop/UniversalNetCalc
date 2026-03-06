@@ -9,7 +9,9 @@ import {
   Sparkles,
   User,
 } from "lucide-react"
-import { useSession, signOut, signIn } from "next-auth/react"
+import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth"
+import { auth } from "@/lib/firebase/client"
+import { useAuth } from "@/components/auth-provider"
 
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import {
@@ -36,9 +38,26 @@ import { Button } from "@/components/ui/button"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const { data: session, status } = useSession()
+  const { user, loading } = useAuth()
 
-  if (status === "loading") {
+  const handleSignIn = async () => {
+    const provider = new GoogleAuthProvider()
+    try {
+      await signInWithPopup(auth, provider)
+    } catch (error) {
+      console.error("Error signing in with Google", error)
+    }
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth)
+    } catch (error) {
+      console.error("Error signing out", error)
+    }
+  }
+
+  if (loading) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -48,7 +67,7 @@ export function NavUser() {
     )
   }
 
-  if (!session) {
+  if (!user) {
     if (!isFeatureEnabled("GoogleAuth")) {
       return null
     }
@@ -60,7 +79,7 @@ export function NavUser() {
             <Button 
               variant="ghost" 
               className="w-full justify-start gap-2 px-2"
-              onClick={() => signIn("google")}
+              onClick={handleSignIn}
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <User className="size-4" />
@@ -78,8 +97,6 @@ export function NavUser() {
     )
   }
 
-  const user = session.user
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -90,14 +107,14 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user?.image || ""} alt={user?.name || ""} />
+                <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
                 <AvatarFallback className="rounded-lg">
-                  {user?.name?.substring(0, 2).toUpperCase() || "U"}
+                  {user.displayName?.substring(0, 2).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user?.name}</span>
-                <span className="truncate text-xs">{user?.email}</span>
+                <span className="truncate font-semibold">{user.displayName}</span>
+                <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -111,14 +128,14 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user?.image || ""} alt={user?.name || ""} />
+                  <AvatarImage src={user.photoURL || ""} alt={user.displayName || ""} />
                   <AvatarFallback className="rounded-lg">
-                    {user?.name?.substring(0, 2).toUpperCase() || "U"}
+                    {user.displayName?.substring(0, 2).toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user?.name}</span>
-                  <span className="truncate text-xs">{user?.email}</span>
+                  <span className="truncate font-semibold">{user.displayName}</span>
+                  <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -159,7 +176,7 @@ export function NavUser() {
               </>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 size-4" />
               Log out
             </DropdownMenuItem>
