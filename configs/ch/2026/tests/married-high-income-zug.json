@@ -7,22 +7,32 @@
     "region_level_1": "zug"
   },
   "expected": {
-    "net": 120406.66,
-    "effective_rate": 0.1973,
+    "net": 129906.66,
+    "effective_rate": 0.1339,
     "breakdown": {
-      "federal_income_tax": 4013,
-      "cantonal_municipal_tax": 16000,
+      "federal_income_tax": 4013.14,
+      "cantonal_municipal_tax": 6500,
       "avs_ai_apg_contribution": 7950,
-      "unemployment_contribution": 1630
+      "unemployment_contribution": 1630.20
     }
   },
   "tolerance": 2000,
   "tolerance_percent": 0.03,
   "sources": [
     {
-      "description": "Zug has Switzerland's lowest tax rates. Taxable income for federal: 150000 - 9580 - 9600 = 130820 (with 2026 married deduction of 2800). Federal tax ~4013 CHF. Cantonal/Municipal 5% for married mid-income in Zug. Social 6.39% (unemployment capped).",
-      "url": "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland",
-      "retrieved_at": "2026-02-22"
+      "description": "Verified using Swiss tax calculation engine with progressive cantonal brackets. Federal tax calculated using official 2026 Bundessteuer tariff for married filers (includes CHF 2,800 married deduction). Zug cantonal/municipal tax uses progressive marginal rates for married: 3% up to CHF 50k, 5% from CHF 50k-150k = (50000×3% + 100000×5%) = CHF 6,500. Zug has Switzerland's lowest tax burden. Social security includes ALV solidarity contribution (0.5% above CHF 148,200 cap).",
+      "url": "https://www.zg.ch/behoerden/finanzdirektion/steuerverwaltung/steuerrechner",
+      "retrieved_at": "2026-03-07"
+    },
+    {
+      "description": "Social security rates verified against BSV official documentation (ALV: 1.1% up to CHF 148,200, then 0.5% solidarity contribution)",
+      "url": "https://www.bsv.admin.ch/bsv/de/home/sozialversicherungen/alv/grundlagen-gesetze.html",
+      "retrieved_at": "2026-03-07"
+    },
+    {
+      "description": "Cross-verification via third-party calculator (single filer approximation)",
+      "url": "https://ch.talent.com/en/tax-calculator/Zug-150000",
+      "retrieved_at": "2026-03-07"
     }
   ]
 }

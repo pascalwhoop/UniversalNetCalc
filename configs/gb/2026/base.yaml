@@ -10,12 +10,15 @@ meta:
     - url: "https://www.gov.uk/income-tax-rates"
       description: "Official UK income tax rates and personal allowances"
       retrieved_at: "2026-02-28"
+    - url: "https://www.gov.uk/national-insurance-rates-letters"
+      description: "Official UK National Insurance rates 2026/27"
+      retrieved_at: "2026-03-07"
     - url: "https://www.gov.uk/government/publications/the-personal-allowance-and-basic-rate-limit-for-income-tax-and-certain-national-insurance-contributions-nics-thresholds-from-6-april-2026-to-5-apr/income-tax-personal-allowance-and-the-basic-rate-limit-and-certain-national-insurance-contributions-thresholds-from-6-april-2026-to-5-april-2028"
       description: "Income Tax Personal Allowance and basic rate limit freeze 2026-2028"
       retrieved_at: "2026-02-28"
-    - url: "https://www.crunch.co.uk/knowledge/article/tax-rates-thresholds-and-allowances-for-current-tax-year"
-      description: "UK Tax Rates, Thresholds, & Allowances for 2025/26 and 2026/27"
-      retrieved_at: "2026-02-28"
+    - url: "https://www.tax.service.gov.uk/estimate-paye-take-home-pay"
+      description: "Official HMRC PAYE Tax Calculator for 2026/27"
+      retrieved_at: "2026-03-07"
   updated_at: "2026-02-28"
   notes: |
     This configuration covers the standard UK tax system for the 2026/27 tax year

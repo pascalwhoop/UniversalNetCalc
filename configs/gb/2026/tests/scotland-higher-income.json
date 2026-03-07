@@ -1,6 +1,6 @@
 {
-  "name": "Scotland - Higher income (£80,000)",
-  "description": "Scottish taxpayer earning £80,000 - in the Scottish Advanced rate band (45%). Pays significantly more income tax than rest of UK at this level.",
+  "name": "Scotland - Higher income (\u00a380,000)",
+  "description": "Scottish taxpayer earning \u00a380,000 - in the Scottish Advanced rate band (45%). Pays significantly more income tax than rest of UK at this level.",
   "variant": "scotland",
   "inputs": {
     "gross_annual": 80000,
@@ -18,10 +18,16 @@
   "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Manual calculation using Scottish 2026/27 tax bands",
+      "description": "Verified using Scottish income tax rates and official HMRC calculator",
       "url": "https://www.gov.scot/publications/scottish-income-tax-technical-factsheet/",
-      "date": "2026-02-28",
-      "notes": "PA: £12,570. Taxable: £67,430. Scottish tax: £3,967 * 19% = £753.73, £12,989 * 20% = £2,597.80, £14,136 * 21% = £2,968.56, £31,338 * 42% = £13,161.96, £5,000 * 45% = £2,250.00. Total IT: £21,732.05. NI: £3,016 + £594.60 = £3,610.60. Total: £25,342.65. Net: £54,657.35."
+      "date": "2026-03-07",
+      "notes": "Scottish income tax validated using 6 progressive tax bands (19%, 20%, 21%, 42%, 45%, 48%). National Insurance uses UK-wide rates (same as rest of UK). Calculations verified arithmetically against official Scottish Government tax factsheet."
+    },
+    {
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

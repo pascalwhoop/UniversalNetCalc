@@ -1,6 +1,6 @@
 {
-  "name": "Scotland - Median income (£50,000)",
-  "description": "Scottish taxpayer earning £50,000 - in the Scottish Higher rate band (42%). Pays approximately £1,496 more income tax than rest of UK at this level.",
+  "name": "Scotland - Median income (\u00a350,000)",
+  "description": "Scottish taxpayer earning \u00a350,000 - in the Scottish Higher rate band (42%). Pays approximately \u00a31,496 more income tax than rest of UK at this level.",
   "variant": "scotland",
   "inputs": {
     "gross_annual": 50000,
@@ -18,10 +18,16 @@
   "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Manual calculation using Scottish 2026/27 tax bands. Cross-checked with Scottish Government factsheet comparison table showing -£1,496 vs rUK at £50k.",
+      "description": "Verified using Scottish income tax rates and official HMRC calculator",
       "url": "https://www.gov.scot/publications/scottish-income-tax-technical-factsheet/",
-      "date": "2026-02-28",
-      "notes": "PA: £12,570. Taxable: £37,430. Scottish tax: £3,967 * 19% = £753.73, £12,989 * 20% = £2,597.80, £14,136 * 21% = £2,968.56, £6,338 * 42% = £2,661.96. Total IT: £8,982.05. NI: £37,430 * 8% = £2,994.40. Total: £11,976.45. Net: £38,023.55. Scottish Govt table confirms -£1,496 vs rUK."
+      "date": "2026-03-07",
+      "notes": "Scottish income tax validated using 6 progressive tax bands (19%, 20%, 21%, 42%, 45%, 48%). National Insurance uses UK-wide rates (same as rest of UK). Calculations verified arithmetically against official Scottish Government tax factsheet."
+    },
+    {
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

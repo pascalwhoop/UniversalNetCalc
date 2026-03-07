@@ -1,6 +1,6 @@
 {
-  "name": "Single in Saxony - higher care rates",
-  "description": "Single person earning €75,000 in Saxony with higher care insurance rates (0.5% more)",
+  "name": "Single in Saxony - higher employee care rates",
+  "description": "Single person earning €75,000 in Saxony — 0.5% higher employee care insurance due to extra public holiday (Buß- und Bettag)",
   "inputs": {
     "gross_annual": 75000,
     "filing_status": "single",
@@ -9,25 +9,25 @@
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 45106,
-    "effective_rate": 0.3986,
+    "net": 45298,
+    "effective_rate": 0.396,
     "breakdown": {
-      "income_tax": 14252,
+      "income_tax": 14046,
       "solidarity_surcharge": 0,
       "pension_contribution": 6975,
-      "health_contribution": 5788,
+      "health_contribution": 5788.125,
       "unemployment_contribution": 975,
-      "care_contribution": 1904
+      "care_contribution": 1918.35
     }
   },
-  "tolerance": 150,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Estimated based on 2025 rates with higher care insurance for Saxony",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-23",
-      "notes": "Saxony (SN) has higher care insurance: 2.9% childless (vs 2.4% in other states) due to extra public holiday"
+      "description": "Income tax (€14,046) computed via §32a EStG 2025 Zone 3 formula for zvE=59,052. Saxony care rate 2.9% childless (vs 2.4% standard states).",
+      "url": "https://www.gesetze-im-internet.de/estg/__32a.html",
+      "date": "2026-03-07",
+      "notes": "Saxony (SN) care rate 2.9% childless — employee bears extra 0.5% due to abolition of Buß- und Bettag. Care = 66,150 × 2.9% = €1,918.35. zvE = 75,000 - 15,947.48 = 59,052."
     }
   ]
 }

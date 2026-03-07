@@ -1,32 +1,33 @@
 {
   "name": "Married filing jointly - High household income",
-  "description": "Married couple with combined income of €150,000",
+  "description": "Married couple with €150,000 household income in Berlin, capped social security, no Soli",
   "inputs": {
     "gross_annual": 150000,
     "filing_status": "married_joint",
     "has_children": false,
-    "region": "sn",
+    "region": "be",
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 98366,
-    "effective_rate": 0.344,
+    "net": 98609,
+    "effective_rate": 0.3426,
     "breakdown": {
-      "income_tax": 34199,
+      "income_tax": 33776,
       "solidarity_surcharge": 0,
-      "pension_contribution": 8984,
-      "health_contribution": 5513,
-      "unemployment_contribution": 1256,
-      "care_contribution": 1918
+      "pension_contribution": 8983.8,
+      "health_contribution": 5788.125,
+      "unemployment_contribution": 1255.8,
+      "care_contribution": 1587.6
     }
   },
-  "tolerance": 300,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Estimated based on 2025 rates with income splitting and solidarity surcharge",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-22"
+      "description": "Income tax (€33,776) computed via §32a EStG 2025 with Ehegattensplitting: split=66,169 (Zone 3), single tax=16,888 × 2. Soli exempt: 33,776 < 39,900 married threshold.",
+      "url": "https://www.gesetze-im-internet.de/estg/__32a.html",
+      "date": "2026-03-07",
+      "notes": "Berlin (BE) standard care rate 2.4% childless. Pension cap €96,600, health/care cap €66,150. Sonderausgaben €72 (married). zvE = 150,000 - 17,661.53 = 132,338. Split income = 66,169. Zone 3 formula gives 16,888, doubled = 33,776. Soli exempt (33,776 < 39,900 threshold)."
     }
   ]
 }

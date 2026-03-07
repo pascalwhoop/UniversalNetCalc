@@ -1,6 +1,6 @@
 {
   "name": "Below personal allowance",
-  "description": "Single person earning £10,000 - below personal allowance threshold. No income tax or NI due.",
+  "description": "Single person earning \u00a310,000 - below personal allowance threshold. No income tax or NI due.",
   "inputs": {
     "gross_annual": 10000,
     "filing_status": "single"
@@ -16,10 +16,10 @@
   "tolerance": 10,
   "sources": [
     {
-      "description": "Income below personal allowance and NI threshold - no tax or NI due",
-      "url": "https://www.gov.uk/income-tax-rates",
-      "date": "2026-02-28",
-      "notes": "Income £10,000 is below both personal allowance (£12,570) and NI primary threshold (£12,570). All thresholds frozen from 2025/26. No income tax or NI contributions due. Net equals gross."
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

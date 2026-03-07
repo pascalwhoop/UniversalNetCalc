@@ -1,6 +1,6 @@
 {
   "name": "Single in Bavaria - standard care rates",
-  "description": "Single person earning €75,000 in Bavaria (standard care insurance rates)",
+  "description": "Single person earning €75,000 in Bavaria — same as Berlin result since both use standard care rates",
   "inputs": {
     "gross_annual": 75000,
     "filing_status": "single",
@@ -9,25 +9,25 @@
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 45422,
-    "effective_rate": 0.394,
+    "net": 45499,
+    "effective_rate": 0.3933,
     "breakdown": {
-      "income_tax": 14252,
+      "income_tax": 14175,
       "solidarity_surcharge": 0,
       "pension_contribution": 6975,
-      "health_contribution": 5788,
+      "health_contribution": 5788.125,
       "unemployment_contribution": 975,
-      "care_contribution": 1588
+      "care_contribution": 1587.6
     }
   },
-  "tolerance": 150,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Verified against How-to-Germany tax calculator for 2025",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-23",
-      "notes": "Bavaria (BY) uses standard care insurance rates: 2.4% childless"
+      "description": "Income tax (€14,175) computed via §32a EStG 2025 Zone 3 formula for zvE=59,383. Bavaria uses standard care rate 2.4% childless (same as Berlin and 13 other states).",
+      "url": "https://www.gesetze-im-internet.de/estg/__32a.html",
+      "date": "2026-03-07",
+      "notes": "Bavaria (BY) uses standard care rate 2.4% childless — same as Berlin/Hamburg/etc. Result identical to single-median-income.json (Berlin). Confirms region-independence for standard states."
     }
   ]
 }

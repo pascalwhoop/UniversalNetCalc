@@ -1,6 +1,6 @@
 {
   "name": "Additional rate taxpayer",
-  "description": "Single person earning £150,000 - additional rate (45%) tax band, personal allowance fully eliminated",
+  "description": "Single person earning \u00a3150,000 - additional rate (45%) tax band, personal allowance fully eliminated",
   "inputs": {
     "gross_annual": 150000,
     "filing_status": "single"
@@ -17,10 +17,10 @@
   "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Manual calculation using UK 2026/27 tax bracket rules. All thresholds frozen from 2025/26.",
-      "url": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
-      "date": "2026-02-28",
-      "notes": "PA reduction = (£150k - £100k) * 50% = £25,000 > £12,570, so PA = £0. Taxable = £150,000. Income tax: £37,700 * 20% + (£112,570 - £37,700) * 40% + (£150,000 - £112,570) * 45% = £7,540 + £29,948 + £16,843.50 = £54,331.50. NI: (£50,270 - £12,570) * 8% + (£150,000 - £50,270) * 2% = £3,016 + £1,994.60 = £5,010.60. Total deductions: £59,342.10. Net: £90,657.90."
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

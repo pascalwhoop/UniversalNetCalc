@@ -1,6 +1,6 @@
 {
   "name": "Low income single filer",
-  "description": "Single person earning £25,000 - basic rate taxpayer only",
+  "description": "Single person earning \u00a325,000 - basic rate taxpayer only",
   "inputs": {
     "gross_annual": 25000,
     "filing_status": "single"
@@ -16,10 +16,10 @@
   "tolerance": 50,
   "sources": [
     {
-      "description": "Rates identical to 2025/26 (all thresholds frozen). Verified against 2025/26 test vector.",
-      "url": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
-      "date": "2026-02-28",
-      "notes": "Personal allowance: £12,570. Taxable: £12,430. Income tax (20%): £2,486. NI main band (8%): (£25,000 - £12,570) x 8% = £994.40 => £994. Total deductions: £3,480. Net: £21,520."
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

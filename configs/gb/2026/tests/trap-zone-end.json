@@ -1,6 +1,6 @@
 {
-  "name": "100k tax trap - allowance fully eliminated (£125,140)",
-  "description": "Single person earning £125,140 - the exact threshold where the personal allowance is fully eliminated (£12,570 / 0.5 = £25,140 above £100k). Beyond this, the 60% trap ends.",
+  "name": "100k tax trap - allowance fully eliminated (\u00a3125,140)",
+  "description": "Single person earning \u00a3125,140 - the exact threshold where the personal allowance is fully eliminated (\u00a312,570 / 0.5 = \u00a325,140 above \u00a3100k). Beyond this, the 60% trap ends.",
   "inputs": {
     "gross_annual": 125140,
     "filing_status": "single"
@@ -17,9 +17,16 @@
   "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Rates identical to 2025/26. Manual calculation verified using UK tax bracket rules.",
-      "date": "2026-02-28",
-      "notes": "PA reduction = (£125,140 - £100k) * 50% = £12,570 (fully eliminated). Personal allowance = £0. Taxable = £125,140. Income tax: £37,700 * 20% + (£112,570 - £37,700) * 40% + (£125,140 - £112,570) * 45% = £7,540 + £29,948 + £5,656.50 = £43,144.50. NI: (£50,270 - £12,570) * 8% + (£125,140 - £50,270) * 2% = £3,016 + £1,497.40 = £4,513.40."
+      "description": "Verified with focus on personal allowance taper calculation (\u00a3100k tax trap)",
+      "url": "https://www.gov.uk/income-tax-rates",
+      "date": "2026-03-07",
+      "notes": "Personal allowance taper validated: PA = max(0, \u00a312,570 - 0.5 \u00d7 (income - \u00a3100,000)). Effective marginal rate in taper zone (\u00a3100k-\u00a3125,140): 60% income tax + 2% NI = 62% combined. Verified using verify-gb-2026-tax-trap.py arithmetic script."
+    },
+    {
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

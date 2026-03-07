@@ -1,33 +1,33 @@
 {
-  "name": "Married filing jointly - Low household income",
-  "description": "Married couple with €20,000 household income using Tax Class III",
+  "name": "Married filing jointly - Median household income",
+  "description": "Married couple with €80,000 household income in Berlin, Ehegattensplitting applied",
   "inputs": {
-    "gross_annual": 20000,
+    "gross_annual": 80000,
     "filing_status": "married_joint",
     "has_children": false,
-    "region": "sn",
+    "region": "be",
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 15550,
-    "effective_rate": 0.223,
+    "net": 54422,
+    "effective_rate": 0.3197,
     "breakdown": {
-      "income_tax": 0,
+      "income_tax": 9722,
       "solidarity_surcharge": 0,
-      "pension_contribution": 1860,
-      "health_contribution": 1750,
-      "unemployment_contribution": 260,
-      "care_contribution": 580
+      "pension_contribution": 7440,
+      "health_contribution": 5788.125,
+      "unemployment_contribution": 1040,
+      "care_contribution": 1587.6
     }
   },
-  "tolerance": 100,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Verified against How-to-Germany tax calculator for 2025",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-22",
-      "notes": "Tax Class III, Saxony, no church tax, statutory insurance, 2.9% health surcharge. Income below tax-free threshold."
+      "description": "Income tax (€9,722) verified via BMF Einkommensteuer-Berechnungsprogramm 2025 for zvE=63,882 (verheiratet/verpartnert). Ehegattensplitting: split=31,941, tax=4,861 × 2.",
+      "url": "https://www.bmf-steuerrechner.de/ekst/eingabeformekst.xhtml",
+      "date": "2026-03-07",
+      "notes": "§32a EStG 2025: https://www.gesetze-im-internet.de/estg/__32a.html. Berlin (BE) standard care rate 2.4% childless. Sonderausgaben €72 (married). zvE = 80,000 - 16,117.73 = 63,882."
     }
   ]
 }

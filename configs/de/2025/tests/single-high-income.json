@@ -1,6 +1,6 @@
 {
   "name": "Single filer - High income",
-  "description": "High earner at €250,000 with capped social security contributions",
+  "description": "High earner at €250,000 in Saxony, capped social security contributions, with solidarity surcharge",
   "inputs": {
     "gross_annual": 250000,
     "filing_status": "single",
@@ -9,25 +9,25 @@
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 140660,
+    "net": 140748,
     "effective_rate": 0.437,
     "breakdown": {
-      "income_tax": 86629,
-      "solidarity_surcharge": 4765,
-      "pension_contribution": 8984,
-      "health_contribution": 5788,
-      "unemployment_contribution": 1256,
-      "care_contribution": 1918
+      "income_tax": 86546,
+      "solidarity_surcharge": 4760.03,
+      "pension_contribution": 8983.8,
+      "health_contribution": 5788.125,
+      "unemployment_contribution": 1255.8,
+      "care_contribution": 1918.35
     }
   },
-  "tolerance": 250,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Verified against How-to-Germany tax calculator for 2025",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-22",
-      "notes": "Tax Class I, Saxony, no church tax, statutory insurance, 2.9% health surcharge. Social security capped at earnings ceiling."
+      "description": "Income tax (€86,546) computed via §32a EStG 2025 Zone 4 formula: floor(0.42 * 232043 - 10911.92). Soli = 86546 × 5.5% = 4760.03. Social security at caps. Verified using bmf-steuerrechner.de.",
+      "url": "https://www.bmf-steuerrechner.de/ekst/eingabeformekst.xhtml",
+      "date": "2026-03-07",
+      "notes": "§32a EStG 2025: https://www.gesetze-im-internet.de/estg/__32a.html. Saxony (SN) care rate 2.9% childless. Pension cap €96,600, health/care cap €66,150. zvE = 250,000 - 17,956.28 = 232,043. Soli applies: 86,546 > 19,950 threshold."
     }
   ]
 }

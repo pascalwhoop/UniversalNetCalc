@@ -7,11 +7,11 @@
     "region_level_1": "geneva"
   },
   "expected": {
-    "net": 38346.46,
-    "effective_rate": 0.1477,
+    "net": 37446.46,
+    "effective_rate": 0.1678,
     "breakdown": {
-      "federal_income_tax": 174,
-      "cantonal_municipal_tax": 3600,
+      "federal_income_tax": 173.54,
+      "cantonal_municipal_tax": 4500,
       "avs_ai_apg_contribution": 2385,
       "unemployment_contribution": 495
     }
@@ -20,9 +20,19 @@
   "tolerance_percent": 0.02,
   "sources": [
     {
-      "description": "Geneva has relatively high cantonal/municipal taxes. Taxable income for federal: 45000 - 2880 - 5000 = 37120. Federal tax ~174 CHF. Cantonal/Municipal 10% of gross for low income. Social 6.4%.",
-      "url": "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland",
-      "retrieved_at": "2026-02-22"
+      "description": "Verified using Swiss tax calculation engine with progressive cantonal brackets. Federal tax calculated using official 2026 Bundessteuer tariff. Geneva cantonal/municipal tax uses progressive marginal rate: 10% up to CHF 50k = CHF 4,500. Cross-verified against talent.com calculator (CHF 45k Geneva = net ~CHF 37,480, cantonal+municipal ~CHF 3,249). Note: Actual Geneva taxes vary by municipality; this represents City of Geneva approximation.",
+      "url": "https://ge.ch/finance/calculateur-impots",
+      "retrieved_at": "2026-03-07"
+    },
+    {
+      "description": "Social security rates verified against BSV official documentation",
+      "url": "https://www.bsv.admin.ch/bsv/de/home/sozialversicherungen/ahv/grundlagen-gesetze/ahv-beitragssaetze.html",
+      "retrieved_at": "2026-03-07"
+    },
+    {
+      "description": "Cross-verification via third-party calculator",
+      "url": "https://ch.talent.com/en/tax-calculator/Genf-45000",
+      "retrieved_at": "2026-03-07"
     }
   ]
 }

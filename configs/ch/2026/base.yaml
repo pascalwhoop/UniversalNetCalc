@@ -5,20 +5,26 @@ meta:
   version: "1.0.0"
   sources:
     - url: "https://www.estv.admin.ch/estv/en/home/federal-direct-tax.html"
-      description: "Swiss Federal Tax Administration - Direct Federal Tax"
-      retrieved_at: "2026-02-22"
+      description: "Swiss Federal Tax Administration (ESTV) - Direct Federal Tax overview"
+      retrieved_at: "2026-03-07"
+    - url: "https://swisstaxcalculator.estv.admin.ch/"
+      description: "Official ESTV tax calculator for federal, cantonal, and municipal taxes"
+      retrieved_at: "2026-03-07"
     - url: "https://bl-api.webcloud7.ch/politik-und-behorden/direktionen/finanz-und-kirchendirektion/steuerverwaltung/steuerzahlungen/tarife-1/tarife-pdf/tarife-direkte-bundessteuer-2026.pdf/@@download/file/Tarife%20Direkte%20Bundessteuer%202026.pdf"
-      description: "Official 2026 Swiss Federal Tax Rate Tables (PDF)"
-      retrieved_at: "2026-02-22"
-    - url: "https://www.lenz-treuhand.ch/en/news-insights/sozialversicherungen-2026-ahv-bvg-eo-aenderungen-im-ueberblick/"
-      description: "Social insurance contribution rates 2026 (AHV/IV/EO/ALV unchanged)"
-      retrieved_at: "2026-02-22"
+      description: "Official 2026 Swiss Federal Tax Rate Tables (PDF) - direct federal tax brackets"
+      retrieved_at: "2026-03-07"
+    - url: "https://www.bsv.admin.ch/bsv/de/home/sozialversicherungen/ahv/grundlagen-gesetze/ahv-beitragssaetze.html"
+      description: "Official BSV AHV/IV/EO contribution rates (5.3% employee share, unchanged for 2026)"
+      retrieved_at: "2026-03-07"
+    - url: "https://www.bsv.admin.ch/bsv/de/home/sozialversicherungen/alv/grundlagen-gesetze.html"
+      description: "Official BSV ALV (unemployment insurance) rates: 1.1% up to CHF 148,200, then 0.5% solidarity contribution above cap"
+      retrieved_at: "2026-03-07"
     - url: "https://www.efd.admin.ch/de/newnsb/VzaAUrhkPx2EPde4a6e3O"
-      description: "EFD: Cold progression adjustment for 2026 federal tax brackets"
-      retrieved_at: "2026-02-22"
+      description: "EFD: Cold progression adjustment for 2026 federal tax brackets (0.1% inflation adjustment)"
+      retrieved_at: "2026-03-07"
     - url: "https://www.zh.ch/content/dam/zhweb/bilder-dokumente/themen/steuern-finanzen/steuern/natuerlichepersonen/2026/est-wegleitungen-uj/305%20Wegleitung%20ZH%202026%20UJ%20bf.pdf"
-      description: "Zurich 2026 tax return guide - confirms married deduction CHF 2,800"
-      retrieved_at: "2026-02-22"
+      description: "Canton Zurich 2026 tax return guide - confirms married deduction CHF 2,800"
+      retrieved_at: "2026-03-07"
   updated_at: "2026-02-22"
   notes: |
     Switzerland has a complex three-level tax system: federal, cantonal, and municipal.
@@ -49,8 +55,18 @@ notices:
     title: "Social Security Contributions"
     body: |
       Swiss employees contribute to AVS/AI/APG (old-age, disability, loss of income) at 5.3%
-      and unemployment insurance (ALV) at 1.1% up to CHF 148,200 annual income.
+      and unemployment insurance (ALV) at 1.1% up to CHF 148,200 annual income. Above CHF 148,200,
+      a 0.5% solidarity contribution applies to the portion exceeding the cap.
     severity: "info"
+
+  - id: "cantonal_approximation"
+    title: "Cantonal Tax Approximation"
+    body: |
+      Cantonal and municipal taxes in Switzerland are complex and vary by canton and municipality.
+      This calculator uses simplified progressive bracket approximations for major cantons. Actual
+      taxes depend on your specific municipality's tax multiplier (Steuerfuss) and canton's base
+      tariff. For precise calculations, consult your canton's official tax calculator.
+    severity: "warning"
 
   - id: "married_filing"
     title: "Married Filing Status"
@@ -380,13 +396,36 @@ calculations:
       - "@gross_annual"
       - "$unemployment_cap"
 
-  - id: unemployment_contribution
+  - id: unemployment_contribution_below_cap
     type: percent_of
     base: "$unemployment_base"
     rate: "$unemployment_rate"
+
+  - id: income_above_cap
+    type: sub
+    values:
+      - "@gross_annual"
+      - "$unemployment_cap"
+
+  - id: income_above_cap_positive
+    type: max
+    values:
+      - "$income_above_cap"
+      - 0
+
+  - id: unemployment_solidarity_contribution
+    type: percent_of
+    base: "$income_above_cap_positive"
+    rate: 0.005
+
+  - id: unemployment_contribution
+    type: sum
+    values:
+      - "$unemployment_contribution_below_cap"
+      - "$unemployment_solidarity_contribution"
     category: contribution
     label: "Unemployment Insurance (ALV)"
-    description: "Unemployment insurance contribution (1.1% up to CHF 148,200)"
+    description: "Unemployment insurance contribution (1.1% up to CHF 148,200, then 0.5% solidarity contribution above cap)"
 
   - id: total_social_contributions
     type: sum

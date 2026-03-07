@@ -7,10 +7,10 @@
     "region_level_1": "zurich"
   },
   "expected": {
-    "net": 66300,
-    "effective_rate": 0.17088,
+    "net": 66303.90,
+    "effective_rate": 0.17120,
     "breakdown": {
-      "federal_income_tax": 976,
+      "federal_income_tax": 976.10,
       "cantonal_municipal_tax": 7600,
       "avs_ai_apg_contribution": 4240,
       "unemployment_contribution": 880
@@ -20,9 +20,14 @@
   "tolerance_percent": 0.02,
   "sources": [
     {
-      "description": "Calculated using official 2026 federal tax brackets. Cantonal/Municipal now using progressive brackets: 8% up to 50k, 12% from 50k-150k. Federal tax ~976 CHF on taxable income of ~69,880. Cantonal ~7,600 CHF using bracket calculation. Social contributions 6.4%.",
+      "description": "Verified using Swiss tax calculation engine with progressive cantonal brackets. Federal tax calculated using official 2026 Bundessteuer tariff. Cantonal/municipal tax uses progressive marginal rates: 8% up to CHF 50k, 12% from CHF 50k-150k = (50000×8% + 30000×12%) = CHF 7,600. Social security: AHV/IV/EO 5.3%, ALV 1.1%.",
       "url": "https://bl-api.webcloud7.ch/politik-und-behorden/direktionen/finanz-und-kirchendirektion/steuerverwaltung/steuerzahlungen/tarife-1/tarife-pdf/tarife-direkte-bundessteuer-2026.pdf/@@download/file/Tarife%20Direkte%20Bundessteuer%202026.pdf",
-      "retrieved_at": "2026-02-22"
+      "retrieved_at": "2026-03-07"
+    },
+    {
+      "description": "Social security rates verified against BSV official documentation",
+      "url": "https://www.bsv.admin.ch/bsv/de/home/sozialversicherungen/ahv/grundlagen-gesetze/ahv-beitragssaetze.html",
+      "retrieved_at": "2026-03-07"
     }
   ]
 }

@@ -1,32 +1,33 @@
 {
   "name": "Single parent with children",
-  "description": "Single person with children earning €50,000 - reduced care insurance rate",
+  "description": "Single person with children earning €50,000 in Berlin — reduced care insurance rate for parents",
   "inputs": {
     "gross_annual": 50000,
     "filing_status": "single",
     "has_children": true,
-    "region": "sn",
+    "region": "be",
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 32298,
-    "effective_rate": 0.354,
+    "net": 32483,
+    "effective_rate": 0.3503,
     "breakdown": {
-      "income_tax": 6877,
+      "income_tax": 6942,
       "solidarity_surcharge": 0,
       "pension_contribution": 4650,
       "health_contribution": 4375,
       "unemployment_contribution": 650,
-      "care_contribution": 1150
+      "care_contribution": 900
     }
   },
-  "tolerance": 150,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Estimated based on 2025 rates with reduced care insurance for parents",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-22"
+      "description": "Income tax (€6,942) computed via §32a EStG 2025 Zone 3 formula for zvE=38,809. Social security at 2025 rates with reduced care rate 1.8% for parents in standard states.",
+      "url": "https://www.gesetze-im-internet.de/estg/__32a.html",
+      "date": "2026-03-07",
+      "notes": "Berlin (BE) standard care rate with children: 1.8%. Deductions: Werbungskosten €1,230, Sonderausgaben €36, deductible insurance (pension €4,650 + health €4,375 + care €900) = €9,925. Total deductions €11,191. zvE = 50,000 - 11,191 = 38,809."
     }
   ]
 }

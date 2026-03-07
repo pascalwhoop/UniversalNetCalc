@@ -1,6 +1,6 @@
 {
   "name": "Single filer - Median income",
-  "description": "Single person earning €75,000 annually in Berlin",
+  "description": "Single person earning €75,000 annually in Berlin, no children",
   "inputs": {
     "gross_annual": 75000,
     "filing_status": "single",
@@ -9,25 +9,25 @@
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 45422,
-    "effective_rate": 0.394,
+    "net": 45499,
+    "effective_rate": 0.3933,
     "breakdown": {
-      "income_tax": 14252,
+      "income_tax": 14175,
       "solidarity_surcharge": 0,
       "pension_contribution": 6975,
-      "health_contribution": 5788,
+      "health_contribution": 5788.125,
       "unemployment_contribution": 975,
-      "care_contribution": 1588
+      "care_contribution": 1587.6
     }
   },
-  "tolerance": 150,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Verified against How-to-Germany tax calculator for 2025",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-22",
-      "notes": "Tax Class I, Berlin (East), no church tax, statutory insurance, 2.9% health surcharge"
+      "description": "Income tax (€14,175) verified via BMF Einkommensteuer-Berechnungsprogramm 2025 for zvE=59,383 (single). Social security computed per official 2025 rates.",
+      "url": "https://www.bmf-steuerrechner.de/ekst/eingabeformekst.xhtml",
+      "date": "2026-03-07",
+      "notes": "§32a EStG 2025 Zone 3: https://www.gesetze-im-internet.de/estg/__32a.html. Berlin (BE) standard care rate 2.4% childless. Health capped at €66,150. Deductions: Werbungskosten €1,230, Sonderausgaben €36, deductible insurance €14,350.73. zvE = 75,000 - 15,616.73 = 59,383."
     }
   ]
 }

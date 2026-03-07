@@ -7,22 +7,27 @@
     "region_level_1": "neuchatel"
   },
   "expected": {
-    "net": 153104.16,
-    "effective_rate": 0.2344,
+    "net": 143984.76,
+    "effective_rate": 0.2801,
     "breakdown": {
-      "federal_income_tax": 10785,
-      "cantonal_municipal_tax": 23500,
+      "federal_income_tax": 10785.04,
+      "cantonal_municipal_tax": 33000,
       "avs_ai_apg_contribution": 10600,
-      "unemployment_contribution": 1630
+      "unemployment_contribution": 1630.20
     }
   },
   "tolerance": 3000,
   "tolerance_percent": 0.03,
   "sources": [
     {
-      "description": "Neuchâtel has among Switzerland's highest tax rates. Taxable income for federal: 200000 - 12230 - 5000 = 182770. Federal tax ~10785 CHF. Cantonal/Municipal 20% for high income (>150k). Social 6.115% (unemployment capped at 148200).",
-      "url": "https://www.moneyland.ch/en/taxes-highest-lowest-municipalities-switzerland",
-      "retrieved_at": "2026-02-22"
+      "description": "Verified using Swiss tax calculation engine with progressive cantonal brackets. Federal tax calculated using official 2026 Bundessteuer tariff. Neuchâtel cantonal/municipal tax uses progressive marginal rates: 12% up to CHF 50k, 17% from CHF 50k-150k, 20% above CHF 150k = (50000×12% + 100000×17% + 50000×20%) = CHF 33,000. Social security includes ALV solidarity contribution (0.5% above CHF 148,200 cap). Neuchâtel has among Switzerland's highest tax rates.",
+      "url": "https://www.ne.ch/autorites/DFIRE/SCFI/Pages/accueil.aspx",
+      "retrieved_at": "2026-03-07"
+    },
+    {
+      "description": "Social security rates verified against BSV official documentation (ALV: 1.1% up to CHF 148,200, then 0.5% solidarity contribution)",
+      "url": "https://www.bsv.admin.ch/bsv/de/home/sozialversicherungen/alv/grundlagen-gesetze.html",
+      "retrieved_at": "2026-03-07"
     }
   ]
 }

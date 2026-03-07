@@ -1,33 +1,33 @@
 {
   "name": "Single filer - Low income",
-  "description": "Single person earning €30,000 annually - below median income",
+  "description": "Single person earning €30,000 annually in Berlin, no children",
   "inputs": {
     "gross_annual": 30000,
     "filing_status": "single",
     "has_children": false,
-    "region": "sn",
+    "region": "be",
     "health_insurance_surcharge": 2.9
   },
   "expected": {
-    "net": 21043,
-    "effective_rate": 0.298,
+    "net": 21178,
+    "effective_rate": 0.2941,
     "breakdown": {
-      "income_tax": 2282,
+      "income_tax": 2297,
       "solidarity_surcharge": 0,
       "pension_contribution": 2790,
       "health_contribution": 2625,
       "unemployment_contribution": 390,
-      "care_contribution": 870
+      "care_contribution": 720
     }
   },
-  "tolerance": 150,
-  "tolerance_percent": 0.02,
+  "tolerance": 5,
+  "tolerance_percent": 0.001,
   "sources": [
     {
-      "description": "Verified against How-to-Germany tax calculator for 2025",
-      "url": "https://www.how-to-germany.com/income-tax-calculator/",
-      "date": "2026-01-22",
-      "notes": "Tax Class I, Saxony, no church tax, statutory insurance, 2.9% health surcharge"
+      "description": "Income tax (€2,297) verified via BMF Einkommensteuer-Berechnungsprogramm 2025 for zvE=22,599 (single). Social security computed per official 2025 rates.",
+      "url": "https://www.bmf-steuerrechner.de/ekst/eingabeformekst.xhtml",
+      "date": "2026-03-07",
+      "notes": "§32a EStG 2025: https://www.gesetze-im-internet.de/estg/__32a.html. Berlin (BE) standard care rate 2.4% childless. Deductions: Werbungskosten €1,230, Sonderausgaben €36, deductible insurance €6,135. zvE = 30,000 - 7,401 = 22,599."
     }
   ]
 }

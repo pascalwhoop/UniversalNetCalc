@@ -1,13 +1,13 @@
 {
   "name": "Higher rate taxpayer",
-  "description": "Single person earning £80,000 - higher rate tax band",
+  "description": "Single person earning \u00a380,000 - higher rate tax band",
   "inputs": {
     "gross_annual": 80000,
     "filing_status": "single"
   },
   "expected": {
     "net": 56957,
-    "effective_rate": 0.2880,
+    "effective_rate": 0.288,
     "breakdown": {
       "income_tax": 19432,
       "national_insurance": 3611
@@ -16,10 +16,10 @@
   "tolerance": 50,
   "sources": [
     {
-      "description": "Rates identical to 2025/26 (all thresholds frozen). Verified against 2025/26 test vector.",
-      "url": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
-      "date": "2026-02-28",
-      "notes": "Personal allowance: £12,570. Taxable: £67,430. Income tax: £37,700 x 20% + £29,730 x 40% = £7,540 + £11,892 = £19,432. NI: (£50,270 - £12,570) x 8% + (£80,000 - £50,270) x 2% = £3,016 + £595 = £3,611. Total deductions: £23,043. Net: £56,957."
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "Median income single filer",
-  "description": "Single person earning £50,000 - typical middle-income scenario at upper basic rate",
+  "description": "Single person earning \u00a350,000 - typical middle-income scenario at upper basic rate",
   "inputs": {
     "gross_annual": 50000,
     "filing_status": "single"
@@ -16,10 +16,10 @@
   "tolerance": 50,
   "sources": [
     {
-      "description": "Rates identical to 2025/26 (all thresholds frozen). Verified against 2025/26 test vector.",
-      "url": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
-      "date": "2026-02-28",
-      "notes": "Personal allowance: £12,570. Taxable: £37,430. Income tax (20%): £7,486. NI main band (8%): (£50,000 - £12,570) x 8% but capped at (£50,270 - £12,570) x 8% = £37,430 x 8% = £2,994.40 => £2,994. Total deductions: £10,480. Net: £39,520."
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }

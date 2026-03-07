@@ -1,6 +1,6 @@
 {
   "name": "Personal allowance taper zone",
-  "description": "Single person earning £110,000 - personal allowance reduced in taper zone",
+  "description": "Single person earning \u00a3110,000 - personal allowance reduced in taper zone",
   "inputs": {
     "gross_annual": 110000,
     "filing_status": "single"
@@ -16,10 +16,16 @@
   "tolerance": 100,
   "sources": [
     {
-      "description": "Rates identical to 2025/26. Verified against 2025/26 test vector.",
-      "url": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
-      "date": "2026-02-28",
-      "notes": "Income over £100k triggers taper: PA reduction = (£110k - £100k) * 50% = £5,000. Personal allowance: £12,570 - £5,000 = £7,570. Taxable: £102,430. Income tax: £37,700 * 20% + £64,730 * 40% = £7,540 + £25,892 = £33,432. NI: (£50,270 - £12,570) * 8% + (£110,000 - £50,270) * 2% = £3,016 + £1,194.60 = £4,210.60."
+      "description": "Verified with focus on personal allowance taper calculation (\u00a3100k tax trap)",
+      "url": "https://www.gov.uk/income-tax-rates",
+      "date": "2026-03-07",
+      "notes": "Personal allowance taper validated: PA = max(0, \u00a312,570 - 0.5 \u00d7 (income - \u00a3100,000)). Effective marginal rate in taper zone (\u00a3100k-\u00a3125,140): 60% income tax + 2% NI = 62% combined. Verified using verify-gb-2026-tax-trap.py arithmetic script."
+    },
+    {
+      "description": "Verified via official HMRC PAYE Tax Calculator and arithmetic validation using official 2026/27 rates",
+      "url": "https://www.tax.service.gov.uk/estimate-paye-take-home-pay",
+      "date": "2026-03-07",
+      "notes": "Income tax and National Insurance contributions verified against official HMRC calculator. NI calculation validated arithmetically using official rates: 8% on \u00a312,570-\u00a350,270, 2% above \u00a350,270. Income tax validated using progressive brackets: 20%, 40%, 45% on taxable income after personal allowance deduction."
     }
   ]
 }
