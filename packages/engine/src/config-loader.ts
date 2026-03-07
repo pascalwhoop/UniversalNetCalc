@@ -26,8 +26,20 @@ export class ConfigLoader {
   constructor(configsPath: string = 'configs') {
     this.configsPath = configsPath
     this.cache = new Map()
-    // Use bundle if available (production), otherwise use filesystem (dev)
-    this.useBundle = configBundle !== null
+    
+    // Check environment
+    const source = process.env.CONFIG_SOURCE
+    const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+
+    // Use bundle if forced, OR if available AND not in dev/test
+    // In dev/test we prefer disk to avoid using stale bundled data
+    if (source === 'disk') {
+      this.useBundle = false
+    } else if (source === 'bundle') {
+      this.useBundle = true
+    } else {
+      this.useBundle = configBundle !== null && !isDevOrTest
+    }
   }
 
   /**
