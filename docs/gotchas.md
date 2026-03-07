@@ -216,3 +216,30 @@ const config = parse(yaml)
 **Related:**
 - [Cloudflare Workers Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)
 - [OpenNext Cloudflare documentation](https://opennext.js.org/cloudflare)
+
+## Stale Config Bundle Hides YAML Edits
+
+**Problem:** You edit `configs/<country>/<year>/base.yaml`, but tests or local scripts still behave like nothing changed.
+
+**Root Cause:** `ConfigLoader` will use `.generated/config-bundle.ts` when it exists. That bundle can be stale and silently shadow your YAML changes.
+
+**Symptoms:**
+- Config math does not reflect recent YAML edits
+- A newly added country/year behaves like it does not exist until after a rebuild
+- You end up debugging the wrong artifact
+
+**Solution:**
+- For config authoring/debugging, force disk loading with `CONFIG_SOURCE=disk`
+- Rebuild the bundle with `npm run build:configs` when you actually want to validate bundled behavior
+
+**Examples:**
+```bash
+# Prefer this while building or debugging a country config
+CONFIG_SOURCE=disk npm run test:configs
+
+# Use this when checking the generated bundle path intentionally
+npm run build:configs
+CONFIG_SOURCE=bundle npm run test:configs
+```
+
+**Note:** In non-production runs, `ConfigLoader` now warns once when it is reading from `.generated/config-bundle.ts`.
