@@ -1,0 +1,12 @@
+{
+  "name": "PAYE scheme - Median income NOK 600,000",
+  "variant": "paye",
+  "inputs": {
+    "gross_annual": 600000
+  },
+  "expected": {
+    "net": 450000,
+    "effective_rate": 0.25
+  },
+  "tolerance": 1
+}

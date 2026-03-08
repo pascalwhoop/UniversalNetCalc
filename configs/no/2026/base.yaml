@@ -16,7 +16,8 @@ meta:
     - url: "https://www.skatteetaten.no/satser/minstefradrag/"
       description: "Norwegian Tax Administration - Minimum Standard Deduction (Minstefradrag) 2026"
       retrieved_at: "2026-02-22"
-  updated_at: "2026-02-22"
+  updated_at: "2026-03-07"
+  verification_report: "reports/NO-2025-2026-VERIFICATION.md"
   notes: |
     This configuration covers the Norwegian general taxation rules for 2026.
     Norway uses a dual taxation system where both general income tax (22%) and

@@ -8,10 +8,10 @@
     "children": 0
   },
   "expected": {
-    "net": 70351,
-    "effective_rate": 0.2965,
+    "net": 77654,
+    "effective_rate": 0.2235,
     "breakdown": {
-      "income_tax": 16403,
+      "income_tax": 9100,
       "csg_deductible": 6681,
       "csg_nondeductible": 2358,
       "crds": 491,
@@ -19,12 +19,13 @@
     }
   },
   "tolerance": 50,
-  "tolerance_percent": 0.01,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Verified against engine: 30% bonus exempt, social on full gross, pension capped at PASS",
+      "description": "Verified using official French tax formula with 30% impatrié exemption (Article 155B). Social contributions on full gross (€100k). Taxable income: €53,319 (after 30% exemption, CSG, prof exp). Tax on quotient: €9,099.69.",
       "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
-      "date": "2026-02-22"
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026-variants.py"
     }
   ]
 }

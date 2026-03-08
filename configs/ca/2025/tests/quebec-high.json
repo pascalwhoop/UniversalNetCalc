@@ -6,9 +6,10 @@
   },
   "variant": "quebec",
   "expected": {
-    "net": 96432,
-    "effective_rate": 0.357
+    "net": 95880,
+    "effective_rate": 0.3608
   },
-  "tolerance": 500,
-  "tolerance_percent": 0.01
+  "tolerance": 15,
+  "tolerance_percent": 0.005,
+  "notes": "Verified using official formulas on 2026-03-07. Includes QPP (6.40%), QPIP (0.494%), and Quebec EI rate (1.31%)."
 }

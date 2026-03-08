@@ -1,0 +1,12 @@
+{
+  "name": "PAYE scheme - At income limit NOK 725,050",
+  "variant": "paye",
+  "inputs": {
+    "gross_annual": 725050
+  },
+  "expected": {
+    "net": 543787,
+    "effective_rate": 0.25
+  },
+  "tolerance": 1
+}

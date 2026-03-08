@@ -23,13 +23,17 @@ See PRD.md for complete product requirements and architecture decisions.
 npm run dev                    # Start Next.js dev server (http://localhost:3000)
 
 # Testing
-npm run test                   # Run all tests with Vitest
-npm run test:ui                # Run tests with UI
+npm run test                   # Run all tests with Vitest (watch mode)
 npm run test:run               # Run tests once (CI mode)
 npm run test:configs           # Run only config test vectors (validates all country configs)
+CONFIG_SOURCE=disk npm run test:configs  # Force disk reads — use this while authoring configs
+npm run test:e2e               # Run Playwright end-to-end tests
+npm run test:e2e:ui            # Playwright tests with interactive UI
+npm run test:e2e:debug         # Playwright tests in debug mode
 
 # Building
-npm run build                  # Build Next.js application
+npm run build                  # Build for Next.js (runs build:configs + generate:manifest + cf-typegen + next build)
+npm run build:cloudflare       # Build for Cloudflare Workers via opennextjs-cloudflare
 
 # Deployment (Cloudflare)
 npm run preview                # Preview on Cloudflare runtime locally
@@ -41,10 +45,13 @@ make release                   # Launches /release skill in Claude Code (or run 
 
 # Other
 npm run lint                   # Run ESLint
+npm run build:configs          # Regenerate .generated/config-bundle.ts from YAML files
 npm run cf-typegen             # Generate Cloudflare environment types
 ```
 
 **Important:** Always run `npm run test:configs` after creating or modifying tax configurations to ensure all test vectors pass.
+
+**Config authoring tip:** The test runner uses `.generated/config-bundle.ts` when it exists, which can shadow YAML edits. Use `CONFIG_SOURCE=disk npm run test:configs` while writing or debugging configs to always load from the YAML files directly. See `docs/gotchas.md` for details.
 
 ### Release Workflow
 
@@ -136,6 +143,8 @@ configs/nl/2025/
 
 **Test vectors:**
 Test vectors are JSON files that specify inputs and expected outputs. The test runner (`packages/engine/__tests__/config-tests.test.ts`) automatically discovers and runs all test vectors.
+
+**Critical rule:** Test vector expected values MUST come from an authoritative external source — an official government calculator, official statute, or authoritative reference like PwC Tax Summaries. **Never derive expected values by running the engine.** If you fix an engine bug, derived test vectors would break even though the fix is correct — defeating the entire purpose of having tests. Always cross-verify using a reference independent of this codebase.
 
 Format:
 ```json
@@ -245,13 +254,14 @@ To understand how a config calculates taxes:
 
 When `npm run test:configs` fails:
 
-1. Check the error message for which test vector failed and the actual vs expected values
-2. Open the failing test vector JSON file to see inputs and expected outputs
-3. Load the config YAML and trace the calculation manually
-4. Add `console.log` statements in `packages/engine/src/engine.ts` or evaluators to see intermediate values
-5. Check if parameters are correct (e.g., tax brackets, rates, thresholds)
-6. Verify references are correct (`@inputs` vs `$nodes`)
-7. Check rounding modes if values are close but not exact
+1. First, re-run with `CONFIG_SOURCE=disk` to ensure you're testing your actual YAML edits (not a stale bundle)
+2. Check the error message for which test vector failed and the actual vs expected values
+3. Open the failing test vector JSON file to see inputs and expected outputs
+4. Load the config YAML and trace the calculation manually
+5. Add `console.log` statements in `packages/engine/src/engine.ts` or evaluators to see intermediate values
+6. Check if parameters are correct (e.g., tax brackets, rates, thresholds)
+7. Verify references are correct (`@inputs` vs `$nodes`)
+8. Check rounding modes if values are close but not exact
 
 ### Adding a New Node Type
 

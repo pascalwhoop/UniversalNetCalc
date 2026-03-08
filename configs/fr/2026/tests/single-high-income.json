@@ -7,23 +7,24 @@
     "children": 0
   },
   "expected": {
-    "net": 58051,
-    "effective_rate": 0.419,
+    "net": 68654,
+    "effective_rate": 0.3135,
     "breakdown": {
-      "income_tax": 28703,
+      "income_tax": 18100,
       "csg_deductible": 6681,
       "csg_nondeductible": 2358,
       "crds": 491,
       "pension_contribution": 3716
     }
   },
-  "tolerance": 500,
-  "tolerance_percent": 0.05,
+  "tolerance": 50,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Calculated based on 2026 French tax brackets (0.9% revalorisation) and social contribution rates",
-      "url": "https://impots.dispofi.fr/bareme-impot",
-      "date": "2026-02-22"
+      "description": "Verified using official French tax formula (PLF 2026). Taxable income: €83,319. Family quotient: 1.0 parts. Tax on quotient: €18,099.69. Professional expenses: €10,000 (10% of gross).",
+      "url": "https://www.service-public.fr/particuliers/vosdroits/F1419",
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026.py"
     }
   ]
 }

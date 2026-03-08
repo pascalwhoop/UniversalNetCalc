@@ -80,7 +80,10 @@ export function austriaFullYearTax(
   // Progressive income tax on regular payments
   const taxableRegularGross = regularAnnual * taxableFraction
   const taxableRegular = Math.max(0, taxableRegularGross - svRegularAnnual - werbungskosten)
-  const regularTaxGross = computeAustrianProgressiveTax2026(taxableRegular)
+
+  // Use brackets from config parameters instead of hardcoded
+  const brackets = context.parameters['tax_brackets'] as Array<{ threshold: number; rate: number }>
+  const regularTaxGross = computeProgressiveBracketTax(taxableRegular, brackets)
   const regularTax = Math.max(0, regularTaxGross - transport_credit)
 
   context.nodes['regular_income_tax'] = Math.round(regularTax * 100) / 100
@@ -121,35 +124,29 @@ export function austriaFullYearTax(
 }
 
 /**
- * Austrian progressive income tax for 2026 (EStG, inflation-adjusted by 1.73%)
- * Source: https://www.usp.gv.at/en/themen/steuern-finanzen/einkommensteuer-ueberblick/weitere-informationen-est/tarifstufen.html
- *
- * Brackets: 0% to €13,539 | 20% to €21,992 | 30% to €36,458 |
- *           40% to €70,365 | 48% to €104,859 | 50% to €1,000,000 | 55% above
+ * Progressive bracket tax calculation (matches evaluateBracketTax logic)
+ * Applies each bracket's rate to income WITHIN that bracket's range.
  */
-function computeAustrianProgressiveTax2026(taxableIncome: number): number {
-  if (taxableIncome <= 0) return 0
-
-  const x = Math.floor(taxableIncome)
-
-  if (x <= 13539) return 0
+function computeProgressiveBracketTax(
+  income: number,
+  brackets: Array<{ threshold: number; rate: number }>
+): number {
+  if (income <= 0) return 0
 
   let tax = 0
+  let remaining = income
 
-  if (x <= 21992) return Math.round((x - 13539) * 0.20 * 100) / 100
-  tax += (21992 - 13539) * 0.20
+  for (let i = 0; i < brackets.length; i++) {
+    const bracket = brackets[i]
+    const nextThreshold = i < brackets.length - 1 ? brackets[i + 1].threshold : Infinity
 
-  if (x <= 36458) return Math.round((tax + (x - 21992) * 0.30) * 100) / 100
-  tax += (36458 - 21992) * 0.30
+    const bracketAmount = Math.min(remaining, nextThreshold - bracket.threshold)
 
-  if (x <= 70365) return Math.round((tax + (x - 36458) * 0.40) * 100) / 100
-  tax += (70365 - 36458) * 0.40
+    if (bracketAmount <= 0) break
 
-  if (x <= 104859) return Math.round((tax + (x - 70365) * 0.48) * 100) / 100
-  tax += (104859 - 70365) * 0.48
+    tax += bracketAmount * bracket.rate
+    remaining -= bracketAmount
+  }
 
-  if (x <= 1000000) return Math.round((tax + (x - 104859) * 0.50) * 100) / 100
-  tax += (1000000 - 104859) * 0.50
-
-  return Math.round((tax + (x - 1000000) * 0.55) * 100) / 100
+  return Math.round(tax * 100) / 100
 }

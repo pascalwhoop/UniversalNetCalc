@@ -7,23 +7,24 @@
     "children": 3
   },
   "expected": {
-    "net": 57560,
-    "effective_rate": 0.281,
+    "net": 66512,
+    "effective_rate": 0.1686,
     "breakdown": {
-      "income_tax": 11180,
+      "income_tax": 2228,
       "csg_deductible": 5345,
       "csg_nondeductible": 1886,
       "crds": 393,
       "pension_contribution": 3636
     }
   },
-  "tolerance": 500,
-  "tolerance_percent": 0.05,
+  "tolerance": 50,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Calculated with quotient familial (4 parts: 2 + 0.5 + 0.5 + 1) — significant tax reduction for 3+ children",
-      "url": "https://www.service-public.gouv.fr/particuliers/vosdroits/F2705",
-      "date": "2026-02-22"
+      "description": "Verified using official French tax formula (PLF 2026). Taxable income: €66,655.20. Family quotient: 4.0 parts (2 + 0.5 + 0.5 + 1). Quotient: €16,663.80. Tax on quotient: €557.02. Professional expenses: €8,000.",
+      "url": "https://www.service-public.fr/particuliers/vosdroits/F1419",
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026.py"
     }
   ]
 }

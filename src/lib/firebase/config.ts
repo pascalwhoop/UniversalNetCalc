@@ -17,15 +17,16 @@ export const serverConfig = {
   },
 };
 
-const authSecret = process.env.AUTH_SECRET;
-if (!authSecret && process.env.NODE_ENV === "production") {
-  throw new Error("AUTH_SECRET environment variable is required in production");
-}
-
 export const authConfig = {
   apiKey: serverConfig.firebaseApiKey,
   cookieName: "AuthToken",
-  cookieSignatureKeys: [authSecret ?? "dev-only-secret-replace-in-production"],
+  get cookieSignatureKeys() {
+    const secret = process.env.AUTH_SECRET;
+    if (!secret && process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET environment variable is required in production");
+    }
+    return [secret ?? "dev-only-secret-replace-in-production"];
+  },
   cookieSerializeOptions: {
     path: "/",
     httpOnly: true,

@@ -105,6 +105,15 @@ parameters:
   taxable_percentage_with_children: 0.40
 
 calculations:
+  # Cuneo fiscale does NOT apply to impatriate regime (they get the impatriate exemption instead)
+  - id: cuneo_exempt_sum
+    type: identity
+    value: 0
+
+  - id: cuneo_deduction
+    type: identity
+    value: 0
+
   # Override taxable income calculation for impatriate regime
   # CRITICAL FIX: INPS is deducted from gross FIRST, then impatriate percentage is applied
   # For standard case: only 50% of (income - INPS) up to €600k is taxable

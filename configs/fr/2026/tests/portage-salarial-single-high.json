@@ -8,23 +8,24 @@
     "children": 0
   },
   "expected": {
-    "net": 53578,
-    "effective_rate": 0.384,
+    "net": 63448,
+    "effective_rate": 0.3655,
     "breakdown": {
-      "income_tax": 25970,
+      "income_tax": 16100,
       "csg_deductible": 6147,
       "csg_nondeductible": 2169,
       "crds": 452,
       "pension_contribution": 3684
     }
   },
-  "tolerance": 800,
-  "tolerance_percent": 0.10,
+  "tolerance": 50,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Portage salarial: €100k revenue, 8% fee deducted from gross, then salarié taxes applied to remaining amount (2026 brackets)",
+      "description": "Verified using official French tax formula with portage salarial (8% fee). Revenue: €100k. Portage fee: €8,000. Gross after fee: €92k. Social contributions and income tax calculated on €92k. Taxable income: €76,653.48. Tax on quotient: €16,100.03.",
       "url": "https://www.portagesalarial.org/",
-      "date": "2026-02-22"
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026-variants.py"
     }
   ]
 }

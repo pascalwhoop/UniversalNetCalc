@@ -8,10 +8,10 @@
     "children": 0
   },
   "expected": {
-    "net": 43067,
-    "effective_rate": 0.2822,
+    "net": 48024,
+    "effective_rate": 0.1996,
     "breakdown": {
-      "income_tax": 7659,
+      "income_tax": 2701,
       "csg_deductible": 4009,
       "csg_nondeductible": 1415,
       "crds": 295,
@@ -19,12 +19,13 @@
     }
   },
   "tolerance": 50,
-  "tolerance_percent": 0.01,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Verified against engine: 30% bonus exempt, social on full gross, tax on reduced taxable income",
+      "description": "Verified using official French tax formula with 30% impatrié exemption (Article 155B). Social contributions on full gross (€60k). Taxable income: €31,991.40 (after 30% exemption, CSG, prof exp). Tax on quotient: €2,701.41.",
       "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
-      "date": "2026-02-22"
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026-variants.py"
     }
   ]
 }

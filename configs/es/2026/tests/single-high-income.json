@@ -6,17 +6,18 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 64325,
-    "effective_rate": 0.3568
+    "net": 62882,
+    "effective_rate": 0.3712
   },
   "tolerance": 50,
   "tolerance_percent": 0.01,
   "sources": [
     {
-      "description": "Calculated using 2026 Spanish national IRPF rates, Social Security (capped), and solidarity contribution",
+      "description": "Verified using Python script implementing official IRPF calculation per Ley 35/2006",
       "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
-      "retrieved_at": "2026-02-22",
-      "notes": "IRPF: up to 45% bracket. SS capped at €61,214.40. Solidarity: progressive brackets on €38,785.60 excess (0.19%/0.21%/0.24%). Total solidarity: ~€82.68."
+      "retrieved_at": "2026-03-07",
+      "verification_method": "Python script verify_es_2026.py implementing tax credit method per Ley 35/2006 Articles 56-57",
+      "notes": "IRPF: Tax on (Gross - SS) minus tax on mínimo personal €5,550. SS: 6.50% capped at €61,214.40 = €3,978.94. Tax credit: €1,054.50. Solidarity: progressive brackets on €38,785.60 excess = €82.68. CORRECTED 2026-03-07."
     }
   ]
 }

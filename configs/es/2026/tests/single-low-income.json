@@ -6,17 +6,18 @@
     "filing_status": "single"
   },
   "expected": {
-    "net": 23135,
-    "effective_rate": 0.2288
+    "net": 22524,
+    "effective_rate": 0.2492
   },
   "tolerance": 30,
   "tolerance_percent": 0.01,
   "sources": [
     {
-      "description": "Calculated using 2026 Spanish national IRPF rates and Social Security contributions",
+      "description": "Verified using Python script implementing official IRPF calculation per Ley 35/2006",
       "url": "https://sede.agenciatributaria.gob.es/Sede/en_gb/",
-      "retrieved_at": "2026-02-22",
-      "notes": "IRPF: 19%/24%/30% brackets. Personal allowance €5,550. SS: 6.50% (comunes 4.70% + desempleo 1.55% + FP 0.10% + MEI 0.15%). Max SS base: €61,214.40."
+      "retrieved_at": "2026-03-07",
+      "verification_method": "Python script verify_es_2026.py implementing tax credit method per Ley 35/2006 Articles 56-57",
+      "notes": "IRPF: Tax on (Gross - SS) minus tax on mínimo personal €5,550. SS: 6.50% = €1,950. Tax credit: €1,054.50. CORRECTED 2026-03-07: Personal allowance now correctly applied as tax credit (not deduction from taxable income)."
     }
   ]
 }

@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { signIn } from "next-auth/react"
-import { isFeatureEnabled } from "@/lib/feature-flags"
 
 export function LoginForm({
   className,

@@ -1,20 +1,32 @@
 meta:
   variant: "quebec"
   label: "Quebec"
-  description: "Quebec provincial tax rates with federal abatement"
+  description: "Quebec provincial tax rates with federal abatement, QPP, and QPIP"
   base: "../base.yaml"
   sources:
     - url: "https://www.taxtips.ca/taxrates/qc.htm"
       description: "Quebec tax rates for 2025"
-      retrieved_at: "2026-01-23"
-  updated_at: "2026-01-23"
+      retrieved_at: "2026-03-07"
+    - url: "https://www.taxtips.ca/cpp-qpp-and-ei/cpp-qpp-contribution-rates.htm"
+      description: "QPP contribution rates for 2025"
+      retrieved_at: "2026-03-07"
+    - url: "https://www.canada.ca/en/employment-social-development/programs/ei/ei-list/ei-employers/premium-reduction-program/2025-qpip-rates-multiples.html"
+      description: "QPIP rates and maximums for 2025"
+      retrieved_at: "2026-03-07"
+    - url: "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/employment-insurance-ei/ei-premium-rates-maximums.html"
+      description: "EI premium rates including Quebec-specific rate"
+      retrieved_at: "2026-03-07"
+  updated_at: "2026-03-07"
   notes: |
     This variant adds Quebec provincial income tax to the federal base configuration.
 
-    Quebec features:
+    Quebec-specific features:
+    - QPP (Quebec Pension Plan) instead of CPP - 6.40% vs 5.95%
+    - QPIP (Quebec Parental Insurance Plan) - 0.494% up to $94,000
+    - Lower EI rate (1.31%) because QPIP covers parental benefits
     - 4 provincial tax brackets (14% to 25.75%)
-    - Basic Personal Amount of $18,571
-    - Federal abatement of 16.5% on federal tax (Quebec collects its own income tax)
+    - Basic Personal Amount of $18,571 (2025)
+    - Federal abatement of 16.5% on federal tax
     - Highest provincial tax rates in Canada
     - No provincial surtaxes or health premiums
 
@@ -25,6 +37,15 @@ notices:
       Quebec residents receive a 16.5% reduction on federal income tax because Quebec
       collects its own provincial income tax. This abatement is applied after federal
       tax credits are calculated.
+    severity: "info"
+
+  - id: "quebec_contributions"
+    title: "Quebec-Specific Contributions"
+    body: |
+      Quebec residents pay different social contributions than other Canadians:
+      - QPP (Quebec Pension Plan) at 6.40% instead of CPP at 5.95%
+      - QPIP (Quebec Parental Insurance Plan) at 0.494% (unique to Quebec)
+      - Lower EI rate of 1.31% instead of 1.64% (QPIP covers parental benefits)
     severity: "info"
 
 parameters:
@@ -46,10 +67,139 @@ parameters:
   # Federal abatement - 16.5%
   federal_abatement_rate: 0.165
 
+  # Quebec-specific pension plan (QPP instead of CPP)
+  # Source: https://www.taxtips.ca/cpp-qpp-and-ei/cpp-qpp-contribution-rates.htm
+  qpp_exemption: 3500
+  qpp_ympe: 71300
+  qpp_rate: 0.0640  # Higher than CPP's 5.95%!
+  qpp2_yampe: 81200
+  qpp2_rate: 0.0400
+
+  # Quebec Parental Insurance Plan (QPIP) - Quebec only
+  # Source: https://www.canada.ca/en/employment-social-development/programs/ei/ei-list/ei-employers/premium-reduction-program/2025-qpip-rates-multiples.html
+  qpip_max_insurable: 94000
+  qpip_rate: 0.00494  # 0.494%
+
+  # Quebec EI rate (lower because QPIP covers parental benefits)
+  # Source: https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/payroll-deductions-contributions/employment-insurance-ei/ei-premium-rates-maximums.html
+  ei_rate_quebec: 0.0131  # 1.31% instead of standard 1.64%
+
 calculations:
   # Delete base net_annual so we can redefine it at the end
   - id: net_annual
     $delete: true
+
+  # Delete inherited CPP calculations from base.yaml (Quebec uses QPP)
+  - id: cpp_base_contributory_earnings
+    $delete: true
+
+  - id: cpp_base_contribution
+    $delete: true
+
+  - id: cpp2_contributory_earnings
+    $delete: true
+
+  - id: cpp2_contribution
+    $delete: true
+
+  - id: total_cpp
+    $delete: true
+
+  # Delete inherited EI calculation (Quebec uses lower rate)
+  - id: ei_insurable_earnings
+    $delete: true
+
+  - id: ei_contribution
+    $delete: true
+
+  # Delete total_federal_deductions as it references deleted total_cpp
+  - id: total_federal_deductions
+    $delete: true
+
+  # QPP Base contribution (6.40% on earnings from $3,500 to $71,300)
+  - id: qpp_base_contributory_earnings
+    type: max
+    values:
+      - 0
+      - type: min
+        values:
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$qpp_exemption"
+          - type: sub
+            values:
+              - "$qpp_ympe"
+              - "$qpp_exemption"
+
+  - id: qpp_base_contribution
+    type: percent_of
+    base: "$qpp_base_contributory_earnings"
+    rate: "$qpp_rate"
+    category: contribution
+    label: "QPP Base Contribution"
+    description: "Quebec Pension Plan base contribution (6.40%)"
+
+  # QPP2 contribution (4.00% on earnings from $71,300 to $81,200)
+  - id: qpp2_contributory_earnings
+    type: max
+    values:
+      - 0
+      - type: min
+        values:
+          - type: sub
+            values:
+              - "@gross_annual"
+              - "$qpp_ympe"
+          - type: sub
+            values:
+              - "$qpp2_yampe"
+              - "$qpp_ympe"
+
+  - id: qpp2_contribution
+    type: percent_of
+    base: "$qpp2_contributory_earnings"
+    rate: "$qpp2_rate"
+    category: contribution
+    label: "QPP2 Additional Contribution"
+    description: "Quebec Pension Plan second additional contribution (4.00%)"
+
+  # Total QPP
+  - id: total_qpp
+    type: sum
+    values:
+      - "$qpp_base_contribution"
+      - "$qpp2_contribution"
+
+  # QPIP contribution (0.494% up to $94,000) - Quebec only
+  - id: qpip_insurable_earnings
+    type: min
+    values:
+      - "@gross_annual"
+      - "$qpip_max_insurable"
+
+  - id: qpip_contribution
+    type: percent_of
+    base: "$qpip_insurable_earnings"
+    rate: "$qpip_rate"
+    category: contribution
+    label: "QPIP Premium"
+    description: "Quebec Parental Insurance Plan premium (0.494%)"
+
+  # EI contribution with Quebec rate (1.31% up to $65,700)
+  - id: ei_insurable_earnings
+    type: min
+    values:
+      - "@gross_annual"
+      - 65700  # Same max as rest of Canada
+
+  - id: ei_contribution
+    type: percent_of
+    base: "$ei_insurable_earnings"
+    rate: "$ei_rate_quebec"
+    category: contribution
+    label: "EI Premium (Quebec)"
+    description: "Employment Insurance premium - Quebec rate (1.31%)"
 
   # Calculate federal abatement (16.5% of federal tax)
   # Use the federal_income_tax from base which is already calculated
@@ -110,14 +260,15 @@ calculations:
     label: "Quebec Income Tax (After Credits)"
     description: "Quebec provincial tax after basic personal credit"
 
-  # Total deductions (federal with abatement + Quebec + CPP/EI)
+  # Total deductions (federal with abatement + Quebec + QPP/EI/QPIP)
   - id: total_deductions_quebec
     type: sum
     values:
       - "$federal_income_tax_after_abatement"
       - "$quebec_income_tax"
-      - "$total_cpp"
+      - "$total_qpp"
       - "$ei_contribution"
+      - "$qpip_contribution"
 
   # Override net_annual
   - id: net_annual
@@ -142,9 +293,10 @@ outputs:
       - "$federal_income_tax_after_abatement"
       - "$quebec_income_tax"
     contributions:
-      - "$cpp_base_contribution"
-      - "$cpp2_contribution"
+      - "$qpp_base_contribution"
+      - "$qpp2_contribution"
       - "$ei_contribution"
+      - "$qpip_contribution"
     credits:
       - "$basic_personal_credit"
       - "$canada_employment_credit"

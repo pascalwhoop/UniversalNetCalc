@@ -8,10 +8,10 @@
     "children": 2
   },
   "expected": {
-    "net": 62554,
-    "effective_rate": 0.2181,
+    "net": 67876,
+    "effective_rate": 0.1516,
     "breakdown": {
-      "income_tax": 6186,
+      "income_tax": 864,
       "csg_deductible": 5345,
       "csg_nondeductible": 1886,
       "crds": 393,
@@ -19,12 +19,13 @@
     }
   },
   "tolerance": 50,
-  "tolerance_percent": 0.01,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Verified against engine: family quotient 3 parts on 70% of gross, social on full gross",
+      "description": "Verified using official French tax formula with 30% impatrié exemption (Article 155B) and family quotient. Social contributions on full gross (€80k). Taxable income: €42,655.20. Family quotient: 3.0 parts (married + 2 children). Quotient: €14,218.40. Tax on quotient: €288.02.",
       "url": "https://www.impots.gouv.fr/internationalenindividual/expatriate-tax-regime",
-      "date": "2026-02-22"
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026-variants.py"
     }
   ]
 }

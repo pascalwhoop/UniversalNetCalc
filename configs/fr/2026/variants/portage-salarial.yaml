@@ -55,6 +55,10 @@ calculations:
     $delete: true
   - id: taxable_income_before_qf
     $delete: true
+  - id: income_tax_quotient
+    $delete: true
+  - id: income_tax_on_quotient
+    $delete: true
   - id: income_tax
     $delete: true
   - id: total_contributions
@@ -191,17 +195,28 @@ calculations:
   # INCOME TAX
   # ====================
 
-  # Use family quotient function to calculate income tax
+  # Family quotient: divide income by family parts
+  - id: income_tax_quotient
+    type: div
+    values:
+      - "$taxable_income_before_qf"
+      - "$total_parts"
+
+  # Apply progressive tax brackets to quotient
+  - id: income_tax_on_quotient
+    type: bracket_tax
+    base: "$income_tax_quotient"
+    brackets: "$income_tax_brackets"
+
+  # Multiply back by family parts to get total tax
   - id: income_tax
-    type: function
-    name: "family_quotient_tax"
-    inputs:
-      gross: "$taxable_income_before_qf"
-      family_units: "$total_parts"
-      brackets: "$income_tax_brackets"
+    type: mul
+    values:
+      - "$income_tax_on_quotient"
+      - "$total_parts"
     category: income_tax
     label: "Income Tax (Impôt sur le Revenu)"
-    description: "Progressive tax with family quotient system"
+    description: "Progressive tax with family quotient system (quotient familial)"
 
   # ====================
   # TOTALS

@@ -7,23 +7,24 @@
     "children": 0
   },
   "expected": {
-    "net": 52326,
-    "effective_rate": 0.346,
+    "net": 62535,
+    "effective_rate": 0.2183,
     "breakdown": {
-      "income_tax": 16414,
+      "income_tax": 6205,
       "csg_deductible": 5345,
       "csg_nondeductible": 1886,
       "crds": 393,
       "pension_contribution": 3636
     }
   },
-  "tolerance": 500,
-  "tolerance_percent": 0.05,
+  "tolerance": 50,
+  "tolerance_percent": 0.005,
   "sources": [
     {
-      "description": "Calculated with quotient familial (2 parts for married couple), 2026 tax brackets",
-      "url": "https://impots.dispofi.fr/bareme-impot",
-      "date": "2026-02-22"
+      "description": "Verified using official French tax formula (PLF 2026). Taxable income: €66,655.20. Family quotient: 2.0 parts (married). Quotient: €33,327.60. Tax on quotient: €3,102.27. Professional expenses: €8,000.",
+      "url": "https://www.service-public.fr/particuliers/vosdroits/F1419",
+      "date": "2026-03-08",
+      "notes": "Independent Python verification script: scripts/verify-fr-2026.py"
     }
   ]
 }

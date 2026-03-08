@@ -41,9 +41,9 @@ notices:
     title: "2026 Tax Relief"
     body: "For 2026: the second IRPEF bracket rate (€28,001-€50,000) is reduced from 35% to 33%, and there's a new €1,000 fixed deduction for incomes up to €32,000."
     severity: "info"
-  - id: "inps_cut"
-    title: "Social Security Relief for 2026"
-    body: "For 2026, the government provides a 7 percentage point cut in INPS contributions for incomes up to €25,000, and 6 percentage points for €25,001-€35,000."
+  - id: "cuneo_fiscale"
+    title: "Tax Relief for Workers (Cuneo Fiscale 2026)"
+    body: "For 2026, the government provides tax relief through: (1) Tax-exempt sums for incomes up to €20,000 (4.8%-7.1% of income), and (2) €1,000 tax deduction for incomes €20,000-€32,000, gradually phasing out to €40,000. This replaces the previous INPS contribution cuts."
     severity: "info"
 
 inputs:
@@ -142,70 +142,82 @@ parameters:
   employment_credit_tier2_threshold: 28000
   employment_credit_tier3_threshold: 50000
 
-  # Additional €65 for incomes €25,000-€35,000
-  employment_credit_bonus: 65
-  employment_credit_bonus_min: 25000
-  employment_credit_bonus_max: 35000
-
-  # New 2026: €1,000 fixed deduction for incomes up to €32,000
-  fixed_deduction_2026: 1000
-  fixed_deduction_threshold: 32000
+  # Note: The €65 bonus for incomes €25k-€35k was part of the 2024 system
+  # and does not appear in the 2025-2026 tax code
 
   # INPS (Social Security) - Employee contribution
-  # Standard rate is 9.19%, but reduced for low incomes (cuneo fiscale)
+  # Standard rate is 9.19% for all employees (no contribution cuts in 2026)
+  # The cuneo fiscale 2026 operates through TAX relief, not contribution cuts
   inps_employee_rate: 0.0919
 
-  # INPS contribution cut for low incomes (cuneo fiscale 2026)
-  # 7 percentage points cut for income up to €25,000
-  # 6 percentage points cut for income €25,001-€35,000
-  inps_cut_threshold_1: 25000
-  inps_cut_threshold_2: 35000
-  inps_cut_rate_1: 0.07   # Cut for incomes up to €25,000
-  inps_cut_rate_2: 0.06   # Cut for incomes €25,001-€35,000
+  # Cuneo fiscale 2026 - Tax-based relief (NOT contribution reduction)
+  # Replaced the old 6-7% INPS cuts with tax-exempt sums and deductions
+
+  # For income up to €20,000: Tax-exempt sum based on employment income
+  cuneo_exempt_threshold_1: 8500
+  cuneo_exempt_threshold_2: 15000
+  cuneo_exempt_threshold_3: 20000
+  cuneo_exempt_rate_1: 0.071  # 7.1% for income up to €8,500
+  cuneo_exempt_rate_2: 0.053  # 5.3% for income €8,501-€15,000
+  cuneo_exempt_rate_3: 0.048  # 4.8% for income €15,001-€20,000
+
+  # For income €20,000-€40,000: Tax deduction (this IS the cuneo fiscale for 2026)
+  cuneo_deduction_min: 20000
+  cuneo_deduction_fixed_max: 32000  # Fixed €1,000 deduction up to €32k
+  cuneo_deduction_phaseout_max: 40000  # Gradual phaseout from €32k to €40k
+  cuneo_deduction_amount: 1000  # Fixed deduction amount
 
   # Municipal tax - average rate (varies by municipality from 0% to 0.9%)
   municipal_tax_rate: 0.008
 
 calculations:
-  # INPS contribution cut rate based on income (cuneo fiscale)
-  - id: inps_cut_rate
+  # Social Security Contributions (INPS) - Employee portion
+  # Full 9.19% rate for all employees (cuneo fiscale 2026 operates through tax relief, not contribution cuts)
+  - id: inps_employee
+    type: percent_of
+    base: "@gross_annual"
+    rate: "$inps_employee_rate"
+    category: contribution
+    label: "Social Security (INPS - Employee)"
+
+  # Cuneo fiscale 2026 - Tax-exempt sum for incomes up to €20,000
+  # This reduces taxable income (replaces the old INPS contribution cuts)
+  - id: cuneo_exempt_rate
     type: conditional
     condition:
       type: lte
       left: "@gross_annual"
-      right: "$inps_cut_threshold_1"
-    then: "$inps_cut_rate_1"
+      right: "$cuneo_exempt_threshold_1"
+    then: "$cuneo_exempt_rate_1"
     else:
       type: conditional
       condition:
         type: lte
         left: "@gross_annual"
-        right: "$inps_cut_threshold_2"
-      then: "$inps_cut_rate_2"
-      else: 0
+        right: "$cuneo_exempt_threshold_2"
+      then: "$cuneo_exempt_rate_2"
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: "$cuneo_exempt_threshold_3"
+        then: "$cuneo_exempt_rate_3"
+        else: 0
 
-  # Effective INPS rate after cut
-  - id: inps_effective_rate
-    type: sub
-    values:
-      - "$inps_employee_rate"
-      - "$inps_cut_rate"
-
-  # Social Security Contributions (INPS) - Employee portion
-  - id: inps_employee
+  - id: cuneo_exempt_sum
     type: percent_of
     base: "@gross_annual"
-    rate: "$inps_effective_rate"
-    category: contribution
-    label: "Social Security (INPS - Employee)"
+    rate: "$cuneo_exempt_rate"
 
-  # Taxable income for IRPEF is gross annual minus INPS contributions
-  # This is the legally correct base for income tax calculation
+  # Taxable income for IRPEF = gross - INPS - cuneo exempt sum
+  # Note: In 2026, INPS is deducted from taxable income (changed from 2025)
   - id: taxable_income
     type: sub
     values:
       - "@gross_annual"
       - "$inps_employee"
+      - "$cuneo_exempt_sum"
 
   # Gross National Income Tax (IRPEF) before credits
   - id: irpef_gross
@@ -265,40 +277,50 @@ calculations:
                 - 22000
         else: 0
 
-  # Additional €65 for incomes €25,000-€35,000
-  - id: employment_credit_bonus_amount
+  # Cuneo fiscale 2026 - Tax deduction for incomes €20,000-€40,000
+  - id: cuneo_deduction
     type: conditional
     condition:
-      type: gte
+      type: lt
       left: "@gross_annual"
-      right: "$employment_credit_bonus_min"
-    then:
+      right: "$cuneo_deduction_min"
+    then: 0
+    else:
       type: conditional
       condition:
         type: lte
         left: "@gross_annual"
-        right: "$employment_credit_bonus_max"
-      then: "$employment_credit_bonus"
-      else: 0
-    else: 0
+        right: "$cuneo_deduction_fixed_max"
+      then: "$cuneo_deduction_amount"
+      else:
+        type: conditional
+        condition:
+          type: lte
+          left: "@gross_annual"
+          right: "$cuneo_deduction_phaseout_max"
+        then:
+          type: mul
+          values:
+            - "$cuneo_deduction_amount"
+            - type: div
+              values:
+                - type: sub
+                  values:
+                    - "$cuneo_deduction_phaseout_max"
+                    - "@gross_annual"
+                - type: sub
+                  values:
+                    - "$cuneo_deduction_phaseout_max"
+                    - "$cuneo_deduction_fixed_max"
+        else: 0
 
-  # New 2026: €1,000 fixed deduction for incomes up to €32,000
-  - id: fixed_deduction
-    type: conditional
-    condition:
-      type: lte
-      left: "@gross_annual"
-      right: "$fixed_deduction_threshold"
-    then: "$fixed_deduction_2026"
-    else: 0
-
-  # Total employment tax credit (base + bonus + 2026 fixed deduction)
+  # Total employment tax credit (base + cuneo fiscale deduction)
+  # Note: €65 bonus removed - was part of 2024 system only
   - id: employment_credit
     type: sum
     values:
       - "$employment_credit_base"
-      - "$employment_credit_bonus_amount"
-      - "$fixed_deduction"
+      - "$cuneo_deduction"
 
   # Net IRPEF after employment credit (cannot go below 0)
   - id: irpef

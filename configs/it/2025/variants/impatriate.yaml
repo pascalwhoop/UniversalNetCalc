@@ -102,6 +102,15 @@ parameters:
   taxable_percentage_with_children: 0.40
 
 calculations:
+  # Cuneo fiscale does NOT apply to impatriate regime (they get the impatriate exemption instead)
+  - id: cuneo_exempt_sum
+    type: identity
+    value: 0
+
+  - id: cuneo_deduction
+    type: identity
+    value: 0
+
   # Override taxable income calculation for impatriate regime
   # For standard case: only 50% of income (up to €600k) is taxable
   # With minor children: only 40% of income (up to €600k) is taxable

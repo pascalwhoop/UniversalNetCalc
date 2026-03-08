@@ -1,0 +1,12 @@
+{
+  "name": "PAYE scheme - Low income NOK 300,000",
+  "variant": "paye",
+  "inputs": {
+    "gross_annual": 300000
+  },
+  "expected": {
+    "net": 225000,
+    "effective_rate": 0.25
+  },
+  "tolerance": 1
+}

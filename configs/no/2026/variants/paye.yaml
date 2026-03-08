@@ -1,17 +1,16 @@
 meta:
   variant: "paye"
   label: "PAYE Scheme"
-  description: "Pay As You Earn (PAYE) scheme for foreign workers - flat 25% tax rate (includes 7.7% national insurance). Available only for foreign workers earning below NOK 697,150. No deductions allowed, no tax return required."
+  description: "Pay As You Earn (PAYE) scheme for foreign workers - flat 25% tax rate (includes 7.6% national insurance). Available only for foreign workers earning below NOK 725,050. No deductions allowed, no tax return required."
   base: "base.yaml"
   sources:
     - url: "https://www.skatteetaten.no/en/person/foreign/are-you-intending-to-work-in-norway/tax-deduction-cards/paye/"
       description: "Norwegian Tax Administration - PAYE for Foreign Workers"
       retrieved_at: "2026-03-07"
-  verification_report: "reports/NO-2025-2026-VERIFICATION.md"
 
 parameters:
   paye_rate: 0.25
-  paye_income_limit: 697150
+  paye_income_limit: 725050
 
 calculations:
   # Delete base calculations - PAYE uses a simple flat rate
@@ -87,13 +86,13 @@ notices:
     title: "PAYE Scheme for Foreign Workers"
     body: |
       You are using the simplified PAYE (Pay As You Earn) scheme with a flat 25% tax rate.
-      This includes 7.7% national insurance contributions, making the effective income tax 17.3%.
+      This includes 7.6% national insurance contributions, making the effective income tax 17.4%.
     severity: "info"
 
   - id: "paye_income_limit"
     title: "PAYE Income Limit"
     body: |
-      The PAYE scheme is only available for foreign workers earning below NOK 697,150 (2025).
+      The PAYE scheme is only available for foreign workers earning below NOK 725,050 (2026).
       If your income exceeds this threshold, you must use the standard taxation rules.
     severity: "warning"
 
